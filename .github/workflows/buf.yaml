@@ -1,0 +1,35 @@
+name: buf
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  buf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.55.1"
+      - name: buf lint
+        run: buf lint
+      - name: buf build
+        run: buf build
+      - name: buf breaking
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          set -euo pipefail
+          git fetch origin "${BASE_REF}"
+          if git ls-tree -r --name-only "origin/${BASE_REF}" | grep -q '\.proto$'; then
+            buf breaking --against ".git#branch=origin/${BASE_REF}"
+          else
+            echo "Base has no proto files. Skipping breaking check."
+          fi
