@@ -11,7 +11,7 @@ import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "vws/common/v1/resource.proto";
 
-option go_package = "github.com/popododo0720/vws-proto/vws/network/v1;networkv1";
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/network/v1;networkv1";
 option java_multiple_files = true;
 option java_outer_classname = "SubnetProto";
 option java_package = "dev.vws.network.v1";

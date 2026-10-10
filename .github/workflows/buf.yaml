@@ -18,6 +18,7 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1
         with:
           version: "1.55.1"
+          github_token: ${{ github.token }}
       - name: buf lint
         run: buf lint
       - name: buf build
@@ -33,3 +34,19 @@ jobs:
           else
             echo "Base has no proto files. Skipping breaking check."
           fi
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.55.1"
+          github_token: ${{ github.token }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: generated Go is current
+        run: scripts/check-generated-go.sh
+      - name: go build
+        run: go build ./...

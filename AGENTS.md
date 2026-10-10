@@ -18,6 +18,8 @@
 | 멱등 | 생성, 수정, 삭제, 상태 보고는 `OperationMetadata`에 적힌 규칙으로 다시 실행해도 같은 결과에 닿는다 |
 | 재시작 | 원하는 상태와 operation을 응답 전에 저장한다. 프로세스가 다시 뜨면 그 기록으로 맞춘다 |
 | 식별자 | Object 키를 제외하면 `ResourceId` 문법. 컬렉션 이름은 AIP-122 camelCase |
+| Go 패키지 | `option go_package = "github.com/popododo0720/vws-proto/gen/go/<proto 디렉터리>;<도메인><버전>"`. `vws/compute/v1`은 `computev1`. CI가 파일 경로와 대조한다 |
+| 생성 코드 | `buf generate`와 `go mod tidy` 결과(`gen/go`, `go.mod`, `go.sum`)를 proto를 바꾼 커밋에 같이 넣는다. `gen/go`는 손으로 고치지 않는다 |
 | 참조 | 다른 리소스는 전체 리소스 이름으로 가리킨다. 패키지 간 proto import로 연결하지 않는다 |
 | 브랜치 | `main`에 직접 커밋하거나 푸시하지 않는다. 브랜치와 PR로 넣는다 |
 | 커밋 | 원자적이다. 한 커밋은 한 목적만 담는다 |
@@ -27,7 +29,7 @@
 
 `main`에서 작업하지 않는다. 브랜치를 만들고, 리뷰는 PR로 받는다.
 
-한 커밋은 한 목적이다. 공통 계약, 도메인 API, CI, 문서를 한 커밋에 섞지 않는다. proto를 건드린 커밋은 그 내용만으로 `buf lint`와 `buf build`가 통과해야 한다.
+한 커밋은 한 목적이다. 공통 계약, 도메인 API, CI, 문서를 한 커밋에 섞지 않는다. proto를 바꾼 PR의 최종 트리는 `buf lint`와 `buf build`를 통과하고, `gen/go`가 최신이어야 한다. CI가 그 트리를 검사한다.
 
 ## pstack 사용
 

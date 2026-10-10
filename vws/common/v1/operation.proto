@@ -4,7 +4,7 @@ package vws.common.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/popododo0720/vws-proto/vws/common/v1;commonv1";
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/common/v1;commonv1";
 option java_multiple_files = true;
 option java_outer_classname = "OperationProto";
 option java_package = "dev.vws.common.v1";
