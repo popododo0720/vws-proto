@@ -60,11 +60,46 @@ Terraform과 Ansible은 리소스마다 같은 호출을 쓴다.
 
 부모가 남아 있는 동안 서브넷, 보안 그룹, 오브젝트가 있으면 부모 삭제는 `DEPENDENCY_MISSING`이다. 각 서비스 주석에 거절 조건이 있다.
 
+## Go 모듈
+
+레포 루트가 Go 모듈 `github.com/popododo0720/vws-proto`다. 생성 코드는 `gen/go`에 커밋되어 있다. 태그는 `v0.1.0`처럼 접두사 없이 붙인다. `gen/go/v0.1.0`이 아니다.
+
+```sh
+go env -w GOPRIVATE=github.com/popododo0720/*
+go get github.com/popododo0720/vws-proto@v0.1.0
+```
+
+이 레포는 비공개다. `GOPRIVATE`는 모듈 프록시와 체크섬 DB를 건너뛴다. git이 GitHub에 인증할 수 있어야 한다. Go 1.26 이상이 필요하다. `go get`은 호출하는 모듈의 `go` 줄을 `1.26.0`으로 올린다.
+
+| proto 패키지 | Go import 경로 | Go 패키지 |
+| --- | --- | --- |
+| `vws.common.v1` | `github.com/popododo0720/vws-proto/gen/go/vws/common/v1` | `commonv1` |
+| `vws.compute.v1` | `github.com/popododo0720/vws-proto/gen/go/vws/compute/v1` | `computev1` |
+| `vws.storage.v1` | `github.com/popododo0720/vws-proto/gen/go/vws/storage/v1` | `storagev1` |
+| `vws.network.v1` | `github.com/popododo0720/vws-proto/gen/go/vws/network/v1` | `networkv1` |
+
+변경 RPC가 돌려주는 `google.longrunning.Operation`은 `cloud.google.com/go/longrunning/autogen/longrunningpb`의 `Operation`이다.
+
+## 생성
+
+proto를 바꾼 커밋에 생성 결과를 같이 넣는다. `gen/go`는 손으로 고치지 않는다. `buf generate`가 그 디렉터리를 지우고 다시 만든다.
+
+```sh
+buf generate
+go mod tidy
+```
+
+`option go_package`는 `github.com/popododo0720/vws-proto/gen/go/<proto 디렉터리>;<도메인><버전>`이다. `vws/compute/v1`의 패키지 이름은 `computev1`이다.
+
 ## 검사
 
 ```sh
 buf lint
 buf build
+buf generate
+go mod tidy
+git add --intent-to-add --all
+git diff --exit-code
 ```
 
-GitHub Actions가 pull request와 `main` push에서 둘을 실행한다. base에 proto가 있을 때만 `buf breaking`을 실행한다.
+GitHub Actions가 pull request와 `main` push에서 `buf lint`, `buf build`를 실행한다. base에 proto가 있을 때만 `buf breaking`을 실행한다. `go` 잡은 `go_package`가 파일 경로와 같은지, `gen/go`와 `go.mod`와 `go.sum`이 최신인지, `go build ./...`가 통과하는지를 본다.
