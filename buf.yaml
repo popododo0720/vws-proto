@@ -7,5 +7,14 @@ lint:
 breaking:
   use:
     - FILE
+  # go_package moves under gen/go in this change. main still has the old
+  # path, so FILE_SAME_GO_PACKAGE fails until that commit is on main.
+  # Remove this ignore in the follow-up, before tagging v0.1.0.
+  ignore_only:
+    FILE_SAME_GO_PACKAGE:
+      - vws/common/v1
+      - vws/compute/v1
+      - vws/storage/v1
+      - vws/network/v1
 deps:
   - buf.build/googleapis/googleapis
