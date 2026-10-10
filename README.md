@@ -65,11 +65,12 @@ Terraform과 Ansible은 리소스마다 같은 호출을 쓴다.
 레포 루트가 Go 모듈 `github.com/popododo0720/vws-proto`다. 생성 코드는 `gen/go`에 커밋되어 있다. 태그는 `v0.1.0`처럼 접두사 없이 붙인다. `gen/go/v0.1.0`이 아니다.
 
 ```sh
-go env -w GOPRIVATE=github.com/popododo0720/*
 go get github.com/popododo0720/vws-proto@v0.1.0
 ```
 
-이 레포는 비공개다. `GOPRIVATE`는 모듈 프록시와 체크섬 DB를 건너뛴다. git이 GitHub에 인증할 수 있어야 한다. Go 1.26 이상이 필요하다. `go get`은 호출하는 모듈의 `go` 줄을 `1.26.0`으로 올린다.
+이 레포는 비공개다. `GOPRIVATE`에 `github.com/popododo0720/*`를 넣는다. 이미 값이 있으면 쉼표로 잇는다. `go env -w`로 통째로 바꾸면 기존 값이 사라진다. 이 설정은 모듈 프록시와 체크섬 DB를 건너뛴다. git이 GitHub에 인증할 수 있어야 한다. Go 1.26 이상이 필요하다. `go get`은 호출하는 모듈의 `go` 줄을 `1.26.0`으로 올린다.
+
+다른 레포의 GitHub Actions에서 기본 `GITHUB_TOKEN`은 그 레포만 읽는다. 그 잡은 `GOPRIVATE=github.com/popododo0720/*`를 설정하고, 이 레포의 `contents`를 읽을 수 있는 자격 증명으로 `https://github.com/popododo0720/vws-proto`를 받게 한다.
 
 | proto 패키지 | Go import 경로 | Go 패키지 |
 | --- | --- | --- |
@@ -96,10 +97,10 @@ go mod tidy
 ```sh
 buf lint
 buf build
-buf generate
-go mod tidy
-git add --intent-to-add --all
-git diff --exit-code
+scripts/check-generated-go.sh
+go build ./...
 ```
 
-GitHub Actions가 pull request와 `main` push에서 `buf lint`, `buf build`를 실행한다. base에 proto가 있을 때만 `buf breaking`을 실행한다. `go` 잡은 `go_package`가 파일 경로와 같은지, `gen/go`와 `go.mod`와 `go.sum`이 최신인지, `go build ./...`가 통과하는지를 본다.
+`scripts/check-generated-go.sh`는 `go_package`가 파일 경로와 같은지 보고, `buf generate`와 `go mod tidy` 뒤에 `gen`, `go.mod`, `go.sum`의 diff가 없는지 본다. 인덱스를 바꾸지 않는다. 추적되지 않은 `gen` 파일도 실패다.
+
+GitHub Actions가 pull request와 `main` push에서 `buf lint`, `buf build`를 실행한다. base에 proto가 있을 때만 `buf breaking`을 실행한다. `go` 잡은 같은 스크립트와 `go build ./...`를 실행한다.
