@@ -33,3 +33,34 @@ jobs:
           else
             echo "Base has no proto files. Skipping breaking check."
           fi
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.55.1"
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: go_package matches path
+        run: |
+          set -euo pipefail
+          status=0
+          for f in $(git ls-files '*.proto'); do
+            dir=$(dirname "$f")
+            pkg=$(basename "$(dirname "$dir")")$(basename "$dir")
+            want="option go_package = \"github.com/popododo0720/vws-proto/gen/go/${dir};${pkg}\";"
+            grep -qxF "$want" "$f" || { echo "::error file=$f::want $want"; status=1; }
+          done
+          exit "$status"
+      - name: generated Go code is current
+        run: |
+          set -euo pipefail
+          buf generate
+          go mod tidy
+          git add --intent-to-add --all
+          git diff --exit-code
+      - name: go build
+        run: go build ./...
