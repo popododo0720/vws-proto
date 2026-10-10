@@ -18,6 +18,7 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1
         with:
           version: "1.55.1"
+          github_token: ${{ github.token }}
       - name: buf lint
         run: buf lint
       - name: buf build
@@ -41,26 +42,11 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1
         with:
           version: "1.55.1"
+          github_token: ${{ github.token }}
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: go_package matches path
-        run: |
-          set -euo pipefail
-          status=0
-          for f in $(git ls-files '*.proto'); do
-            dir=$(dirname "$f")
-            pkg=$(basename "$(dirname "$dir")")$(basename "$dir")
-            want="option go_package = \"github.com/popododo0720/vws-proto/gen/go/${dir};${pkg}\";"
-            grep -qxF "$want" "$f" || { echo "::error file=$f::want $want"; status=1; }
-          done
-          exit "$status"
-      - name: generated Go code is current
-        run: |
-          set -euo pipefail
-          buf generate
-          go mod tidy
-          git add --intent-to-add --all
-          git diff --exit-code
+      - name: generated Go is current
+        run: scripts/check-generated-go.sh
       - name: go build
         run: go build ./...
