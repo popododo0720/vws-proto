@@ -9,6 +9,7 @@ VWS 제어 평면의 공유 gRPC 정의다. 원하는 상태는 여기 정의된
 | 서비스 | 리소스 이름 |
 | --- | --- |
 | `vws.compute.v1.InstanceService` | `projects/{project}/zones/{zone}/instances/{instance}` |
+| `vws.compute.v1.NodeService` | `projects/{project}/zones/{zone}/nodes/{node}` |
 | `vws.compute.v1.ImageService` | `projects/{project}/regions/{region}/images/{image}` |
 | `vws.compute.v1.KeyPairService` | `projects/{project}/regions/{region}/keyPairs/{key_pair}` |
 | `vws.storage.v1.VolumeService` | `projects/{project}/zones/{zone}/volumes/{volume}` |
@@ -20,7 +21,7 @@ VWS 제어 평면의 공유 gRPC 정의다. 원하는 상태는 여기 정의된
 | `vws.network.v1.SecurityGroupService` | `projects/{project}/regions/{region}/vpcs/{vpc}/securityGroups/{security_group}` |
 | `vws.network.v1.AddressService` | `projects/{project}/regions/{region}/addresses/{address}` |
 
-`Address`는 정적 공인 주소다. 연결 대상은 주소 `spec`에만 둔다. 볼륨 연결은 인스턴스 `spec`에만 둔다. 보안 그룹 규칙은 그룹 `spec`의 목록이다.
+`Address`는 정적 공인 주소다. 연결 대상은 주소 `spec.association`에만 둔다. `spec.vpc`는 만들 때 정하는 VPC 할당이다. 비어 있으면 VPC에 묶이지 않는다. 볼륨 연결은 인스턴스 `spec`에만 둔다. 보안 그룹 규칙은 그룹 `spec`의 목록이다. 인스턴스를 어느 노드에 둘지는 `status.assigned_node`이고, 서버만 쓴다.
 
 Object의 `{object}`만 퍼센트 인코딩된 키다. 나머지 id는 `vws.common.v1.ResourceId` 문법이다.
 
@@ -36,6 +37,11 @@ Terraform과 Ansible은 리소스마다 같은 호출을 쓴다.
 | 맞추기 | `Update*`. 없으면 만들려면 `allow_missing` |
 | 없애기 | `Delete*`. 이미 없으면 `allow_missing` |
 | 미리 검사 | `validate_only` |
+| 오브젝트 본문 쓰기 | `WriteObject`. 상한은 4194304바이트. 만들 때는 `CreateObject` |
+| 오브젝트 본문 읽기 | `ReadObject`. `GetObject`는 메타데이터만 반환한다 |
+| 노드 심박과 원하는 인스턴스 | `SyncNode`. 인스턴스 상태 보고는 `ReportInstanceStatus` |
+
+`Object.etag`는 동시성 토큰이다. 본문 다이제스트는 `spec.sha256`와 `status.md5`다. 키 페어 `status.fingerprint_sha256`는 서버가 공개 키에서 계산한 소문자 hex다. `CreateKeyPair`와 `GetKeyPair`가 같은 필드를 돌려준다.
 
 변경 RPC는 operation을 반환한다. 클라이언트는 같은 operation 이름으로 완료를 조회한다. 완료 후 `status.observed.generation`이 `generation`과 같고 `status.observed.state`가 `READY`이면 노드가 spec에 맞춘 것이다. 삭제는 리소스가 사라진 뒤에 끝난다.
 
@@ -53,12 +59,12 @@ Terraform과 Ansible은 리소스마다 같은 호출을 쓴다.
 
 만들 때는 참조 대상이 먼저다. 지울 때는 반대다.
 
-1. VPC, 버킷, 키 페어, 이미지, 스냅샷
+1. VPC, 버킷, 키 페어, 이미지, 스냅샷, 노드
 2. 서브넷, 보안 그룹, 볼륨
 3. 인스턴스, 오브젝트
 4. 주소 연결
 
-부모가 남아 있는 동안 서브넷, 보안 그룹, 오브젝트가 있으면 부모 삭제는 `DEPENDENCY_MISSING`이다. 각 서비스 주석에 거절 조건이 있다.
+부모가 남아 있는 동안 서브넷, 보안 그룹, 오브젝트가 있으면 부모 삭제는 `DEPENDENCY_MISSING`이다. `spec.vpc`가 VPC를 가리키는 주소가 있어도 VPC 삭제는 거절된다. 각 서비스 주석에 거절 조건이 있다.
 
 ## Go 모듈
 
