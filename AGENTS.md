@@ -24,6 +24,7 @@
 | 브랜치 | `main`에 직접 커밋하거나 푸시하지 않는다. 브랜치와 PR로 넣는다 |
 | 커밋 | 원자적이다. 한 커밋은 한 목적만 담는다 |
 | 고지 | 로고와 상표 고지를 넣지 않는다 |
+| 내부자 위험 | PR은 main을 대상으로 하고 본문에 `Closes #N`이 있다. main에 PR 없이 들어온 커밋은 CI가 알린다. 이 파일은 아래 Insider-risk guardrails 1~7을 갖는다. 검사는 `scripts/guard-agents.sh`, `.github/workflows/repo-guard.yml`, `.github/workflows/direct-push-watch.yml`이 한다 |
 | 도구 | Cursor 클라우드 에이전트를 쓰지 않는다. 작업 방식은 아래 poteto-mode 절을 따른다 |
 
 ## 브랜치와 커밋
@@ -49,3 +50,17 @@
 | 함수 경계를 넘는 설계. 패키지, 서비스, 공통 계약이 함께 바뀐다 | architect |
 | 다툼이 있는 설계. 계약에 남을 형태가 둘 이상이고 트레이드오프가 있다 | interrogate |
 | 반복 실수. 같은 lint 위반, 봉투 불일치, 멱등 규칙 누락이 다시 나온다 | correct |
+
+## Insider-risk guardrails
+
+봇도 내부자 위험이다. 아래는 예외 없는 규칙이다. 설계는 vws-deploy#33이다.
+
+1. **검증 독립**: 중요 결과(머지, 보안, 데이터)는 작성한 봇/모델이 스스로 검증하지 않는다. 검증은 작성 봇이 아닌 다른 봇(또는 사람)이 한다. (프로세스 규칙, CI로 강제 불가)
+2. **기록**: 모든 변경은 이슈 → PR(`Closes #N`) → 커밋으로 남긴다. 작업 로그는 PR 본문/이슈 코멘트에 사람이 읽을 수 있게 쓴다. force-push·히스토리 재작성 금지(사용자 승인 시 예외). 이 레포에서는 proto 변경 PR 본문에 하위 레포(vws-compute, vws-storage, vws-network, vws-deploy) 영향과 breaking 여부를 적는다.
+3. **실패 테스트**: 새 기능은 정상 경로만 테스트하지 않는다. 전원 차단/재시작, 멱등 재실행, 악성·경계 입력 케이스를 최소 1개씩 포함하거나 불가 사유를 PR에 적는다. 이 레포에서는 필드 번호를 바꾸거나 지웠을 때 `buf breaking`이 실패하는 것을 PR에서 확인하고, 입력 검증 규칙은 `docs/validation.md`에 적는다.
+4. **최소 권한**: main 직접 푸시 금지. 모든 변경은 main에서 딴 독립 브랜치의 단일 PR. 스택 PR 금지. 로컬 머지 금지. 토큰은 해당 레포 범위만. RBAC은 서비스 코드가 실제 호출하는 리소스만, 가능하면 Role(네임스페이스 범위).
+5. **감사 분리**: 작성 봇 ≠ 검증 봇 ≠ 머지 판단. 작성 봇은 자기 PR을 머지하지 않는다. 머지는 base==main 이고 head 커밋 CI가 전부 success일 때만.
+6. **격리·비상정지**: 봇/에이전트 즉시 중단은 사용자 요청 또는 오케스트레이터가 해당 봇 세션 중단 + 토큰 폐기(`gh auth`/PAT revoke). 위험 작업은 샌드박스(박스/임시 클러스터)에서만. 운영 클러스터 접근 금지.
+7. **사고 공개**: 규칙 위반·사고는 숨기지 않고 이슈에 `원인 / 영향 / 조치 / 재발방지`로 기록한다 (라벨 `incident`).
+
+이 레포의 서버측 보호는 없다(private, 무료 플랜). 1, 5, 6은 프로세스 규칙이고, 2와 4의 일부는 `.github/workflows/repo-guard.yml`이 PR의 base와 `Closes #N`을 검사하고 `.github/workflows/direct-push-watch.yml`이 main에 PR 없이 들어온 커밋을 사후에 알린다. 차단이 아니라 탐지다. 복사 방법은 vws-deploy `docs/insider-risk.md`에 있다.

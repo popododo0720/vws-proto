@@ -50,3 +50,10 @@ jobs:
         run: scripts/check-generated-go.sh
       - name: go build
         run: go build ./...
+
+  guard-agents:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: guard-agents.sh rejects bad input
+        run: scripts/guard-agents.sh selftest
