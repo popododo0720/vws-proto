@@ -8,7 +8,7 @@
 | 라벨 키 | `[a-z][a-z0-9_-]{0,62}` | 같은 파일의 봉투 주석 |
 | 라벨 값 | UTF-8 0~63바이트, ASCII 제어 문자 없음 | 같은 파일 |
 | Object 키 | 디코드 후 1~1024바이트, `.`과 `..` 아님, `/`로 시작하거나 끝나지 않음, `//` 없음, ASCII 제어 문자 없음. 경로에는 RFC 3986 퍼센트 인코딩(`/`는 `%2F`) | `vws/storage/v1/object.proto` `Object` |
-| `OUTPUT_ONLY` 필드 | 클라이언트가 보내도 서버는 무시한다. `status`는 서버와 노드만 쓴다 | `google.api.field_behavior` |
+| `OUTPUT_ONLY` 필드 | AIP-203 관례로 입력에서는 무시된다. 이 레포의 주석이 서버 동작을 명시하지는 않는다(확인 필요). `status`는 서버와 노드만 쓴다 | `google.api.field_behavior` |
 | `request_id` | 같은 id와 같은 지문은 원래 operation을 돌려주고, 지문이 다르면 `ABORTED / IDEMPOTENCY_CONFLICT`. 24시간 기억 | `vws/common/v1/operation.proto` |
 | 상태 보고의 `generation` | 저장된 값보다 낮은 보고는 무시한다 | `ObservedState` |
 | `etag` | 값이 있으면 저장된 etag와 같아야 한다. 아니면 `ETAG_MISMATCH` | `operation.proto` |
