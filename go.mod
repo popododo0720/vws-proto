@@ -2,6 +2,8 @@ module github.com/popododo0720/vws-proto
 
 go 1.26.0
 
+toolchain go1.26.9
+
 require (
 	cloud.google.com/go/longrunning v1.3.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20261005182115-fad411399dd8
