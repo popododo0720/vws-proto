@@ -17,15 +17,16 @@ option java_package = "dev.vws.iam.v1";
 // NetworkPolicy reach it; it is never exposed outside the cluster.
 // None of these RPCs is an operation: they write no desired state.
 service AuthService {
-  // GetSigningCredential returns the secret of an access key so the caller
-  // can verify a SigV4 signature itself. Long-term (AKIA) and temporary
-  // (ASIA) keys both resolve. An unknown, inactive, or expired key is
-  // UNAUTHENTICATED / INVALID_CREDENTIALS; an expired temporary key is
-  // UNAUTHENTICATED / TOKEN_EXPIRED. Callers may cache a result until
-  // cache_until and must not log secret_access_key.
-  rpc GetSigningCredential(GetSigningCredentialRequest) returns (GetSigningCredentialResponse) {
+  // Authenticate verifies a SigV4 signature inside vws-iam. The caller
+  // (console-api) builds the string to sign from the request and sends it
+  // with the signature; the secret never leaves vws-iam. Long-term (AKIA)
+  // and temporary (ASIA, with session_token) keys both verify.
+  // Unknown or inactive key, wrong signature, or a credential scope that does
+  // not match the string to sign is UNAUTHENTICATED / INVALID_CREDENTIALS; an
+  // expired temporary key is UNAUTHENTICATED / TOKEN_EXPIRED.
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
     option (google.api.http) = {
-      post: "/v1/signingCredentials:get"
+      post: "/v1/authenticate"
       body: "*"
     };
   }
@@ -134,22 +135,33 @@ message Credentials {
   google.protobuf.Timestamp expire_time = 4;
 }
 
-message GetSigningCredentialRequest {
+message AuthenticateRequest {
+  // Access key id from the Credential of the Authorization header.
   string access_key_id = 1 [(google.api.field_behavior) = REQUIRED];
-  // Required for an ASIA key: the X-Amz-Security-Token of the request.
-  string session_token = 2;
+  // Credential scope: {yyyymmdd}/{region}/{service}/aws4_request. It must equal
+  // the third line of string_to_sign.
+  string credential_scope = 2 [(google.api.field_behavior) = REQUIRED];
+  // SigV4 string to sign: "AWS4-HMAC-SHA256", X-Amz-Date, scope, and the hex
+  // SHA-256 of the canonical request, joined by "\n". vws-iam checks that
+  // X-Amz-Date is within 15 minutes of its clock.
+  string string_to_sign = 3 [(google.api.field_behavior) = REQUIRED];
+  // Lowercase hex signature from the request.
+  string signature = 4 [(google.api.field_behavior) = REQUIRED];
+  // X-Amz-Security-Token. Required for an ASIA key, empty otherwise.
+  string session_token = 5;
+  // Client address, for aws:SourceIp in later Authorize calls and for audit.
+  string source_ip = 6;
 }
 
-message GetSigningCredentialResponse {
+message AuthenticateResponse {
+  // Principal carries mfa_authenticated and auth_time of the key's session.
   Principal principal = 1;
-  string secret_access_key = 2;
-  // Callers may cache this answer until this time (short, at most 60 s, and
-  // never past a temporary key's expiry).
-  google.protobuf.Timestamp cache_until = 3;
+  // Expiry of a temporary key; unset for a long-term key.
+  google.protobuf.Timestamp expire_time = 2;
 }
 
 message AuthorizeRequest {
-  // The caller, as GetSigningCredential, ValidateSession, or an STS call
+  // The caller, as Authenticate, ValidateSession, or an STS call
   // returned it. vws-iam re-reads the policies of principal.resource; it does
   // not trust any other field except mfa_authenticated and auth_time, which
   // it checks against the session or key that produced them.
@@ -230,7 +242,7 @@ message AssumeRoleRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "vws.iam/Role"
   ];
-  // The caller: from GetSigningCredential or ValidateSession.
+  // The caller: from Authenticate or ValidateSession.
   Principal caller = 2 [(google.api.field_behavior) = REQUIRED];
   // [\w+=,.@-]{2,64}.
   string role_session_name = 3 [(google.api.field_behavior) = REQUIRED];

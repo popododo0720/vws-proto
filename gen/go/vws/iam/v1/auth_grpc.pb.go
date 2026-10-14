@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_GetSigningCredential_FullMethodName = "/vws.iam.v1.AuthService/GetSigningCredential"
-	AuthService_Authorize_FullMethodName            = "/vws.iam.v1.AuthService/Authorize"
-	AuthService_Login_FullMethodName                = "/vws.iam.v1.AuthService/Login"
-	AuthService_ValidateSession_FullMethodName      = "/vws.iam.v1.AuthService/ValidateSession"
-	AuthService_Logout_FullMethodName               = "/vws.iam.v1.AuthService/Logout"
+	AuthService_Authenticate_FullMethodName    = "/vws.iam.v1.AuthService/Authenticate"
+	AuthService_Authorize_FullMethodName       = "/vws.iam.v1.AuthService/Authorize"
+	AuthService_Login_FullMethodName           = "/vws.iam.v1.AuthService/Login"
+	AuthService_ValidateSession_FullMethodName = "/vws.iam.v1.AuthService/ValidateSession"
+	AuthService_Logout_FullMethodName          = "/vws.iam.v1.AuthService/Logout"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -35,13 +35,14 @@ const (
 // NetworkPolicy reach it; it is never exposed outside the cluster.
 // None of these RPCs is an operation: they write no desired state.
 type AuthServiceClient interface {
-	// GetSigningCredential returns the secret of an access key so the caller
-	// can verify a SigV4 signature itself. Long-term (AKIA) and temporary
-	// (ASIA) keys both resolve. An unknown, inactive, or expired key is
-	// UNAUTHENTICATED / INVALID_CREDENTIALS; an expired temporary key is
-	// UNAUTHENTICATED / TOKEN_EXPIRED. Callers may cache a result until
-	// cache_until and must not log secret_access_key.
-	GetSigningCredential(ctx context.Context, in *GetSigningCredentialRequest, opts ...grpc.CallOption) (*GetSigningCredentialResponse, error)
+	// Authenticate verifies a SigV4 signature inside vws-iam. The caller
+	// (console-api) builds the string to sign from the request and sends it
+	// with the signature; the secret never leaves vws-iam. Long-term (AKIA)
+	// and temporary (ASIA, with session_token) keys both verify.
+	// Unknown or inactive key, wrong signature, or a credential scope that does
+	// not match the string to sign is UNAUTHENTICATED / INVALID_CREDENTIALS; an
+	// expired temporary key is UNAUTHENTICATED / TOKEN_EXPIRED.
+	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	// Authorize evaluates the principal's policies for one request.
 	// AWS semantics: an explicit Deny wins, then an Allow, else implicit deny.
 	// A denial is a normal response (decision DENY_*), not an RPC error.
@@ -69,10 +70,10 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) GetSigningCredential(ctx context.Context, in *GetSigningCredentialRequest, opts ...grpc.CallOption) (*GetSigningCredentialResponse, error) {
+func (c *authServiceClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetSigningCredentialResponse)
-	err := c.cc.Invoke(ctx, AuthService_GetSigningCredential_FullMethodName, in, out, cOpts...)
+	out := new(AuthenticateResponse)
+	err := c.cc.Invoke(ctx, AuthService_Authenticate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -128,13 +129,14 @@ func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts 
 // NetworkPolicy reach it; it is never exposed outside the cluster.
 // None of these RPCs is an operation: they write no desired state.
 type AuthServiceServer interface {
-	// GetSigningCredential returns the secret of an access key so the caller
-	// can verify a SigV4 signature itself. Long-term (AKIA) and temporary
-	// (ASIA) keys both resolve. An unknown, inactive, or expired key is
-	// UNAUTHENTICATED / INVALID_CREDENTIALS; an expired temporary key is
-	// UNAUTHENTICATED / TOKEN_EXPIRED. Callers may cache a result until
-	// cache_until and must not log secret_access_key.
-	GetSigningCredential(context.Context, *GetSigningCredentialRequest) (*GetSigningCredentialResponse, error)
+	// Authenticate verifies a SigV4 signature inside vws-iam. The caller
+	// (console-api) builds the string to sign from the request and sends it
+	// with the signature; the secret never leaves vws-iam. Long-term (AKIA)
+	// and temporary (ASIA, with session_token) keys both verify.
+	// Unknown or inactive key, wrong signature, or a credential scope that does
+	// not match the string to sign is UNAUTHENTICATED / INVALID_CREDENTIALS; an
+	// expired temporary key is UNAUTHENTICATED / TOKEN_EXPIRED.
+	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	// Authorize evaluates the principal's policies for one request.
 	// AWS semantics: an explicit Deny wins, then an Allow, else implicit deny.
 	// A denial is a normal response (decision DENY_*), not an RPC error.
@@ -162,8 +164,8 @@ type AuthServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAuthServiceServer struct{}
 
-func (UnimplementedAuthServiceServer) GetSigningCredential(context.Context, *GetSigningCredentialRequest) (*GetSigningCredentialResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetSigningCredential not implemented")
+func (UnimplementedAuthServiceServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Authenticate not implemented")
 }
 func (UnimplementedAuthServiceServer) Authorize(context.Context, *AuthorizeRequest) (*AuthorizeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Authorize not implemented")
@@ -198,20 +200,20 @@ func RegisterAuthServiceServer(s grpc.ServiceRegistrar, srv AuthServiceServer) {
 	s.RegisterService(&AuthService_ServiceDesc, srv)
 }
 
-func _AuthService_GetSigningCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetSigningCredentialRequest)
+func _AuthService_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).GetSigningCredential(ctx, in)
+		return srv.(AuthServiceServer).Authenticate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_GetSigningCredential_FullMethodName,
+		FullMethod: AuthService_Authenticate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetSigningCredential(ctx, req.(*GetSigningCredentialRequest))
+		return srv.(AuthServiceServer).Authenticate(ctx, req.(*AuthenticateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -296,8 +298,8 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetSigningCredential",
-			Handler:    _AuthService_GetSigningCredential_Handler,
+			MethodName: "Authenticate",
+			Handler:    _AuthService_Authenticate_Handler,
 		},
 		{
 			MethodName: "Authorize",

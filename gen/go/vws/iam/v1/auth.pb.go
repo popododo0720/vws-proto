@@ -308,29 +308,41 @@ func (x *Credentials) GetExpireTime() *timestamppb.Timestamp {
 	return nil
 }
 
-type GetSigningCredentialRequest struct {
-	state       protoimpl.MessageState `protogen:"open.v1"`
-	AccessKeyId string                 `protobuf:"bytes,1,opt,name=access_key_id,json=accessKeyId,proto3" json:"access_key_id,omitempty"`
-	// Required for an ASIA key: the X-Amz-Security-Token of the request.
-	SessionToken  string `protobuf:"bytes,2,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
+type AuthenticateRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Access key id from the Credential of the Authorization header.
+	AccessKeyId string `protobuf:"bytes,1,opt,name=access_key_id,json=accessKeyId,proto3" json:"access_key_id,omitempty"`
+	// Credential scope: {yyyymmdd}/{region}/{service}/aws4_request. It must equal
+	// the third line of string_to_sign.
+	CredentialScope string `protobuf:"bytes,2,opt,name=credential_scope,json=credentialScope,proto3" json:"credential_scope,omitempty"`
+	// SigV4 string to sign: "AWS4-HMAC-SHA256", X-Amz-Date, scope, and the hex
+	// SHA-256 of the canonical request, joined by "\n". vws-iam checks that
+	// X-Amz-Date is within 15 minutes of its clock.
+	StringToSign string `protobuf:"bytes,3,opt,name=string_to_sign,json=stringToSign,proto3" json:"string_to_sign,omitempty"`
+	// Lowercase hex signature from the request.
+	Signature string `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
+	// X-Amz-Security-Token. Required for an ASIA key, empty otherwise.
+	SessionToken string `protobuf:"bytes,5,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
+	// Client address, for aws:SourceIp in later Authorize calls and for audit.
+	SourceIp      string `protobuf:"bytes,6,opt,name=source_ip,json=sourceIp,proto3" json:"source_ip,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetSigningCredentialRequest) Reset() {
-	*x = GetSigningCredentialRequest{}
+func (x *AuthenticateRequest) Reset() {
+	*x = AuthenticateRequest{}
 	mi := &file_vws_iam_v1_auth_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetSigningCredentialRequest) String() string {
+func (x *AuthenticateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetSigningCredentialRequest) ProtoMessage() {}
+func (*AuthenticateRequest) ProtoMessage() {}
 
-func (x *GetSigningCredentialRequest) ProtoReflect() protoreflect.Message {
+func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_vws_iam_v1_auth_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -342,50 +354,77 @@ func (x *GetSigningCredentialRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetSigningCredentialRequest.ProtoReflect.Descriptor instead.
-func (*GetSigningCredentialRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthenticateRequest.ProtoReflect.Descriptor instead.
+func (*AuthenticateRequest) Descriptor() ([]byte, []int) {
 	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *GetSigningCredentialRequest) GetAccessKeyId() string {
+func (x *AuthenticateRequest) GetAccessKeyId() string {
 	if x != nil {
 		return x.AccessKeyId
 	}
 	return ""
 }
 
-func (x *GetSigningCredentialRequest) GetSessionToken() string {
+func (x *AuthenticateRequest) GetCredentialScope() string {
+	if x != nil {
+		return x.CredentialScope
+	}
+	return ""
+}
+
+func (x *AuthenticateRequest) GetStringToSign() string {
+	if x != nil {
+		return x.StringToSign
+	}
+	return ""
+}
+
+func (x *AuthenticateRequest) GetSignature() string {
+	if x != nil {
+		return x.Signature
+	}
+	return ""
+}
+
+func (x *AuthenticateRequest) GetSessionToken() string {
 	if x != nil {
 		return x.SessionToken
 	}
 	return ""
 }
 
-type GetSigningCredentialResponse struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Principal       *Principal             `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal,omitempty"`
-	SecretAccessKey string                 `protobuf:"bytes,2,opt,name=secret_access_key,json=secretAccessKey,proto3" json:"secret_access_key,omitempty"`
-	// Callers may cache this answer until this time (short, at most 60 s, and
-	// never past a temporary key's expiry).
-	CacheUntil    *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=cache_until,json=cacheUntil,proto3" json:"cache_until,omitempty"`
+func (x *AuthenticateRequest) GetSourceIp() string {
+	if x != nil {
+		return x.SourceIp
+	}
+	return ""
+}
+
+type AuthenticateResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Principal carries mfa_authenticated and auth_time of the key's session.
+	Principal *Principal `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal,omitempty"`
+	// Expiry of a temporary key; unset for a long-term key.
+	ExpireTime    *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetSigningCredentialResponse) Reset() {
-	*x = GetSigningCredentialResponse{}
+func (x *AuthenticateResponse) Reset() {
+	*x = AuthenticateResponse{}
 	mi := &file_vws_iam_v1_auth_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetSigningCredentialResponse) String() string {
+func (x *AuthenticateResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetSigningCredentialResponse) ProtoMessage() {}
+func (*AuthenticateResponse) ProtoMessage() {}
 
-func (x *GetSigningCredentialResponse) ProtoReflect() protoreflect.Message {
+func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_vws_iam_v1_auth_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -397,35 +436,28 @@ func (x *GetSigningCredentialResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetSigningCredentialResponse.ProtoReflect.Descriptor instead.
-func (*GetSigningCredentialResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthenticateResponse.ProtoReflect.Descriptor instead.
+func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
 	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *GetSigningCredentialResponse) GetPrincipal() *Principal {
+func (x *AuthenticateResponse) GetPrincipal() *Principal {
 	if x != nil {
 		return x.Principal
 	}
 	return nil
 }
 
-func (x *GetSigningCredentialResponse) GetSecretAccessKey() string {
+func (x *AuthenticateResponse) GetExpireTime() *timestamppb.Timestamp {
 	if x != nil {
-		return x.SecretAccessKey
-	}
-	return ""
-}
-
-func (x *GetSigningCredentialResponse) GetCacheUntil() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CacheUntil
+		return x.ExpireTime
 	}
 	return nil
 }
 
 type AuthorizeRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The caller, as GetSigningCredential, ValidateSession, or an STS call
+	// The caller, as Authenticate, ValidateSession, or an STS call
 	// returned it. vws-iam re-reads the policies of principal.resource; it does
 	// not trust any other field except mfa_authenticated and auth_time, which
 	// it checks against the session or key that produced them.
@@ -945,7 +977,7 @@ func (*LogoutResponse) Descriptor() ([]byte, []int) {
 type AssumeRoleRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Role  string                 `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
-	// The caller: from GetSigningCredential or ValidateSession.
+	// The caller: from Authenticate or ValidateSession.
 	Caller *Principal `protobuf:"bytes,2,opt,name=caller,proto3" json:"caller,omitempty"`
 	// [\w+=,.@-]{2,64}.
 	RoleSessionName string `protobuf:"bytes,3,opt,name=role_session_name,json=roleSessionName,proto3" json:"role_session_name,omitempty"`
@@ -1226,15 +1258,18 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\x11secret_access_key\x18\x02 \x01(\tR\x0fsecretAccessKey\x12#\n" +
 	"\rsession_token\x18\x03 \x01(\tR\fsessionToken\x12;\n" +
 	"\vexpire_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"expireTime\"k\n" +
-	"\x1bGetSigningCredentialRequest\x12'\n" +
-	"\raccess_key_id\x18\x01 \x01(\tB\x03\xe0A\x02R\vaccessKeyId\x12#\n" +
-	"\rsession_token\x18\x02 \x01(\tR\fsessionToken\"\xbc\x01\n" +
-	"\x1cGetSigningCredentialResponse\x123\n" +
-	"\tprincipal\x18\x01 \x01(\v2\x15.vws.iam.v1.PrincipalR\tprincipal\x12*\n" +
-	"\x11secret_access_key\x18\x02 \x01(\tR\x0fsecretAccessKey\x12;\n" +
-	"\vcache_until\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"cacheUntil\"\xa3\x02\n" +
+	"expireTime\"\xfe\x01\n" +
+	"\x13AuthenticateRequest\x12'\n" +
+	"\raccess_key_id\x18\x01 \x01(\tB\x03\xe0A\x02R\vaccessKeyId\x12.\n" +
+	"\x10credential_scope\x18\x02 \x01(\tB\x03\xe0A\x02R\x0fcredentialScope\x12)\n" +
+	"\x0estring_to_sign\x18\x03 \x01(\tB\x03\xe0A\x02R\fstringToSign\x12!\n" +
+	"\tsignature\x18\x04 \x01(\tB\x03\xe0A\x02R\tsignature\x12#\n" +
+	"\rsession_token\x18\x05 \x01(\tR\fsessionToken\x12\x1b\n" +
+	"\tsource_ip\x18\x06 \x01(\tR\bsourceIp\"\x88\x01\n" +
+	"\x14AuthenticateResponse\x123\n" +
+	"\tprincipal\x18\x01 \x01(\v2\x15.vws.iam.v1.PrincipalR\tprincipal\x12;\n" +
+	"\vexpire_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"expireTime\"\xa3\x02\n" +
 	"\x10AuthorizeRequest\x128\n" +
 	"\tprincipal\x18\x01 \x01(\v2\x15.vws.iam.v1.PrincipalB\x03\xe0A\x02R\tprincipal\x12\x1b\n" +
 	"\x06action\x18\x02 \x01(\tB\x03\xe0A\x02R\x06action\x12\x1c\n" +
@@ -1302,9 +1337,9 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\x14DECISION_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eDECISION_ALLOW\x10\x01\x12\x1a\n" +
 	"\x16DECISION_DENY_EXPLICIT\x10\x02\x12\x1a\n" +
-	"\x16DECISION_DENY_IMPLICIT\x10\x032\xc0\x04\n" +
-	"\vAuthService\x12\x90\x01\n" +
-	"\x14GetSigningCredential\x12'.vws.iam.v1.GetSigningCredentialRequest\x1a(.vws.iam.v1.GetSigningCredentialResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/v1/signingCredentials:get\x12b\n" +
+	"\x16DECISION_DENY_IMPLICIT\x10\x032\x9d\x04\n" +
+	"\vAuthService\x12n\n" +
+	"\fAuthenticate\x12\x1f.vws.iam.v1.AuthenticateRequest\x1a .vws.iam.v1.AuthenticateResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/authenticate\x12b\n" +
 	"\tAuthorize\x12\x1c.vws.iam.v1.AuthorizeRequest\x1a\x1d.vws.iam.v1.AuthorizeResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/v1/authorize\x12[\n" +
 	"\x05Login\x12\x18.vws.iam.v1.LoginRequest\x1a\x19.vws.iam.v1.LoginResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/sessions:login\x12|\n" +
 	"\x0fValidateSession\x12\".vws.iam.v1.ValidateSessionRequest\x1a#.vws.iam.v1.ValidateSessionResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/v1/sessions:validate\x12_\n" +
@@ -1330,34 +1365,34 @@ func file_vws_iam_v1_auth_proto_rawDescGZIP() []byte {
 var file_vws_iam_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_vws_iam_v1_auth_proto_goTypes = []any{
-	(PrincipalType)(0),                   // 0: vws.iam.v1.PrincipalType
-	(Decision)(0),                        // 1: vws.iam.v1.Decision
-	(*Principal)(nil),                    // 2: vws.iam.v1.Principal
-	(*Credentials)(nil),                  // 3: vws.iam.v1.Credentials
-	(*GetSigningCredentialRequest)(nil),  // 4: vws.iam.v1.GetSigningCredentialRequest
-	(*GetSigningCredentialResponse)(nil), // 5: vws.iam.v1.GetSigningCredentialResponse
-	(*AuthorizeRequest)(nil),             // 6: vws.iam.v1.AuthorizeRequest
-	(*ContextValues)(nil),                // 7: vws.iam.v1.ContextValues
-	(*AuthorizeResponse)(nil),            // 8: vws.iam.v1.AuthorizeResponse
-	(*LoginRequest)(nil),                 // 9: vws.iam.v1.LoginRequest
-	(*LoginResponse)(nil),                // 10: vws.iam.v1.LoginResponse
-	(*ValidateSessionRequest)(nil),       // 11: vws.iam.v1.ValidateSessionRequest
-	(*ValidateSessionResponse)(nil),      // 12: vws.iam.v1.ValidateSessionResponse
-	(*LogoutRequest)(nil),                // 13: vws.iam.v1.LogoutRequest
-	(*LogoutResponse)(nil),               // 14: vws.iam.v1.LogoutResponse
-	(*AssumeRoleRequest)(nil),            // 15: vws.iam.v1.AssumeRoleRequest
-	(*AssumeRoleResponse)(nil),           // 16: vws.iam.v1.AssumeRoleResponse
-	(*GetSessionTokenRequest)(nil),       // 17: vws.iam.v1.GetSessionTokenRequest
-	(*GetSessionTokenResponse)(nil),      // 18: vws.iam.v1.GetSessionTokenResponse
-	nil,                                  // 19: vws.iam.v1.AuthorizeRequest.ContextEntry
-	(*timestamppb.Timestamp)(nil),        // 20: google.protobuf.Timestamp
+	(PrincipalType)(0),              // 0: vws.iam.v1.PrincipalType
+	(Decision)(0),                   // 1: vws.iam.v1.Decision
+	(*Principal)(nil),               // 2: vws.iam.v1.Principal
+	(*Credentials)(nil),             // 3: vws.iam.v1.Credentials
+	(*AuthenticateRequest)(nil),     // 4: vws.iam.v1.AuthenticateRequest
+	(*AuthenticateResponse)(nil),    // 5: vws.iam.v1.AuthenticateResponse
+	(*AuthorizeRequest)(nil),        // 6: vws.iam.v1.AuthorizeRequest
+	(*ContextValues)(nil),           // 7: vws.iam.v1.ContextValues
+	(*AuthorizeResponse)(nil),       // 8: vws.iam.v1.AuthorizeResponse
+	(*LoginRequest)(nil),            // 9: vws.iam.v1.LoginRequest
+	(*LoginResponse)(nil),           // 10: vws.iam.v1.LoginResponse
+	(*ValidateSessionRequest)(nil),  // 11: vws.iam.v1.ValidateSessionRequest
+	(*ValidateSessionResponse)(nil), // 12: vws.iam.v1.ValidateSessionResponse
+	(*LogoutRequest)(nil),           // 13: vws.iam.v1.LogoutRequest
+	(*LogoutResponse)(nil),          // 14: vws.iam.v1.LogoutResponse
+	(*AssumeRoleRequest)(nil),       // 15: vws.iam.v1.AssumeRoleRequest
+	(*AssumeRoleResponse)(nil),      // 16: vws.iam.v1.AssumeRoleResponse
+	(*GetSessionTokenRequest)(nil),  // 17: vws.iam.v1.GetSessionTokenRequest
+	(*GetSessionTokenResponse)(nil), // 18: vws.iam.v1.GetSessionTokenResponse
+	nil,                             // 19: vws.iam.v1.AuthorizeRequest.ContextEntry
+	(*timestamppb.Timestamp)(nil),   // 20: google.protobuf.Timestamp
 }
 var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	0,  // 0: vws.iam.v1.Principal.type:type_name -> vws.iam.v1.PrincipalType
 	20, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
 	20, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
-	2,  // 3: vws.iam.v1.GetSigningCredentialResponse.principal:type_name -> vws.iam.v1.Principal
-	20, // 4: vws.iam.v1.GetSigningCredentialResponse.cache_until:type_name -> google.protobuf.Timestamp
+	2,  // 3: vws.iam.v1.AuthenticateResponse.principal:type_name -> vws.iam.v1.Principal
+	20, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 5: vws.iam.v1.AuthorizeRequest.principal:type_name -> vws.iam.v1.Principal
 	19, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
 	1,  // 7: vws.iam.v1.AuthorizeResponse.decision:type_name -> vws.iam.v1.Decision
@@ -1371,14 +1406,14 @@ var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	2,  // 15: vws.iam.v1.GetSessionTokenRequest.caller:type_name -> vws.iam.v1.Principal
 	3,  // 16: vws.iam.v1.GetSessionTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
 	7,  // 17: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
-	4,  // 18: vws.iam.v1.AuthService.GetSigningCredential:input_type -> vws.iam.v1.GetSigningCredentialRequest
+	4,  // 18: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
 	6,  // 19: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
 	9,  // 20: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
 	11, // 21: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
 	13, // 22: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
 	15, // 23: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
 	17, // 24: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
-	5,  // 25: vws.iam.v1.AuthService.GetSigningCredential:output_type -> vws.iam.v1.GetSigningCredentialResponse
+	5,  // 25: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
 	8,  // 26: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
 	10, // 27: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
 	12, // 28: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
