@@ -16,7 +16,7 @@ vws-iam 서비스의 계약이다. 설계는 vws-iam#1, 이 API는 vws-proto#24�
 
 | RPC | 쓰는 쪽 | 하는 일 |
 | --- | --- | --- |
-| `Authenticate` | console-api sigv4 검증 | 액세스 키 id, credential scope, string-to-sign, 서명(+임시 키의 세션 토큰) -> 주체(MFA, 세션 정보 포함). 비밀은 vws-iam 밖으로 나가지 않는다 |
+| `Authenticate` | console-api sigv4 검증 | `access_key_id`, `date`, `region`, `service`, `canonical_request`, `string_to_sign`, `signature`, `session_token`(console-api `sigv4.AuthRequest`와 같다) -> `account`, `arn`, `is_root`(+ MFA, 세션 정보를 담은 `principal`). 비밀은 vws-iam 밖으로 나가지 않는다 |
 | `Authorize` | console-api 모든 핸들러, 다른 서비스 | 주체, 액션, 리소스 ARN, 조건 키 -> ALLOW / DENY_EXPLICIT / DENY_IMPLICIT |
 | `Login`, `ValidateSession`, `Logout` | console-api 콘솔 로그인(vws-console-api#95) | 비밀번호(+TOTP) -> HttpOnly 쿠키용 세션 토큰 |
 | `AssumeRole`, `GetSessionToken` | console-api STS Query API | 임시 자격 증명(`ASIA…`, 비밀, 세션 토큰, 만료) |
