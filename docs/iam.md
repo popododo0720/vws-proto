@@ -47,3 +47,10 @@ AuthService와 TokenService는 클러스터 안 전용이다. 차트의 NetworkP
 ## 확인 필요
 
 - 서버가 이 규칙을 실제로 지키는지는 vws-iam 레포에서 확인한다.
+
+## STS 호출자와 비밀 필드 (#28)
+
+- `AssumeRole`, `GetSessionToken`은 요청의 `caller`를 믿지 않는다. 이 필드는 deprecated이고 서버는 무시한다. 클라이언트가 보낸 principal을 믿으면 이 서비스에 닿는 누구나 아무 principal로 행세할 수 있다(사칭). 서버는 `authentication` oneof(`sigv4` 또는 `console_session_token`)를 직접 검증하고 호출자를 그것에서 얻는다. 없으면 `UNAUTHENTICATED / INVALID_CREDENTIALS`다.
+- `caller` 필드를 지우는 것은 `buf breaking`(FILE)이 막으므로 v0.2.0과 호환되게 deprecated로 남긴다. 실제로 지우고 번호를 `reserved`로 돌리는 것은 다음 breaking 릴리스에서 한다.
+- `AuthService`와 `TokenService`는 클러스터 내부 전용이라 `google.api.http` 경로가 없다(gRPC만).
+- 비밀 필드(secret access key, session token, 비밀번호, TOTP 코드, MFA seed와 otpauth URI)는 `OUTPUT_ONLY` 또는 `INPUT_ONLY`이고 `debug_redact = true`라 protobuf 텍스트/디버그 출력에서 가려진다. 로그에 남기지 않는다.
