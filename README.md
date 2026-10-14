@@ -19,10 +19,17 @@ VWS 제어 평면의 공유 gRPC 정의다. 원하는 상태는 여기 정의된
 | `vws.network.v1.SubnetService` | `projects/{project}/regions/{region}/vpcs/{vpc}/subnets/{subnet}` |
 | `vws.network.v1.SecurityGroupService` | `projects/{project}/regions/{region}/vpcs/{vpc}/securityGroups/{security_group}` |
 | `vws.network.v1.AddressService` | `projects/{project}/regions/{region}/addresses/{address}` |
+| `vws.iam.v1.UserService` | `projects/{project}/users/{user}` |
+| `vws.iam.v1.GroupService` | `projects/{project}/groups/{group}` |
+| `vws.iam.v1.RoleService` | `projects/{project}/roles/{role}` |
+| `vws.iam.v1.PolicyService` | `projects/{project}/policies/{policy}`, `.../versions/{version}` |
+| `vws.iam.v1.AccessKeyService` | `projects/{project}/users/{user}/accessKeys/{access_key}` |
+| `vws.iam.v1.MfaDeviceService` | `projects/{project}/mfaDevices/{mfa_device}` |
+| `vws.iam.v1.AuthService`, `TokenService` | 리소스 없음. 인증, 인가, STS(`docs/iam.md`) |
 
 `Address`는 정적 공인 주소다. 연결 대상은 주소 `spec.association`에만 둔다. `spec.vpc`는 만들 때 정하는 VPC 할당이다. 비어 있으면 VPC에 묶이지 않는다. 볼륨 연결은 인스턴스 `spec`에만 둔다. 보안 그룹 규칙은 그룹 `spec`의 목록이다. 인스턴스 배치는 쿠버네티스 스케줄러가 하고 이 계약에는 노드 개념이 없다.
 
-Object의 `{object}`만 퍼센트 인코딩된 키다. 나머지 id는 `vws.common.v1.ResourceId` 문법이다.
+Object의 `{object}`는 퍼센트 인코딩된 키다. IAM 이름과 액세스 키 id는 AWS 문법이다(`docs/validation.md`). 나머지 id는 `vws.common.v1.ResourceId` 문법이다.
 
 ## 클라이언트
 
