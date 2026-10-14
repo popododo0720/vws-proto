@@ -54,3 +54,15 @@ AuthService와 TokenService는 클러스터 안 전용이다. 차트의 NetworkP
 - `caller` 필드를 지우는 것은 `buf breaking`(FILE)이 막으므로 v0.2.0과 호환되게 deprecated로 남긴다. 실제로 지우고 번호를 `reserved`로 돌리는 것은 다음 breaking 릴리스에서 한다.
 - `AuthService`와 `TokenService`는 클러스터 내부 전용이라 `google.api.http` 경로가 없다(gRPC만).
 - 비밀 필드(secret access key, session token, 비밀번호, TOTP 코드, MFA seed와 otpauth URI)는 `OUTPUT_ONLY` 또는 `INPUT_ONLY`이고 `debug_redact = true`라 protobuf 텍스트/디버그 출력에서 가려진다. 로그에 남기지 않는다.
+
+## MFA 장치 잠금 상태 (#32)
+
+- `MfaDeviceStatus.failed_attempts`(5)는 마지막 성공이나 잠금 뒤 틀린 코드 수다. 5번 틀리면 장치가 15분 잠긴다.
+- `MfaDeviceStatus.locked_until`(6)은 잠긴 동안만 채워진다. 그때까지는 맞는 코드도 거부된다.
+- 둘 다 status 안의 출력 전용 필드다. seed와 코드는 싣지 않는다.
+
+## 세션 폐기 (#31)
+
+- `UserService.RevokeUserSessions`, `RoleService.RevokeRoleSessions`는 AWS 콘솔의 "Revoke active sessions"다. 그 시점 전에 발급된 STS 세션(사용자는 `GetSessionToken`, 역할은 `AssumeRole`)을 거부하게 한다. 뒤에 발급된 자격 증명은 영향이 없다.
+- 원하는 상태를 바꾸는 변경이라 operation을 돌려주고 `request_id`로 멱등이다. 비밀이 오가지 않으므로 operation 예외가 아니다. 응답은 `status.sessions_revoke_time`이 채워진 User/Role이다.
+- 권한은 대상 ARN에 대한 `iam:RevokeUserSessions` / `iam:RevokeRoleSessions`다.
