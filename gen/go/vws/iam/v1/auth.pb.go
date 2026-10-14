@@ -308,23 +308,31 @@ func (x *Credentials) GetExpireTime() *timestamppb.Timestamp {
 	return nil
 }
 
+// AuthenticateRequest matches console-api internal/sigv4 AuthRequest field for
+// field (vws-console-api feat/iam-sigv4-authorize).
 type AuthenticateRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Access key id from the Credential of the Authorization header.
 	AccessKeyId string `protobuf:"bytes,1,opt,name=access_key_id,json=accessKeyId,proto3" json:"access_key_id,omitempty"`
-	// Credential scope: {yyyymmdd}/{region}/{service}/aws4_request. It must equal
-	// the third line of string_to_sign.
-	CredentialScope string `protobuf:"bytes,2,opt,name=credential_scope,json=credentialScope,proto3" json:"credential_scope,omitempty"`
-	// SigV4 string to sign: "AWS4-HMAC-SHA256", X-Amz-Date, scope, and the hex
-	// SHA-256 of the canonical request, joined by "\n". vws-iam checks that
-	// X-Amz-Date is within 15 minutes of its clock.
-	StringToSign string `protobuf:"bytes,3,opt,name=string_to_sign,json=stringToSign,proto3" json:"string_to_sign,omitempty"`
+	// yyyymmdd from the credential scope.
+	Date   string `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
+	Region string `protobuf:"bytes,3,opt,name=region,proto3" json:"region,omitempty"`
+	// "ec2" or "s3".
+	Service string `protobuf:"bytes,4,opt,name=service,proto3" json:"service,omitempty"`
+	// SigV4 canonical request. vws-iam hashes it and checks that the hash is
+	// the last line of string_to_sign.
+	CanonicalRequest string `protobuf:"bytes,5,opt,name=canonical_request,json=canonicalRequest,proto3" json:"canonical_request,omitempty"`
+	// "AWS4-HMAC-SHA256", X-Amz-Date, the scope {date}/{region}/{service}/aws4_request,
+	// and the hex SHA-256 of canonical_request, joined by "\n". vws-iam checks
+	// that the scope matches date, region, and service, and that X-Amz-Date is
+	// within 15 minutes of its clock.
+	StringToSign string `protobuf:"bytes,6,opt,name=string_to_sign,json=stringToSign,proto3" json:"string_to_sign,omitempty"`
 	// Lowercase hex signature from the request.
-	Signature string `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
-	// X-Amz-Security-Token. Required for an ASIA key, empty otherwise.
-	SessionToken string `protobuf:"bytes,5,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
-	// Client address, for aws:SourceIp in later Authorize calls and for audit.
-	SourceIp      string `protobuf:"bytes,6,opt,name=source_ip,json=sourceIp,proto3" json:"source_ip,omitempty"`
+	Signature string `protobuf:"bytes,7,opt,name=signature,proto3" json:"signature,omitempty"`
+	// X-Amz-Security-Token. Required for an ASIA key, empty for a long-term key.
+	SessionToken string `protobuf:"bytes,8,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
+	// Client address, for aws:SourceIp and audit. Optional; console-api does not send it yet.
+	SourceIp      string `protobuf:"bytes,9,opt,name=source_ip,json=sourceIp,proto3" json:"source_ip,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -366,9 +374,30 @@ func (x *AuthenticateRequest) GetAccessKeyId() string {
 	return ""
 }
 
-func (x *AuthenticateRequest) GetCredentialScope() string {
+func (x *AuthenticateRequest) GetDate() string {
 	if x != nil {
-		return x.CredentialScope
+		return x.Date
+	}
+	return ""
+}
+
+func (x *AuthenticateRequest) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *AuthenticateRequest) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *AuthenticateRequest) GetCanonicalRequest() string {
+	if x != nil {
+		return x.CanonicalRequest
 	}
 	return ""
 }
@@ -401,12 +430,19 @@ func (x *AuthenticateRequest) GetSourceIp() string {
 	return ""
 }
 
+// AuthenticateResponse fields 1-3 are what console-api reads (sigv4.Identity).
 type AuthenticateResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Principal carries mfa_authenticated and auth_time of the key's session.
-	Principal *Principal `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal,omitempty"`
+	// Project (AWS account id equivalent).
+	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	// Principal ARN, for example arn:vws:iam::{project}:root.
+	Arn    string `protobuf:"bytes,2,opt,name=arn,proto3" json:"arn,omitempty"`
+	IsRoot bool   `protobuf:"varint,3,opt,name=is_root,json=isRoot,proto3" json:"is_root,omitempty"`
+	// Full principal with MFA and session context (mfa_authenticated, auth_time,
+	// session_name). Additive; console-api may ignore it.
+	Principal *Principal `protobuf:"bytes,4,opt,name=principal,proto3" json:"principal,omitempty"`
 	// Expiry of a temporary key; unset for a long-term key.
-	ExpireTime    *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
+	ExpireTime    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -439,6 +475,27 @@ func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use AuthenticateResponse.ProtoReflect.Descriptor instead.
 func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
 	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AuthenticateResponse) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
+func (x *AuthenticateResponse) GetArn() string {
+	if x != nil {
+		return x.Arn
+	}
+	return ""
+}
+
+func (x *AuthenticateResponse) GetIsRoot() bool {
+	if x != nil {
+		return x.IsRoot
+	}
+	return false
 }
 
 func (x *AuthenticateResponse) GetPrincipal() *Principal {
@@ -1258,17 +1315,23 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\x11secret_access_key\x18\x02 \x01(\tR\x0fsecretAccessKey\x12#\n" +
 	"\rsession_token\x18\x03 \x01(\tR\fsessionToken\x12;\n" +
 	"\vexpire_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"expireTime\"\xfe\x01\n" +
+	"expireTime\"\xd5\x02\n" +
 	"\x13AuthenticateRequest\x12'\n" +
-	"\raccess_key_id\x18\x01 \x01(\tB\x03\xe0A\x02R\vaccessKeyId\x12.\n" +
-	"\x10credential_scope\x18\x02 \x01(\tB\x03\xe0A\x02R\x0fcredentialScope\x12)\n" +
-	"\x0estring_to_sign\x18\x03 \x01(\tB\x03\xe0A\x02R\fstringToSign\x12!\n" +
-	"\tsignature\x18\x04 \x01(\tB\x03\xe0A\x02R\tsignature\x12#\n" +
-	"\rsession_token\x18\x05 \x01(\tR\fsessionToken\x12\x1b\n" +
-	"\tsource_ip\x18\x06 \x01(\tR\bsourceIp\"\x88\x01\n" +
-	"\x14AuthenticateResponse\x123\n" +
-	"\tprincipal\x18\x01 \x01(\v2\x15.vws.iam.v1.PrincipalR\tprincipal\x12;\n" +
-	"\vexpire_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"\raccess_key_id\x18\x01 \x01(\tB\x03\xe0A\x02R\vaccessKeyId\x12\x17\n" +
+	"\x04date\x18\x02 \x01(\tB\x03\xe0A\x02R\x04date\x12\x1b\n" +
+	"\x06region\x18\x03 \x01(\tB\x03\xe0A\x02R\x06region\x12\x1d\n" +
+	"\aservice\x18\x04 \x01(\tB\x03\xe0A\x02R\aservice\x120\n" +
+	"\x11canonical_request\x18\x05 \x01(\tB\x03\xe0A\x02R\x10canonicalRequest\x12)\n" +
+	"\x0estring_to_sign\x18\x06 \x01(\tB\x03\xe0A\x02R\fstringToSign\x12!\n" +
+	"\tsignature\x18\a \x01(\tB\x03\xe0A\x02R\tsignature\x12#\n" +
+	"\rsession_token\x18\b \x01(\tR\fsessionToken\x12\x1b\n" +
+	"\tsource_ip\x18\t \x01(\tR\bsourceIp\"\xcd\x01\n" +
+	"\x14AuthenticateResponse\x12\x18\n" +
+	"\aaccount\x18\x01 \x01(\tR\aaccount\x12\x10\n" +
+	"\x03arn\x18\x02 \x01(\tR\x03arn\x12\x17\n" +
+	"\ais_root\x18\x03 \x01(\bR\x06isRoot\x123\n" +
+	"\tprincipal\x18\x04 \x01(\v2\x15.vws.iam.v1.PrincipalR\tprincipal\x12;\n" +
+	"\vexpire_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"expireTime\"\xa3\x02\n" +
 	"\x10AuthorizeRequest\x128\n" +
 	"\tprincipal\x18\x01 \x01(\v2\x15.vws.iam.v1.PrincipalB\x03\xe0A\x02R\tprincipal\x12\x1b\n" +

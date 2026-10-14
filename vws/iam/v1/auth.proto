@@ -135,29 +135,44 @@ message Credentials {
   google.protobuf.Timestamp expire_time = 4;
 }
 
+// AuthenticateRequest matches console-api internal/sigv4 AuthRequest field for
+// field (vws-console-api feat/iam-sigv4-authorize).
 message AuthenticateRequest {
   // Access key id from the Credential of the Authorization header.
   string access_key_id = 1 [(google.api.field_behavior) = REQUIRED];
-  // Credential scope: {yyyymmdd}/{region}/{service}/aws4_request. It must equal
-  // the third line of string_to_sign.
-  string credential_scope = 2 [(google.api.field_behavior) = REQUIRED];
-  // SigV4 string to sign: "AWS4-HMAC-SHA256", X-Amz-Date, scope, and the hex
-  // SHA-256 of the canonical request, joined by "\n". vws-iam checks that
-  // X-Amz-Date is within 15 minutes of its clock.
-  string string_to_sign = 3 [(google.api.field_behavior) = REQUIRED];
+  // yyyymmdd from the credential scope.
+  string date = 2 [(google.api.field_behavior) = REQUIRED];
+  string region = 3 [(google.api.field_behavior) = REQUIRED];
+  // "ec2" or "s3".
+  string service = 4 [(google.api.field_behavior) = REQUIRED];
+  // SigV4 canonical request. vws-iam hashes it and checks that the hash is
+  // the last line of string_to_sign.
+  string canonical_request = 5 [(google.api.field_behavior) = REQUIRED];
+  // "AWS4-HMAC-SHA256", X-Amz-Date, the scope {date}/{region}/{service}/aws4_request,
+  // and the hex SHA-256 of canonical_request, joined by "\n". vws-iam checks
+  // that the scope matches date, region, and service, and that X-Amz-Date is
+  // within 15 minutes of its clock.
+  string string_to_sign = 6 [(google.api.field_behavior) = REQUIRED];
   // Lowercase hex signature from the request.
-  string signature = 4 [(google.api.field_behavior) = REQUIRED];
-  // X-Amz-Security-Token. Required for an ASIA key, empty otherwise.
-  string session_token = 5;
-  // Client address, for aws:SourceIp in later Authorize calls and for audit.
-  string source_ip = 6;
+  string signature = 7 [(google.api.field_behavior) = REQUIRED];
+  // X-Amz-Security-Token. Required for an ASIA key, empty for a long-term key.
+  string session_token = 8;
+  // Client address, for aws:SourceIp and audit. Optional; console-api does not send it yet.
+  string source_ip = 9;
 }
 
+// AuthenticateResponse fields 1-3 are what console-api reads (sigv4.Identity).
 message AuthenticateResponse {
-  // Principal carries mfa_authenticated and auth_time of the key's session.
-  Principal principal = 1;
+  // Project (AWS account id equivalent).
+  string account = 1;
+  // Principal ARN, for example arn:vws:iam::{project}:root.
+  string arn = 2;
+  bool is_root = 3;
+  // Full principal with MFA and session context (mfa_authenticated, auth_time,
+  // session_name). Additive; console-api may ignore it.
+  Principal principal = 4;
   // Expiry of a temporary key; unset for a long-term key.
-  google.protobuf.Timestamp expire_time = 2;
+  google.protobuf.Timestamp expire_time = 5;
 }
 
 message AuthorizeRequest {
