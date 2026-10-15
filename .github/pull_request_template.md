@@ -1,14 +1,14 @@
 Closes #
 
-## 무엇을 바꿨나
+## What changed
 
-## 검증 방법 (실제로 돌린 것만)
+## How it was verified (only what was actually run)
 
-## 하위 레포 영향 (proto를 바꿨다면: breaking 여부, vws-compute/storage/network/deploy에 필요한 일)
+## Downstream impact (if proto changed: breaking or not, and what vws-compute/storage/network/deploy need to do)
 
-## 미검증 항목 (확인 필요)
+## Not verified (needs checking)
 
-## 다른 PR과의 충돌
+## Conflicts with other PRs
 
 ## Quality checklist (required)
 
