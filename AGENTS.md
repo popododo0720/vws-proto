@@ -24,7 +24,7 @@ This repo holds the shared gRPC definitions of the VWS control plane. Server imp
 | Branches | Do not commit or push to `main` directly. Changes go in through a branch and a PR |
 | Commits | Atomic. One commit has one purpose |
 | Notices | No logos and no trademark notices |
-| Insider risk | A PR targets main and its body has `Closes #N`. CI reports commits that reached main without a PR. This file has Insider-risk guardrails 1-7 below. The checks are `scripts/guard-agents.sh`, `.github/workflows/repo-guard.yml` and `.github/workflows/direct-push-watch.yml` |
+| Insider risk | A PR targets main and its body has `Part of #N` and no closing keyword. CI reports commits that reached main without a PR. This file has Insider-risk guardrails 1-7 below. The checks are `scripts/guard-agents.sh`, `.github/workflows/repo-guard.yml` and `.github/workflows/direct-push-watch.yml` |
 | Tools | Do not use Cursor cloud agents. Follow the poteto-mode section below for the way of working |
 | English only | The repo is English only (see "English only"). Hangul is allowed only in files `.github/english-allowlist` lists with a reason. `scripts/check-english.sh` checks it in the CI `english` job |
 
@@ -61,11 +61,11 @@ When design or a fix falls into one of these, use that procedure.
 Bots are insider risks too. The rules below have no exceptions. The design is vws-deploy#33.
 
 1. **Independent verification**: an important result (merge, security, data) is never verified by the bot/model that wrote it. Another bot (or a person) verifies it. (Process rule; CI cannot enforce it.)
-2. **Records**: every change leaves a trail of issue → PR (`Closes #N`) → commits. Work logs go in the PR body or issue comments in a form people can read. No force-push or history rewriting (except with the user's approval). In this repo, the body of a PR that changes proto states the impact on downstream repos (vws-compute, vws-storage, vws-network, vws-deploy) and whether it is breaking.
+2. **Records**: every change leaves a trail of issue → PR (`Part of #N`) → commits. Work logs go in the PR body or issue comments in a form people can read. No force-push or history rewriting (except with the user's approval). In this repo, the body of a PR that changes proto states the impact on downstream repos (vws-compute, vws-storage, vws-network, vws-deploy) and whether it is breaking.
 3. **Failure tests**: a new feature is not tested on the happy path only. Include at least one case each for power loss/restart, idempotent re-run and malicious or boundary input, or state in the PR why that is not possible. In this repo, the PR confirms that `buf breaking` fails when a field number is changed or removed, and input validation rules are written in `docs/validation.md`.
 4. **Least privilege**: no direct pushes to main. Every change is a single PR from its own branch cut from main. No stacked PRs. No local merges. Tokens are scoped to the repo. RBAC covers only the resources the service code actually calls, as a Role (namespace scope) where possible.
 5. **Separated audit**: author bot ≠ verifier bot ≠ merge decision. An author bot never merges its own PR. Merge only when base==main and every CI check on the head commit is success.
 6. **Isolation and emergency stop**: a bot/agent is stopped immediately at the user's request or by the orchestrator stopping that bot's session and revoking its token (`gh auth`/PAT revoke). Risky work happens only in a sandbox (the box or a throwaway cluster). No access to production clusters.
 7. **Incident disclosure**: rule violations and incidents are never hidden; record them in an issue as `Cause / Impact / Action / Prevention` (label `incident`).
 
-This repo has no server-side protection (private, free plan). 1, 5 and 6 are process rules. For parts of 2 and 4, `.github/workflows/repo-guard.yml` checks the PR's base and `Closes #N`, and `.github/workflows/direct-push-watch.yml` reports after the fact any commit that reached main without a PR. This is detection, not blocking. How to copy it is in vws-deploy `docs/insider-risk.md`.
+This repo has no server-side protection (private, free plan). 1, 5 and 6 are process rules. For parts of 2 and 4, `.github/workflows/repo-guard.yml` checks the PR's base, `Part of #N` and that no PR text or commit closes an issue, and `.github/workflows/direct-push-watch.yml` reports after the fact any commit that reached main without a PR. This is detection, not blocking. How to copy it is in vws-deploy `docs/insider-risk.md`.
