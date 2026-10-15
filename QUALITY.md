@@ -13,3 +13,13 @@ Adopted 2026-10-14. Every change in this repo must be AWS-grade production quali
 9. **AWS compatibility** where applicable: API behavior and error codes match AWS.
 
 Reviewers do not merge a PR whose checklist lacks evidence or a stated reason for N/A.
+
+## CI checks: exception for lint and test
+
+This repo has no Go code of its own besides generated code, so it has no `lint` or `test` job. The equivalent required checks are:
+
+- `buf`: runs `buf lint`, `buf build` and the breaking-change check on the `.proto` files.
+- `go`: checks that the generated Go code is up to date (`scripts/check-generated-go.sh`) and that `go build ./...` passes.
+- `guard-agents` and `verify-gate`: the shared guard checks.
+
+Branch protection on `main` requires `buf`, `go`, `guard-agents`, `pr-hygiene`, `vws-verify` and `verify-gate` instead of `lint` and `test`.
