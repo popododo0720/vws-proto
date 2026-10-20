@@ -12,6 +12,8 @@ This document gathers in one place the input rules already written in the proto 
 | Access key id | `AKIA` (long-term) or `ASIA` (temporary) + 16 upper-case letters and digits | `vws/iam/v1/access_key.proto`, `auth.proto` |
 | IAM `path` | Starts and ends with `/`, 1-512 characters | the same files |
 | Policy document | AWS JSON, `Version` `2012-10-17`. At most 6144 characters excluding whitespace. Unparseable, or a condition outside `docs/iam.md`, is `INVALID_ARGUMENT / INVALID_SPEC` | `policy.proto` |
+| IAM policy tag key | 1-128 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, not beginning with `aws:`. Case sensitive. At most 50 tags per policy. `INVALID_ARGUMENT / INVALID_SPEC` when invalid, `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED` past 50 | `policy.proto` `Tag` |
+| IAM policy tag value | 0-256 characters of the same alphabet, not beginning with `aws:` | `policy.proto` `Tag` |
 | Password | 8-128 characters. Stored only as an argon2id hash. Never in operation records or logs | `user.proto` |
 | `OUTPUT_ONLY` fields | Ignored on input by the AIP-203 convention. The comments in this repo do not state the server behaviour (needs checking). `status` is written only by servers and nodes | `google.api.field_behavior` |
 | `request_id` | The same id with the same fingerprint returns the original operation; a different fingerprint is `ABORTED / IDEMPOTENCY_CONFLICT`. Remembered for 24 hours | `vws/common/v1/operation.proto` |
