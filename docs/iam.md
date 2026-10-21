@@ -38,7 +38,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 ## Not in Phase 1
 
 - Renaming a user (`NewUserName` in AWS `UpdateUser`). The name is the resource id.
-- Tags on resources other than a managed policy (`TagUser`, `TagRole` and so on; `TagPolicy`, `UntagPolicy` and `ListPolicyTags` are in Phase 1).
+- Tags on resources other than a managed policy and a virtual MFA device (`TagUser`, `TagRole` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice` and `ListMFADeviceTags` are in Phase 1).
 - Session policies (AssumeRole `Policy`/`PolicyArns`).
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
 - `SimulatePrincipalPolicy`, `SimulateCustomPolicy`.
@@ -74,3 +74,11 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - The limits are the AWS ones: 50 tags per policy, key 1-128 and value 0-256 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, no key or value beginning with `aws:`. Invalid input is `INVALID_ARGUMENT / INVALID_SPEC`; the 51st tag is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED`.
 - Key case is significant for a policy, as in AWS. A later `TagPolicy` overwrites the value of a key it names. `UntagPolicy` ignores a key that is not attached.
 - `TagPolicy` and `UntagPolicy` are operations (AIP-151) and idempotent by `request_id`. `ListPolicyTags` sorts by key and pages.
+
+## MFA device tags (#77, #78, #79)
+
+- `MfaDeviceService.TagMFADevice`, `UntagMFADevice` and `ListMFADeviceTags` carry AWS virtual MFA device tags. The requests name the device by its resource name; console-api resolves the AWS `SerialNumber` (the device ARN) to that name, and a device that does not exist is `NoSuchEntity`.
+- The tag rules are the same as for a policy: a tag is a `tags` map on the stored device, not an envelope label; 50 tags per device, key 1-128 and value 0-256 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, no key or value beginning with `aws:`; key case significant, so a differently cased key is a second tag.
+- Invalid input is `INVALID_ARGUMENT / INVALID_SPEC`; the 51st tag is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED`. A later `TagMFADevice` overwrites the value of a key it names. `UntagMFADevice` ignores a key that is not attached.
+- A tag change does not change any timestamp of the device: AWS has no update time for a virtual MFA device, so `create_time`, `update_time` and `status.enable_time` stay as they were.
+- `TagMFADevice` and `UntagMFADevice` are operations (AIP-151) and idempotent by `request_id`. `ListMFADeviceTags` sorts by key and pages.
