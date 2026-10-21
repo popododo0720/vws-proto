@@ -38,7 +38,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 ## Not in Phase 1
 
 - Renaming a user (`NewUserName` in AWS `UpdateUser`). The name is the resource id.
-- Tags (`TagUser` and so on). Whether `labels` replace them is undecided.
+- Tags on resources other than a managed policy (`TagUser`, `TagRole` and so on; `TagPolicy`, `UntagPolicy` and `ListPolicyTags` are in Phase 1).
 - Session policies (AssumeRole `Policy`/`PolicyArns`).
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
 - `SimulatePrincipalPolicy`, `SimulateCustomPolicy`.
@@ -66,3 +66,11 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - `UserService.RevokeUserSessions` and `RoleService.RevokeRoleSessions` are the AWS console's "Revoke active sessions". STS sessions issued before that moment (`GetSessionToken` for users, `AssumeRole` for roles) are refused. Credentials issued later are not affected.
 - It is a change to the desired state, so it returns an operation and is idempotent by `request_id`. No secret is exchanged, so it is not an operation exception. The response is the User/Role with `status.sessions_revoke_time` set.
 - The permission is `iam:RevokeUserSessions` / `iam:RevokeRoleSessions` on the target ARN.
+
+## Policy tags (#74, #75, #76)
+
+- `PolicyService.TagPolicy`, `UntagPolicy` and `ListPolicyTags` carry AWS customer managed policy tags.
+- A tag is not an envelope label: AWS tag keys may be 128 characters with spaces, upper case and punctuation, which the envelope label grammar (`[a-z][a-z0-9_-]{0,62}`) rejects. Tags are therefore a `tags` map on the stored policy, next to its versions, and not `labels`.
+- The limits are the AWS ones: 50 tags per policy, key 1-128 and value 0-256 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, no key or value beginning with `aws:`. Invalid input is `INVALID_ARGUMENT / INVALID_SPEC`; the 51st tag is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED`.
+- Key case is significant for a policy, as in AWS. A later `TagPolicy` overwrites the value of a key it names. `UntagPolicy` ignores a key that is not attached.
+- `TagPolicy` and `UntagPolicy` are operations (AIP-151) and idempotent by `request_id`. `ListPolicyTags` sorts by key and pages.
