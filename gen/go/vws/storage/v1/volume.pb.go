@@ -208,10 +208,10 @@ type VolumeSpec struct {
 	//	*VolumeSpec_Snapshot
 	Source isVolumeSpec_Source `protobuf_oneof:"source"`
 	// Provisioned IOPS. 0 uses the type default.
-	// STANDARD (gp3) is 3000-16000. SSD (io2) is 100-64000.
+	// STANDARD (gp3) is 3000-80000. SSD (io2) is 100-256000.
 	Iops int64 `protobuf:"varint,5,opt,name=iops,proto3" json:"iops,omitempty"`
 	// Provisioned throughput in MiB/s. 0 uses the type default.
-	// STANDARD (gp3) is 125-1000. SSD (io2) derives throughput from iops, so
+	// STANDARD (gp3) is 125-2000. SSD (io2) derives throughput from iops, so
 	// this must be 0.
 	ThroughputMibps int64 `protobuf:"varint,6,opt,name=throughput_mibps,json=throughputMibps,proto3" json:"throughput_mibps,omitempty"`
 	unknownFields   protoimpl.UnknownFields
