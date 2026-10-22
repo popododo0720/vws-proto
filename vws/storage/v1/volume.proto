@@ -121,6 +121,13 @@ message VolumeSpec {
       (google.api.resource_reference).type = "vws.storage/Snapshot"
     ];
   }
+  // Provisioned IOPS. 0 uses the type default.
+  // STANDARD (gp3) is 3000-16000. SSD (io2) is 100-64000.
+  int64 iops = 5;
+  // Provisioned throughput in MiB/s. 0 uses the type default.
+  // STANDARD (gp3) is 125-1000. SSD (io2) derives throughput from iops, so
+  // this must be 0.
+  int64 throughput_mibps = 6;
 }
 
 message VolumeStatus {

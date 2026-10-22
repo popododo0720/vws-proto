@@ -206,9 +206,16 @@ type VolumeSpec struct {
 	//
 	//	*VolumeSpec_Image
 	//	*VolumeSpec_Snapshot
-	Source        isVolumeSpec_Source `protobuf_oneof:"source"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Source isVolumeSpec_Source `protobuf_oneof:"source"`
+	// Provisioned IOPS. 0 uses the type default.
+	// STANDARD (gp3) is 3000-16000. SSD (io2) is 100-64000.
+	Iops int64 `protobuf:"varint,5,opt,name=iops,proto3" json:"iops,omitempty"`
+	// Provisioned throughput in MiB/s. 0 uses the type default.
+	// STANDARD (gp3) is 125-1000. SSD (io2) derives throughput from iops, so
+	// this must be 0.
+	ThroughputMibps int64 `protobuf:"varint,6,opt,name=throughput_mibps,json=throughputMibps,proto3" json:"throughput_mibps,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *VolumeSpec) Reset() {
@@ -278,6 +285,20 @@ func (x *VolumeSpec) GetSnapshot() string {
 		}
 	}
 	return ""
+}
+
+func (x *VolumeSpec) GetIops() int64 {
+	if x != nil {
+		return x.Iops
+	}
+	return 0
+}
+
+func (x *VolumeSpec) GetThroughputMibps() int64 {
+	if x != nil {
+		return x.ThroughputMibps
+	}
+	return 0
 }
 
 type isVolumeSpec_Source interface {
@@ -885,7 +906,7 @@ const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:Z\xeaAW\n" +
-	"\x12vws.storage/Volume\x120projects/{project}/zones/{zone}/volumes/{volume}*\avolumes2\x06volume\"\xda\x01\n" +
+	"\x12vws.storage/Volume\x120projects/{project}/zones/{zone}/volumes/{volume}*\avolumes2\x06volume\"\x99\x02\n" +
 	"\n" +
 	"VolumeSpec\x12\x1e\n" +
 	"\bsize_gib\x18\x01 \x01(\x03B\x03\xe0A\x02R\asizeGib\x123\n" +
@@ -893,7 +914,9 @@ const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"\x05image\x18\x03 \x01(\tB\x19\xe0A\x05\xfaA\x13\n" +
 	"\x11vws.compute/ImageH\x00R\x05image\x12:\n" +
 	"\bsnapshot\x18\x04 \x01(\tB\x1c\xe0A\x05\xfaA\x16\n" +
-	"\x14vws.storage/SnapshotH\x00R\bsnapshotB\b\n" +
+	"\x14vws.storage/SnapshotH\x00R\bsnapshot\x12\x12\n" +
+	"\x04iops\x18\x05 \x01(\x03R\x04iops\x12)\n" +
+	"\x10throughput_mibps\x18\x06 \x01(\x03R\x0fthroughputMibpsB\b\n" +
 	"\x06source\"\xdf\x01\n" +
 	"\fVolumeStatus\x128\n" +
 	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\x125\n" +
