@@ -8,7 +8,8 @@ This document gathers in one place the input rules already written in the proto 
 | Label key | `[a-z][a-z0-9_-]{0,62}` | the envelope comment in the same file |
 | Label value | UTF-8, 0-63 bytes, no ASCII control characters | the same file |
 | Object key | 1-1024 bytes after decoding, not `.` or `..`, does not start or end with `/`, no `//`, no ASCII control characters. RFC 3986 percent-encoding in paths (`/` is `%2F`) | `vws/storage/v1/object.proto` `Object` |
-| Volume `iops` and `throughput_mibps` | 0 uses the server default. STANDARD (gp3): `iops` 3000-80000 and `throughput_mibps` 125-2000. SSD (io2): `iops` 100-256000 and `throughput_mibps` must be 0 because io2 throughput follows IOPS. | `vws/storage/v1/volume.proto` `VolumeSpec` |
+| Volume `type` | One of the EBS types `GP2`, `GP3`, `IO1`, `IO2`, `ST1`, `SC1`, `STANDARD` (EC2 `VolumeType`). `UNSPECIFIED` is invalid. `SSD` is deprecated: clients do not send it, and a stored `SSD` volume reads as `GP2` unless the admin maps it otherwise (vws-storage#123). Immutable | `vws/storage/v1/volume.proto` `VolumeType` |
+| Volume `iops` and `throughput_mibps` | As in EC2 CreateVolume. GP3: `iops` 3000-80000 (0 uses 3000) and `throughput_mibps` 125-2000 (0 uses 125). IO1: `iops` 100-64000, required. IO2: `iops` 100-256000, required. Every other type, and `throughput_mibps` on every type but GP3: must be 0 | `vws/storage/v1/volume.proto` `VolumeSpec` |
 | IAM name (`IamName`): user, group, role, MFA device and inline policy names | `[A-Za-z0-9+=,.@_-]`, 1-64 characters (managed policies 1-128). Unique within a project, ignoring case. An exception to `ResourceId` for AWS compatibility | `vws/iam/v1/*.proto` |
 | Access key id | `AKIA` (long-term) or `ASIA` (temporary) + 16 upper-case letters and digits | `vws/iam/v1/access_key.proto`, `auth.proto` |
 | IAM `path` | Starts and ends with `/`, 1-512 characters | the same files |
