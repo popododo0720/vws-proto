@@ -2,31 +2,33 @@
 
 This repo holds the shared gRPC definitions of the VWS control plane. Server implementations, deployments and test environments are not built here.
 
-## Rule table
+## Rules
 
-| Item | Rule |
+Every row names its enforcer. `Judgment` means the rule has no automated check; the author and reviewer uphold it.
+
+| Rule | Enforcer |
 | --- | --- |
-| Style | Google API style and AIPs. proto3, the `Service` suffix, standard method names |
-| Lint | `buf lint`, on the `STANDARD` set |
-| Breaking | `buf breaking`, on the `FILE` set |
-| Package | `vws.<domain>.v1`. The directory matches the package |
-| Resource envelope | Fields 1–10 of every resource are the same as the envelope in `vws/common/v1/resource.proto` |
-| State | `spec` is the desired state. `status.observed` is the state the node reported |
-| Mutating RPC | Returns a `google.longrunning.Operation`. Metadata is `vws.common.v1.OperationMetadata` |
-| Read RPC | Returns the resource message |
-| Lint exceptions | Only `RPC_RESPONSE_STANDARD_NAME` on `Get*`, and `RPC_RESPONSE_STANDARD_NAME` and `RPC_REQUEST_RESPONSE_UNIQUE` on mutating RPCs, because of AIP-131 and AIP-151 |
-| Idempotency | Create, update, delete and status reports reach the same result when run again, following the rules written in `OperationMetadata` |
-| Restart | The desired state and the operation are stored before the response. When the process comes back up, it reconciles from that record |
-| Identifiers | `ResourceId` grammar except Object keys. Collection names are AIP-122 camelCase |
-| Go package | `option go_package = "github.com/popododo0720/vws-proto/gen/go/<proto directory>;<domain><version>"`. `vws/compute/v1` is `computev1`. CI checks it against the file path |
-| Generated code | The output of `buf generate` and `go mod tidy` (`gen/go`, `go.mod`, `go.sum`) goes in the same commit as the proto change. `gen/go` is never edited by hand |
-| References | Other resources are referenced by full resource name, not linked by proto imports across packages |
-| Branches | Do not commit or push to `main` directly. Changes go in through a branch and a PR |
-| Commits | Atomic. One commit has one purpose |
-| Notices | No logos and no trademark notices |
-| Insider risk | A PR targets main and its body has `Part of #N` and no closing keyword. CI reports commits that reached main without a PR. This file has Insider-risk guardrails 1-7 below. The checks are `scripts/guard-agents.sh`, `.github/workflows/repo-guard.yml` and `.github/workflows/direct-push-watch.yml` |
-| Tools | Do not use Cursor cloud agents. Follow the poteto-mode section below for the way of working |
-| English only | The repo is English only (see "English only"). Hangul is allowed only in files `.github/english-allowlist` lists with a reason. `scripts/check-english.sh` checks it in the CI `english` job |
+| Style: Google API style and AIPs. proto3, the `Service` suffix, standard method names | `buf lint` and Judgment for the AIP style it does not check |
+| Lint: `buf lint`, on the `STANDARD` set | `buf lint` |
+| Breaking: `buf breaking`, on the `FILE` set | `buf breaking` |
+| Package: `vws.<domain>.v1`. The directory matches the package | `buf lint` |
+| Resource envelope: Fields 1–10 of every resource are the same as the envelope in `vws/common/v1/resource.proto` | Judgment |
+| State: `spec` is the desired state. `status.observed` is the state the node reported | Judgment |
+| Mutating RPC: Returns a `google.longrunning.Operation`. Metadata is `vws.common.v1.OperationMetadata` | Judgment |
+| Read RPC: Returns the resource message | Judgment |
+| Lint exceptions: Only `RPC_RESPONSE_STANDARD_NAME` on `Get*`, and `RPC_RESPONSE_STANDARD_NAME` and `RPC_REQUEST_RESPONSE_UNIQUE` on mutating RPCs, because of AIP-131 and AIP-151 | Judgment |
+| Idempotency: Create, update, delete and status reports reach the same result when run again, following the rules written in `OperationMetadata` | Judgment |
+| Restart: The desired state and the operation are stored before the response. When the process comes back up, it reconciles from that record | Judgment |
+| Identifiers: `ResourceId` grammar except Object keys. Collection names are AIP-122 camelCase | Judgment |
+| Go package: `option go_package = "github.com/popododo0720/vws-proto/gen/go/<proto directory>;<domain><version>"`. `vws/compute/v1` is `computev1`. CI checks it against the file path | `scripts/check-generated-go.sh` (CI `go` job) |
+| Generated code: The output of `buf generate` and `go mod tidy` (`gen/go`, `go.mod`, `go.sum`) goes in the same commit as the proto change. `gen/go` is never edited by hand | `scripts/check-generated-go.sh` (CI `go` job) |
+| References: Other resources are referenced by full resource name, not linked by proto imports across packages | Judgment |
+| Branches: Do not commit or push to `main` directly. Changes go in through a branch and a PR | `.github/workflows/repo-guard.yml` `pr-base` and `.github/workflows/direct-push-watch.yml` |
+| Commits: Atomic. One commit has one purpose | `scripts/guard-agents.sh` `pr-commits` (CI `pr-hygiene`) |
+| Notices: No logos and no trademark notices | Judgment |
+| Insider risk: A PR targets main and its body has `Part of #N` and no closing keyword. CI reports commits that reached main without a PR. This file has Insider-risk guardrails 1-7 below. The checks are `scripts/guard-agents.sh`, `.github/workflows/repo-guard.yml` and `.github/workflows/direct-push-watch.yml` | `scripts/guard-agents.sh` `pr-body` and `pr-commits`, `.github/workflows/repo-guard.yml`, `.github/workflows/direct-push-watch.yml` |
+| Tools: Do not use Cursor cloud agents. Follow the poteto-mode section below for the way of working | Judgment |
+| English only: The repo is English only (see "English only"). Hangul is allowed only in files `.github/english-allowlist` lists with a reason. `scripts/check-english.sh` checks it in the CI `english` job | `scripts/check-english.sh` (CI `english` job) |
 
 ## English only
 

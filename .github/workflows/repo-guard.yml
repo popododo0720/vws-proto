@@ -42,6 +42,8 @@ jobs:
         run: scripts/guard-agents.sh identity scripts/guard-agents.sh.sha256
       - name: AGENTS.md has the guardrails
         run: scripts/guard-agents.sh agents
+      - name: AGENTS.md rules name an enforcer (#60)
+        run: scripts/guard-agents.sh rules
       - name: AGENTS.md has the /correct loop, incident form and label (vws-deploy#448)
         run: scripts/guard.sh correct
       - name: guard.sh fails on an empty /correct loop section
