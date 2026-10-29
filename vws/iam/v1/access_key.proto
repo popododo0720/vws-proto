@@ -147,6 +147,14 @@ message UpdateAccessKeyRequest {
   ];
   bool validate_only = 4 [(google.api.field_behavior) = OPTIONAL];
   bool allow_missing = 5 [(google.api.field_behavior) = OPTIONAL];
+  // Optional precondition, an AIP-122 user resource name such as
+  // "projects/{project}/users/{user}". When set, the server checks in the same
+  // transaction as the write that the access key's parent user is this value.
+  // A mismatch is FAILED_PRECONDITION and no state changes. Omitted means no check.
+  string expected_user_path = 6 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
 }
 
 message DeleteAccessKeyRequest {
@@ -160,6 +168,15 @@ message DeleteAccessKeyRequest {
   ];
   bool allow_missing = 3 [(google.api.field_behavior) = OPTIONAL];
   string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Optional precondition, an AIP-122 user resource name such as
+  // "projects/{project}/users/{user}". When set, the server checks in the same
+  // transaction as the delete that the access key's parent user is this value.
+  // A mismatch is FAILED_PRECONDITION and the key is not deleted. Omitted means
+  // no check.
+  string expected_user_path = 5 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
 }
 
 message CreateAccessKeyRequest {
