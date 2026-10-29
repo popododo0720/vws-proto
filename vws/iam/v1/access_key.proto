@@ -155,6 +155,14 @@ message UpdateAccessKeyRequest {
     (google.api.field_behavior) = OPTIONAL,
     (google.api.resource_reference).type = "vws.iam/User"
   ];
+  // Optional precondition, the IAM user ARN of the access key's parent user,
+  // shape "arn:vws:iam::{project}:user{path}{user}". When set, the server reads
+  // the parent User in the same transaction as the write and checks that its
+  // current ARN equals this value. A mismatch is FAILED_PRECONDITION and no
+  // state changes. Omitted means no check. The ARN contains the IAM path, so it
+  // changes when UpdateUser moves spec.path; expected_user_path is the AIP-122
+  // resource name and does not change.
+  string expected_user_arn = 7 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message DeleteAccessKeyRequest {
@@ -177,6 +185,14 @@ message DeleteAccessKeyRequest {
     (google.api.field_behavior) = OPTIONAL,
     (google.api.resource_reference).type = "vws.iam/User"
   ];
+  // Optional precondition, the IAM user ARN of the access key's parent user,
+  // shape "arn:vws:iam::{project}:user{path}{user}". When set, the server reads
+  // the parent User in the same transaction as the delete and checks that its
+  // current ARN equals this value. A mismatch is FAILED_PRECONDITION and the key
+  // is not deleted. Omitted means no check. The ARN contains the IAM path, so it
+  // changes when UpdateUser moves spec.path; expected_user_path is the AIP-122
+  // resource name and does not change.
+  string expected_user_arn = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message CreateAccessKeyRequest {

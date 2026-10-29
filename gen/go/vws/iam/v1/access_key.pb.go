@@ -481,8 +481,16 @@ type UpdateAccessKeyRequest struct {
 	// transaction as the write that the access key's parent user is this value.
 	// A mismatch is FAILED_PRECONDITION and no state changes. Omitted means no check.
 	ExpectedUserPath string `protobuf:"bytes,6,opt,name=expected_user_path,json=expectedUserPath,proto3" json:"expected_user_path,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Optional precondition, the IAM user ARN of the access key's parent user,
+	// shape "arn:vws:iam::{project}:user{path}{user}". When set, the server reads
+	// the parent User in the same transaction as the write and checks that its
+	// current ARN equals this value. A mismatch is FAILED_PRECONDITION and no
+	// state changes. Omitted means no check. The ARN contains the IAM path, so it
+	// changes when UpdateUser moves spec.path; expected_user_path is the AIP-122
+	// resource name and does not change.
+	ExpectedUserArn string `protobuf:"bytes,7,opt,name=expected_user_arn,json=expectedUserArn,proto3" json:"expected_user_arn,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *UpdateAccessKeyRequest) Reset() {
@@ -557,6 +565,13 @@ func (x *UpdateAccessKeyRequest) GetExpectedUserPath() string {
 	return ""
 }
 
+func (x *UpdateAccessKeyRequest) GetExpectedUserArn() string {
+	if x != nil {
+		return x.ExpectedUserArn
+	}
+	return ""
+}
+
 type DeleteAccessKeyRequest struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	Name         string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -569,8 +584,16 @@ type DeleteAccessKeyRequest struct {
 	// A mismatch is FAILED_PRECONDITION and the key is not deleted. Omitted means
 	// no check.
 	ExpectedUserPath string `protobuf:"bytes,5,opt,name=expected_user_path,json=expectedUserPath,proto3" json:"expected_user_path,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Optional precondition, the IAM user ARN of the access key's parent user,
+	// shape "arn:vws:iam::{project}:user{path}{user}". When set, the server reads
+	// the parent User in the same transaction as the delete and checks that its
+	// current ARN equals this value. A mismatch is FAILED_PRECONDITION and the key
+	// is not deleted. Omitted means no check. The ARN contains the IAM path, so it
+	// changes when UpdateUser moves spec.path; expected_user_path is the AIP-122
+	// resource name and does not change.
+	ExpectedUserArn string `protobuf:"bytes,6,opt,name=expected_user_arn,json=expectedUserArn,proto3" json:"expected_user_arn,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *DeleteAccessKeyRequest) Reset() {
@@ -634,6 +657,13 @@ func (x *DeleteAccessKeyRequest) GetEtag() string {
 func (x *DeleteAccessKeyRequest) GetExpectedUserPath() string {
 	if x != nil {
 		return x.ExpectedUserPath
+	}
+	return ""
+}
+
+func (x *DeleteAccessKeyRequest) GetExpectedUserArn() string {
+	if x != nil {
+		return x.ExpectedUserArn
 	}
 	return ""
 }
@@ -792,7 +822,7 @@ const file_vws_iam_v1_access_key_proto_rawDesc = "" +
 	"\x16ListAccessKeysResponse\x126\n" +
 	"\vaccess_keys\x18\x01 \x03(\v2\x15.vws.iam.v1.AccessKeyR\n" +
 	"accessKeys\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xd4\x02\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x85\x03\n" +
 	"\x16UpdateAccessKeyRequest\x129\n" +
 	"\n" +
 	"access_key\x18\x01 \x01(\v2\x15.vws.iam.v1.AccessKeyB\x03\xe0A\x02R\taccessKey\x12;\n" +
@@ -803,7 +833,8 @@ const file_vws_iam_v1_access_key_proto_rawDesc = "" +
 	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x12(\n" +
 	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12B\n" +
 	"\x12expected_user_path\x18\x06 \x01(\tB\x14\xe0A\x01\xfaA\x0e\n" +
-	"\fvws.iam/UserR\x10expectedUserPath\"\xfa\x01\n" +
+	"\fvws.iam/UserR\x10expectedUserPath\x12/\n" +
+	"\x11expected_user_arn\x18\a \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\"\xab\x02\n" +
 	"\x16DeleteAccessKeyRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11vws.iam/AccessKeyR\x04name\x12*\n" +
@@ -812,7 +843,8 @@ const file_vws_iam_v1_access_key_proto_rawDesc = "" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
 	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\x12B\n" +
 	"\x12expected_user_path\x18\x05 \x01(\tB\x14\xe0A\x01\xfaA\x0e\n" +
-	"\fvws.iam/UserR\x10expectedUserPath\"w\n" +
+	"\fvws.iam/UserR\x10expectedUserPath\x12/\n" +
+	"\x11expected_user_arn\x18\x06 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\"w\n" +
 	"\x16CreateAccessKeyRequest\x121\n" +
 	"\x06parent\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\x12\x11vws.iam/AccessKeyR\x06parent\x12*\n" +
 	"\n" +
