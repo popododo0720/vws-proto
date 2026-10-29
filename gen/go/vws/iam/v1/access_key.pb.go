@@ -472,12 +472,17 @@ type UpdateAccessKeyRequest struct {
 	// Paths are relative to AccessKey. status and output-only fields are rejected.
 	// Omitted mask is treated as "spec,labels".
 	// Only spec.state may change (UpdateAccessKey Active/Inactive).
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	ValidateOnly  bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
-	AllowMissing  bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	UpdateMask   *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	RequestId    string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	AllowMissing bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// Optional precondition, an AIP-122 user resource name such as
+	// "projects/{project}/users/{user}". When set, the server checks in the same
+	// transaction as the write that the access key's parent user is this value.
+	// A mismatch is FAILED_PRECONDITION and no state changes. Omitted means no check.
+	ExpectedUserPath string `protobuf:"bytes,6,opt,name=expected_user_path,json=expectedUserPath,proto3" json:"expected_user_path,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *UpdateAccessKeyRequest) Reset() {
@@ -545,14 +550,27 @@ func (x *UpdateAccessKeyRequest) GetAllowMissing() bool {
 	return false
 }
 
+func (x *UpdateAccessKeyRequest) GetExpectedUserPath() string {
+	if x != nil {
+		return x.ExpectedUserPath
+	}
+	return ""
+}
+
 type DeleteAccessKeyRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	RequestId     string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	AllowMissing  bool                   `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
-	Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Name         string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	RequestId    string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	AllowMissing bool                   `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	Etag         string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	// Optional precondition, an AIP-122 user resource name such as
+	// "projects/{project}/users/{user}". When set, the server checks in the same
+	// transaction as the delete that the access key's parent user is this value.
+	// A mismatch is FAILED_PRECONDITION and the key is not deleted. Omitted means
+	// no check.
+	ExpectedUserPath string `protobuf:"bytes,5,opt,name=expected_user_path,json=expectedUserPath,proto3" json:"expected_user_path,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *DeleteAccessKeyRequest) Reset() {
@@ -609,6 +627,13 @@ func (x *DeleteAccessKeyRequest) GetAllowMissing() bool {
 func (x *DeleteAccessKeyRequest) GetEtag() string {
 	if x != nil {
 		return x.Etag
+	}
+	return ""
+}
+
+func (x *DeleteAccessKeyRequest) GetExpectedUserPath() string {
+	if x != nil {
+		return x.ExpectedUserPath
 	}
 	return ""
 }
@@ -767,7 +792,7 @@ const file_vws_iam_v1_access_key_proto_rawDesc = "" +
 	"\x16ListAccessKeysResponse\x126\n" +
 	"\vaccess_keys\x18\x01 \x03(\v2\x15.vws.iam.v1.AccessKeyR\n" +
 	"accessKeys\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x90\x02\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xd4\x02\n" +
 	"\x16UpdateAccessKeyRequest\x129\n" +
 	"\n" +
 	"access_key\x18\x01 \x01(\v2\x15.vws.iam.v1.AccessKeyB\x03\xe0A\x02R\taccessKey\x12;\n" +
@@ -776,14 +801,18 @@ const file_vws_iam_v1_access_key_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x12(\n" +
-	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\"\xb6\x01\n" +
+	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12B\n" +
+	"\x12expected_user_path\x18\x06 \x01(\tB\x14\xe0A\x01\xfaA\x0e\n" +
+	"\fvws.iam/UserR\x10expectedUserPath\"\xfa\x01\n" +
 	"\x16DeleteAccessKeyRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11vws.iam/AccessKeyR\x04name\x12*\n" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
-	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"w\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\x12B\n" +
+	"\x12expected_user_path\x18\x05 \x01(\tB\x14\xe0A\x01\xfaA\x0e\n" +
+	"\fvws.iam/UserR\x10expectedUserPath\"w\n" +
 	"\x16CreateAccessKeyRequest\x121\n" +
 	"\x06parent\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\x12\x11vws.iam/AccessKeyR\x06parent\x12*\n" +
 	"\n" +
