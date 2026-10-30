@@ -151,12 +151,14 @@ type RoleSpec struct {
 	// principals and the sts:AssumeRole action. Required.
 	AssumeRolePolicy string `protobuf:"bytes,2,opt,name=assume_role_policy,json=assumeRolePolicy,proto3" json:"assume_role_policy,omitempty"`
 	// 3600 to 43200. Zero means 3600.
-	MaxSessionDurationSeconds int32             `protobuf:"varint,3,opt,name=max_session_duration_seconds,json=maxSessionDurationSeconds,proto3" json:"max_session_duration_seconds,omitempty"`
-	AttachedPolicies          []string          `protobuf:"bytes,4,rep,name=attached_policies,json=attachedPolicies,proto3" json:"attached_policies,omitempty"`
-	InlinePolicies            map[string]string `protobuf:"bytes,5,rep,name=inline_policies,json=inlinePolicies,proto3" json:"inline_policies,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Description               string            `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	MaxSessionDurationSeconds int32    `protobuf:"varint,3,opt,name=max_session_duration_seconds,json=maxSessionDurationSeconds,proto3" json:"max_session_duration_seconds,omitempty"`
+	AttachedPolicies          []string `protobuf:"bytes,4,rep,name=attached_policies,json=attachedPolicies,proto3" json:"attached_policies,omitempty"`
+	// Inline policies: policy name (IamName, 1 to 128 characters as in AWS
+	// PutRolePolicy PolicyName) -> JSON policy document.
+	InlinePolicies map[string]string `protobuf:"bytes,5,rep,name=inline_policies,json=inlinePolicies,proto3" json:"inline_policies,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Description    string            `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *RoleSpec) Reset() {

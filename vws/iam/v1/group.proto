@@ -104,7 +104,8 @@ message GroupSpec {
   repeated string members = 2;
   // Managed policies, at most 10.
   repeated string attached_policies = 3;
-  // Inline policies: policy name -> JSON policy document.
+  // Inline policies: policy name (IamName, 1 to 128 characters as in AWS
+  // PutGroupPolicy PolicyName) -> JSON policy document.
   map<string, string> inline_policies = 4;
 }
 
@@ -143,7 +144,7 @@ message CreateGroupRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).child_type = "vws.iam/Group"
   ];
-  // Final path segment. Must match IamName (docs/validation.md): [A-Za-z0-9+=,.@_-], 1 to 64 characters, unique per project ignoring case.
+  // Final path segment. Must match IamName (docs/validation.md): [A-Za-z0-9+=,.@_-], 1 to 128 characters (AWS CreateGroup GroupName), unique per project ignoring case.
   string group_id = 2 [(google.api.field_behavior) = REQUIRED];
   Group group = 3 [(google.api.field_behavior) = REQUIRED];
   string request_id = 4 [
