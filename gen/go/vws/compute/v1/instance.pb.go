@@ -271,11 +271,19 @@ type InstanceSpec struct {
 	// Optional project-regional key pair. Empty means no key is installed.
 	KeyPair string `protobuf:"bytes,3,opt,name=key_pair,json=keyPair,proto3" json:"key_pair,omitempty"`
 	// Opaque text passed to the guest on boot. Not interpreted by the control plane.
-	// Maximum 32768 bytes.
+	// Maximum 32768 bytes. Must be valid UTF-8 (proto3 string); use user_data_raw
+	// for EC2 UserData that is not valid UTF-8.
 	UserData          string              `protobuf:"bytes,4,opt,name=user_data,json=userData,proto3" json:"user_data,omitempty"`
 	NetworkInterfaces []*NetworkInterface `protobuf:"bytes,5,rep,name=network_interfaces,json=networkInterfaces,proto3" json:"network_interfaces,omitempty"`
 	// Exactly one entry has boot = true. Device names are unique within the instance.
-	Volumes       []*VolumeAttachment `protobuf:"bytes,6,rep,name=volumes,proto3" json:"volumes,omitempty"`
+	Volumes []*VolumeAttachment `protobuf:"bytes,6,rep,name=volumes,proto3" json:"volumes,omitempty"`
+	// Opaque bytes passed to the guest on boot unchanged, for any EC2 UserData
+	// (the base64-decoded value), including bytes that are not valid UTF-8.
+	// Not interpreted by the control plane. Maximum 32768 bytes.
+	// At most one of user_data and user_data_raw is set; both set is
+	// INVALID_ARGUMENT / INVALID_SPEC. When set, the node delivers these bytes
+	// instead of user_data.
+	UserDataRaw   []byte `protobuf:"bytes,7,opt,name=user_data_raw,json=userDataRaw,proto3" json:"user_data_raw,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -348,6 +356,13 @@ func (x *InstanceSpec) GetNetworkInterfaces() []*NetworkInterface {
 func (x *InstanceSpec) GetVolumes() []*VolumeAttachment {
 	if x != nil {
 		return x.Volumes
+	}
+	return nil
+}
+
+func (x *InstanceSpec) GetUserDataRaw() []byte {
+	if x != nil {
+		return x.UserDataRaw
 	}
 	return nil
 }
@@ -1205,7 +1220,7 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:d\xeaAa\n" +
-	"\x14vws.compute/Instance\x124projects/{project}/zones/{zone}/instances/{instance}*\tinstances2\binstance\"\xd4\x02\n" +
+	"\x14vws.compute/Instance\x124projects/{project}/zones/{zone}/instances/{instance}*\tinstances2\binstance\"\xf8\x02\n" +
 	"\fInstanceSpec\x12&\n" +
 	"\fmachine_type\x18\x01 \x01(\tB\x03\xe0A\x02R\vmachineType\x128\n" +
 	"\x05power\x18\x02 \x01(\x0e2\x1d.vws.compute.v1.InstancePowerB\x03\xe0A\x02R\x05power\x123\n" +
@@ -1213,7 +1228,8 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\x13vws.compute/KeyPairR\akeyPair\x12\x1b\n" +
 	"\tuser_data\x18\x04 \x01(\tR\buserData\x12O\n" +
 	"\x12network_interfaces\x18\x05 \x03(\v2 .vws.compute.v1.NetworkInterfaceR\x11networkInterfaces\x12?\n" +
-	"\avolumes\x18\x06 \x03(\v2 .vws.compute.v1.VolumeAttachmentB\x03\xe0A\x02R\avolumes\"\xd8\x01\n" +
+	"\avolumes\x18\x06 \x03(\v2 .vws.compute.v1.VolumeAttachmentB\x03\xe0A\x02R\avolumes\x12\"\n" +
+	"\ruser_data_raw\x18\a \x01(\fR\vuserDataRaw\"\xd8\x01\n" +
 	"\x10NetworkInterface\x12$\n" +
 	"\vdevice_name\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"deviceName\x122\n" +

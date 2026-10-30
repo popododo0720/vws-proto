@@ -127,11 +127,19 @@ message InstanceSpec {
   // Optional project-regional key pair. Empty means no key is installed.
   string key_pair = 3 [(google.api.resource_reference).type = "vws.compute/KeyPair"];
   // Opaque text passed to the guest on boot. Not interpreted by the control plane.
-  // Maximum 32768 bytes.
+  // Maximum 32768 bytes. Must be valid UTF-8 (proto3 string); use user_data_raw
+  // for EC2 UserData that is not valid UTF-8.
   string user_data = 4;
   repeated NetworkInterface network_interfaces = 5;
   // Exactly one entry has boot = true. Device names are unique within the instance.
   repeated VolumeAttachment volumes = 6 [(google.api.field_behavior) = REQUIRED];
+  // Opaque bytes passed to the guest on boot unchanged, for any EC2 UserData
+  // (the base64-decoded value), including bytes that are not valid UTF-8.
+  // Not interpreted by the control plane. Maximum 32768 bytes.
+  // At most one of user_data and user_data_raw is set; both set is
+  // INVALID_ARGUMENT / INVALID_SPEC. When set, the node delivers these bytes
+  // instead of user_data.
+  bytes user_data_raw = 7;
 }
 
 message NetworkInterface {
