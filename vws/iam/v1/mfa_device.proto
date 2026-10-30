@@ -256,9 +256,8 @@ message TagMFADeviceRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "vws.iam/MfaDevice"
   ];
-  // 1-50 tags. AWS TagMFADevice: "If a tag with the same key name already
-  // exists, then that tag is overwritten with the new value." A key that
-  // repeats within one request keeps the last value.
+  // 1-50 tags. A tag whose key already exists on the resource overwrites it.
+  // A key that repeats within one request keeps the last value.
   repeated Tag tags = 2 [(google.api.field_behavior) = REQUIRED];
   string request_id = 3 [
     (google.api.field_info).format = UUID4,
