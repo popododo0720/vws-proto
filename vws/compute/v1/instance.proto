@@ -162,6 +162,33 @@ message InstanceStatus {
   // Placement moved to the Kubernetes scheduler. The field is removed.
   reserved 4;
   reserved "assigned_node";
+  // One entry per volume the node has seen in spec.volumes or is still
+  // detaching. The node agent writes it; clients must not infer attachment
+  // from spec.volumes or from the volume's status.instance, which are set
+  // before hot-plug finishes. An entry missing for a spec volume means the
+  // node has not started the attach yet (report it as attaching).
+  repeated ObservedVolumeAttachment volumes = 5;
+}
+
+// ObservedVolumeAttachment is the node's view of one volume on this instance.
+message ObservedVolumeAttachment {
+  string volume = 1 [(google.api.resource_reference).type = "vws.storage/Volume"];
+  string device_name = 2;
+  VolumeAttachState state = 3;
+  // When state last changed.
+  google.protobuf.Timestamp state_time = 4;
+}
+
+// VolumeAttachState mirrors EC2 VolumeAttachment.State. ATTACHED means the
+// hot-plug finished and the guest sees the disk. Detached volumes are
+// removed from InstanceStatus.volumes, so there is no DETACHED value.
+enum VolumeAttachState {
+  VOLUME_ATTACH_STATE_UNSPECIFIED = 0;
+  VOLUME_ATTACH_STATE_ATTACHING = 1;
+  VOLUME_ATTACH_STATE_ATTACHED = 2;
+  VOLUME_ATTACH_STATE_DETACHING = 3;
+  // The hot-plug or unplug failed and the node is retrying. EC2 "busy".
+  VOLUME_ATTACH_STATE_BUSY = 4;
 }
 
 message ObservedNetworkInterface {
