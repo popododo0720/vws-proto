@@ -2,6 +2,8 @@
 
 This document gathers in one place the input rules already written in the proto comments. It creates no new rules. This repo does not use validation annotations (protovalidate or similar) on proto fields, so **the rules are a contract, and each server enforces them.** Whether a server really checks these rules cannot be confirmed in this repo (needs checking, in each server repo).
 
+A failed rule returns the status shape and `ErrorInfo.reason` in the [gRPC error contract](errors.md).
+
 | Input | Rule | Source |
 | --- | --- | --- |
 | Resource id (except Object), project, region, zone | `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`, length 1-63 | `vws/common/v1/resource.proto` `ResourceId` |
