@@ -152,7 +152,8 @@ type GroupSpec struct {
 	Members []string `protobuf:"bytes,2,rep,name=members,proto3" json:"members,omitempty"`
 	// Managed policies, at most 10.
 	AttachedPolicies []string `protobuf:"bytes,3,rep,name=attached_policies,json=attachedPolicies,proto3" json:"attached_policies,omitempty"`
-	// Inline policies: policy name -> JSON policy document.
+	// Inline policies: policy name (IamName, 1 to 128 characters as in AWS
+	// PutGroupPolicy PolicyName) -> JSON policy document.
 	InlinePolicies map[string]string `protobuf:"bytes,4,rep,name=inline_policies,json=inlinePolicies,proto3" json:"inline_policies,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -438,7 +439,7 @@ func (x *ListGroupsResponse) GetNextPageToken() string {
 type CreateGroupRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
-	// Final path segment. Must match IamName (docs/validation.md): [A-Za-z0-9+=,.@_-], 1 to 64 characters, unique per project ignoring case.
+	// Final path segment. Must match IamName (docs/validation.md): [A-Za-z0-9+=,.@_-], 1 to 128 characters (AWS CreateGroup GroupName), unique per project ignoring case.
 	GroupId       string `protobuf:"bytes,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	Group         *Group `protobuf:"bytes,3,opt,name=group,proto3" json:"group,omitempty"`
 	RequestId     string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`

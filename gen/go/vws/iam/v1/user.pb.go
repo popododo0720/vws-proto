@@ -151,7 +151,8 @@ type UserSpec struct {
 	// Managed policies, full resource names projects/{project}/policies/{policy}.
 	// At most 10. Changing this list is AttachUserPolicy / DetachUserPolicy.
 	AttachedPolicies []string `protobuf:"bytes,2,rep,name=attached_policies,json=attachedPolicies,proto3" json:"attached_policies,omitempty"`
-	// Inline policies: policy name (IamName) -> JSON policy document.
+	// Inline policies: policy name (IamName, 1 to 128 characters as in AWS
+	// PutUserPolicy PolicyName) -> JSON policy document.
 	InlinePolicies map[string]string `protobuf:"bytes,3,rep,name=inline_policies,json=inlinePolicies,proto3" json:"inline_policies,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache

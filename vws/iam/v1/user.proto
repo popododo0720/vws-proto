@@ -143,7 +143,8 @@ message UserSpec {
   // Managed policies, full resource names projects/{project}/policies/{policy}.
   // At most 10. Changing this list is AttachUserPolicy / DetachUserPolicy.
   repeated string attached_policies = 2;
-  // Inline policies: policy name (IamName) -> JSON policy document.
+  // Inline policies: policy name (IamName, 1 to 128 characters as in AWS
+  // PutUserPolicy PolicyName) -> JSON policy document.
   map<string, string> inline_policies = 3;
 }
 

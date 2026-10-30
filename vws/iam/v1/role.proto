@@ -124,6 +124,8 @@ message RoleSpec {
   // 3600 to 43200. Zero means 3600.
   int32 max_session_duration_seconds = 3;
   repeated string attached_policies = 4;
+  // Inline policies: policy name (IamName, 1 to 128 characters as in AWS
+  // PutRolePolicy PolicyName) -> JSON policy document.
   map<string, string> inline_policies = 5;
   string description = 6;
 }
