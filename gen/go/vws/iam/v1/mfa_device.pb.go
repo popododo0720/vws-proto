@@ -843,9 +843,8 @@ func (x *DeactivateMfaDeviceResponse) GetMfaDevice() *MfaDevice {
 type TagMFADeviceRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// 1-50 tags. AWS TagMFADevice: "If a tag with the same key name already
-	// exists, then that tag is overwritten with the new value." A key that
-	// repeats within one request keeps the last value.
+	// 1-50 tags. A tag whose key already exists on the resource overwrites it.
+	// A key that repeats within one request keeps the last value.
 	Tags          []*Tag `protobuf:"bytes,2,rep,name=tags,proto3" json:"tags,omitempty"`
 	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	ValidateOnly  bool   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`

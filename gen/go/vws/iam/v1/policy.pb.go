@@ -1251,12 +1251,14 @@ func (x *Tag) GetValue() string {
 }
 
 // TagPolicy adds or overwrites tags on a managed policy. The whole request
-// fails and stores nothing when one tag is invalid, a key repeats, or the
-// policy would keep more than 50 tags. The response is the Policy.
+// fails and stores nothing when one tag is invalid, the request has more than
+// 50 tags, or the policy would keep more than 50 tags. The response is the
+// Policy.
 type TagPolicyRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// 1-50 tags.
+	// 1-50 tags. A tag whose key already exists on the resource overwrites it.
+	// A key that repeats within one request keeps the last value.
 	Tags          []*Tag `protobuf:"bytes,2,rep,name=tags,proto3" json:"tags,omitempty"`
 	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	ValidateOnly  bool   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
