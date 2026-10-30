@@ -97,20 +97,24 @@ W3C Trace Context names.
 
 | Key | Direction | Value | On invalid |
 | --- | --- | --- | --- |
-| `x-request-id` | request and response | UUID4 | `INVALID_ARGUMENT / INVALID_SPEC` |
+| `x-request-id` | request and response | Opaque id: 1-64 characters of `[A-Za-z0-9._-]` | `INVALID_ARGUMENT / INVALID_SPEC` |
 | `traceparent` | request | W3C Trace Context | Ignore, start a new trace |
 | `tracestate` | request | W3C Trace Context | Drop |
 
 `x-request-id` rules:
 
-- The same id travels from the original client through every service call for that request. It is
-  the same UUID4 as the `request_id` field when the RPC has one.
+- `x-request-id` is an opaque correlation id. UUID4 is required only for a set `request_id` field,
+  so the server accepts the non-UUID4 id that `vws-lib` and the console API forward. An empty
+  header counts as absent.
+- The same id travels from the original client through every service call for that request. When
+  the RPC has a `request_id` field and it is set, the header carries that UUID4.
 - If the `request_id` field is set, the server uses it as the idempotency key. A present
   `x-request-id` must equal it. A mismatch is `INVALID_ARGUMENT / INVALID_SPEC` and changes
   nothing.
 - If the header is absent and the field is set, the server uses the field value and echoes it.
 - If the field is empty, the header is correlation only. It does not create an idempotency key.
-- If both are absent, the server generates a UUID4 for correlation. It is not an idempotency key.
+- If both are absent, the server generates an opaque id for correlation. It is not an idempotency
+  key.
 - The server returns the value it used in the `x-request-id` response metadata. For a mutating RPC
   whose `request_id` field is set, `OperationMetadata.request_id` is the same value.
 - A retry of the same logical request reuses the id. A different body uses a new id. Reusing an id
