@@ -21,6 +21,7 @@ This document gathers in one place the input rules already written in the proto 
 | Password | 8-128 characters. Stored only as an argon2id hash. Never in operation records or logs | `user.proto` |
 | `OUTPUT_ONLY` fields | Ignored on input by the AIP-203 convention. The comments in this repo do not state the server behaviour (needs checking). `status` is written only by servers and nodes | `google.api.field_behavior` |
 | `request_id` | The same id with the same fingerprint returns the original operation; a different fingerprint is `ABORTED / IDEMPOTENCY_CONFLICT`. Remembered for 24 hours | `vws/common/v1/operation.proto` |
+| `LookupOperation` `request_id` and `parent` | `request_id` is a UUID4 and required; `parent` is `projects/{project}`. Unset or malformed is `INVALID_ARGUMENT / INVALID_SPEC`. A `parent` other than the caller's project, or a `request_id` older than 24 hours, is `NOT_FOUND`, never `PERMISSION_DENIED` | `vws/compute/v1/operation_lookup.proto` |
 | `generation` in status reports | A report lower than the stored value is ignored | `ObservedState` |
 | `etag` | When set, it must equal the stored etag; otherwise `ETAG_MISMATCH` | `operation.proto` |
 
