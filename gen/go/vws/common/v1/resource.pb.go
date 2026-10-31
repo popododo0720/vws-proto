@@ -209,7 +209,11 @@ func (ConditionState) EnumDescriptor() ([]byte, []int) {
 // The server accepts at least 64 KiB of annotations per resource.
 // Annotations are stored and returned verbatim, are not filterable, and do
 // not change generation; writing an identical map is a no-op. The UpdateMask
-// path is `annotations`.
+// path is `annotations`. A write on that path replaces the user annotations
+// and leaves every existing key with the `aws:` prefix and its value
+// unchanged, so a write that omits one leaves it in place. AWS reserves that
+// prefix and does not let a user edit or delete such a tag
+// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#tag-restrictions).
 //
 // EC2 accepts any character in a tag. AWS documents the character set allowed
 // across its services as letters, numbers, spaces and `+ - = . _ : / @`, and
