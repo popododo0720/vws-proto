@@ -128,8 +128,8 @@ type OperationMetadata struct {
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	EndTime    *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
 	// Server-recorded action at accept time, for a verb with more than one
-	// subtype. Empty means the verb alone is enough. Example values are
-	// "AssociateAddress", "DisassociateAddress", "StartInstances" and
+	// subtype. Empty means unset, and the verb alone is enough. Example values
+	// are "AssociateAddress", "DisassociateAddress", "StartInstances" and
 	// "StopInstances".
 	Action        string `protobuf:"bytes,7,opt,name=action,proto3" json:"action,omitempty"`
 	unknownFields protoimpl.UnknownFields

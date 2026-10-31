@@ -63,8 +63,8 @@ message OperationMetadata {
   google.protobuf.Timestamp end_time = 6;
 
   // Server-recorded action at accept time, for a verb with more than one
-  // subtype. Empty means the verb alone is enough. Example values are
-  // "AssociateAddress", "DisassociateAddress", "StartInstances" and
+  // subtype. Empty means unset, and the verb alone is enough. Example values
+  // are "AssociateAddress", "DisassociateAddress", "StartInstances" and
   // "StopInstances".
   string action = 7;
 }
