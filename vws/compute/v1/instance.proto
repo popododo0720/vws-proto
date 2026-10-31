@@ -161,6 +161,13 @@ message VolumeAttachment {
   ];
   string device_name = 2 [(google.api.field_behavior) = REQUIRED];
   bool boot = 3;
+  // EC2 BlockDeviceMapping.Ebs.DeleteOnTermination. When true, the volume is
+  // deleted after the instance is terminated; when false, it is detached and
+  // kept. Unset keeps the default: true for the boot volume, false for every
+  // other volume. Clients that know the EC2 value (RunInstances,
+  // ModifyInstanceAttribute) set it explicitly. Mutable: changing it updates
+  // the spec and takes effect at the next termination.
+  optional bool delete_on_termination = 4;
 }
 
 message InstanceStatus {
