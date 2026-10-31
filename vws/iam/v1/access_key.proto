@@ -193,6 +193,12 @@ message DeleteAccessKeyRequest {
   // changes when UpdateUser moves spec.path; expected_user_path is the AIP-122
   // resource name and does not change.
   string expected_user_arn = 6 [(google.api.field_behavior) = OPTIONAL];
+  // Optional precondition, the parent User's etag as read by the caller. When
+  // set, the server commits the write only while the user is still at this
+  // etag. A mismatch, or a change of the user that lands before the commit, is
+  // ABORTED (ConcurrentModification) and no state changes. Omitted means no
+  // check.
+  string user_etag = 7 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message CreateAccessKeyRequest {
@@ -206,6 +212,12 @@ message CreateAccessKeyRequest {
     (google.api.field_info).format = UUID4,
     (google.api.field_behavior) = OPTIONAL
   ];
+  // Optional precondition, the parent User's etag as read by the caller. When
+  // set, the server commits the write only while the user is still at this
+  // etag. A mismatch, or a change of the user that lands before the commit, is
+  // ABORTED (ConcurrentModification) and no state changes. Omitted means no
+  // check.
+  string user_etag = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message CreateAccessKeyResponse {
