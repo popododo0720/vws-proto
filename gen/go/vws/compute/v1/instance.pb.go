@@ -438,12 +438,19 @@ func (x *NetworkInterface) GetSecurityGroups() []string {
 }
 
 type VolumeAttachment struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Volume        string                 `protobuf:"bytes,1,opt,name=volume,proto3" json:"volume,omitempty"`
-	DeviceName    string                 `protobuf:"bytes,2,opt,name=device_name,json=deviceName,proto3" json:"device_name,omitempty"`
-	Boot          bool                   `protobuf:"varint,3,opt,name=boot,proto3" json:"boot,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Volume     string                 `protobuf:"bytes,1,opt,name=volume,proto3" json:"volume,omitempty"`
+	DeviceName string                 `protobuf:"bytes,2,opt,name=device_name,json=deviceName,proto3" json:"device_name,omitempty"`
+	Boot       bool                   `protobuf:"varint,3,opt,name=boot,proto3" json:"boot,omitempty"`
+	// EC2 BlockDeviceMapping.Ebs.DeleteOnTermination. When true, the volume is
+	// deleted after the instance is terminated; when false, it is detached and
+	// kept. Unset keeps the default: true for the boot volume, false for every
+	// other volume. Clients that know the EC2 value (RunInstances,
+	// ModifyInstanceAttribute) set it explicitly. Mutable: changing it updates
+	// the spec and takes effect at the next termination.
+	DeleteOnTermination *bool `protobuf:"varint,4,opt,name=delete_on_termination,json=deleteOnTermination,proto3,oneof" json:"delete_on_termination,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *VolumeAttachment) Reset() {
@@ -493,6 +500,13 @@ func (x *VolumeAttachment) GetDeviceName() string {
 func (x *VolumeAttachment) GetBoot() bool {
 	if x != nil {
 		return x.Boot
+	}
+	return false
+}
+
+func (x *VolumeAttachment) GetDeleteOnTermination() bool {
+	if x != nil && x.DeleteOnTermination != nil {
+		return *x.DeleteOnTermination
 	}
 	return false
 }
@@ -1237,13 +1251,15 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\x12vws.network/SubnetR\x06subnet\x12!\n" +
 	"\fprivate_ipv4\x18\x03 \x01(\tR\vprivateIpv4\x12G\n" +
 	"\x0fsecurity_groups\x18\x04 \x03(\tB\x1e\xfaA\x1b\n" +
-	"\x19vws.network/SecurityGroupR\x0esecurityGroups\"\x80\x01\n" +
+	"\x19vws.network/SecurityGroupR\x0esecurityGroups\"\xd3\x01\n" +
 	"\x10VolumeAttachment\x122\n" +
 	"\x06volume\x18\x01 \x01(\tB\x1a\xe0A\x02\xfaA\x14\n" +
 	"\x12vws.storage/VolumeR\x06volume\x12$\n" +
 	"\vdevice_name\x18\x02 \x01(\tB\x03\xe0A\x02R\n" +
 	"deviceName\x12\x12\n" +
-	"\x04boot\x18\x03 \x01(\bR\x04boot\"\xb1\x02\n" +
+	"\x04boot\x18\x03 \x01(\bR\x04boot\x127\n" +
+	"\x15delete_on_termination\x18\x04 \x01(\bH\x00R\x13deleteOnTermination\x88\x01\x01B\x18\n" +
+	"\x16_delete_on_termination\"\xb1\x02\n" +
 	"\x0eInstanceStatus\x128\n" +
 	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\x123\n" +
 	"\x05power\x18\x02 \x01(\x0e2\x1d.vws.compute.v1.InstancePowerR\x05power\x12W\n" +
@@ -1412,6 +1428,7 @@ func file_vws_compute_v1_instance_proto_init() {
 	if File_vws_compute_v1_instance_proto != nil {
 		return
 	}
+	file_vws_compute_v1_instance_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
