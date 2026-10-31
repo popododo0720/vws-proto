@@ -197,10 +197,19 @@ func (ConditionState) EnumDescriptor() ([]byte, []int) {
 //	8  create_time   OUTPUT_ONLY
 //	9  update_time   OUTPUT_ONLY
 //	10 delete_time   OUTPUT_ONLY, set when a delete is accepted
+//	11 annotations   optional, on resources that carry user metadata
 //
 // status.observed is ObservedState and is field 1 of every status message.
 // Label keys match [a-z][a-z0-9_-]{0,62}. Label values are 0 to 63 bytes of
 // UTF-8 with no ASCII control characters.
+//
+// Annotations hold user metadata that does not fit the label grammar, for
+// example EC2 tags. Keys are 1 to 128 characters and values 0 to 256
+// characters of UTF-8 with no control characters. At most 50 entries.
+// The server accepts at least 64 KiB of annotations per resource.
+// Annotations are stored and returned verbatim, are not filterable, and do
+// not change generation; writing an identical map is a no-op. The UpdateMask
+// path is `annotations`.
 //
 // ResourceId is the final path segment of every resource except Object.
 //
