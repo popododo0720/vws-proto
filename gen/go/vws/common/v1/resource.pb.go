@@ -211,6 +211,20 @@ func (ConditionState) EnumDescriptor() ([]byte, []int) {
 // not change generation; writing an identical map is a no-op. The UpdateMask
 // path is `annotations`.
 //
+// EC2 accepts any character in a tag. AWS documents the character set allowed
+// across its services as letters, numbers, spaces and `+ - = . _ : / @`, and
+// EC2 limits a tag key to 1 to 128 Unicode characters and a value to 0 to 256
+// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#tag-restrictions).
+// This contract keeps the no-control-character rule, so it is stricter than
+// EC2 on that point. Control characters do not render and can break logs and
+// UIs, and the AWS-wide character set excludes them.
+//
+// A malformed annotation key or value is INVALID_ARGUMENT / INVALID_SPEC. The
+// message uses the EC2 InvalidParameterValue sentence and names the parameter,
+// for example `Value (<value>) for parameter tagValue is invalid.` for a value
+// and `Value (<key>) for parameter tagKey is invalid.` for a key. Escape the
+// offending string so the message stays one printable line.
+//
 // ResourceId is the final path segment of every resource except Object.
 //
 // Grammar:
