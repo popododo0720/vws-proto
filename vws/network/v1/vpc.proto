@@ -100,6 +100,9 @@ message Vpc {
   google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
   google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
   google.protobuf.Timestamp delete_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // User metadata stored and returned verbatim; not filterable. See the
+  // envelope comment in vws/common/v1/resource.proto for limits.
+  map<string, string> annotations = 11;
 }
 
 message VpcSpec {
@@ -155,7 +158,8 @@ message CreateVpcRequest {
 message UpdateVpcRequest {
   Vpc vpc = 1 [(google.api.field_behavior) = REQUIRED];
   // Paths are relative to Vpc. ipv4_cidr is immutable.
-  // Omitted mask is treated as "spec,labels".
+  // Omitted mask is treated as "spec,labels". Use the path "annotations"
+  // to replace annotations; they are never updated by an omitted mask.
   google.protobuf.FieldMask update_mask = 2;
   string request_id = 3 [
     (google.api.field_info).format = UUID4,

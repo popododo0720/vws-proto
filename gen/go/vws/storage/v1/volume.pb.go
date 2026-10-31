@@ -110,17 +110,20 @@ func (VolumeType) EnumDescriptor() ([]byte, []int) {
 // Volume is a zonal block device.
 // Fields 1-10 are the shared resource envelope.
 type Volume struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Uid           string                 `protobuf:"bytes,2,opt,name=uid,proto3" json:"uid,omitempty"`
-	Generation    int64                  `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
-	Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Spec          *VolumeSpec            `protobuf:"bytes,6,opt,name=spec,proto3" json:"spec,omitempty"`
-	Status        *VolumeStatus          `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
-	CreateTime    *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	DeleteTime    *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Name       string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Uid        string                 `protobuf:"bytes,2,opt,name=uid,proto3" json:"uid,omitempty"`
+	Generation int64                  `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
+	Etag       string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	Labels     map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Spec       *VolumeSpec            `protobuf:"bytes,6,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status     *VolumeStatus          `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	DeleteTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
+	// User metadata stored and returned verbatim; not filterable. See the
+	// envelope comment in vws/common/v1/resource.proto for limits.
+	Annotations   map[string]string `protobuf:"bytes,11,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -221,6 +224,13 @@ func (x *Volume) GetUpdateTime() *timestamppb.Timestamp {
 func (x *Volume) GetDeleteTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.DeleteTime
+	}
+	return nil
+}
+
+func (x *Volume) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.Annotations
 	}
 	return nil
 }
@@ -668,7 +678,8 @@ type UpdateVolumeRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Volume *Volume                `protobuf:"bytes,1,opt,name=volume,proto3" json:"volume,omitempty"`
 	// Paths are relative to Volume. status and output-only fields are rejected.
-	// Omitted mask is treated as "spec,labels".
+	// Omitted mask is treated as "spec,labels". Use the path "annotations"
+	// to replace annotations; they are never updated by an omitted mask.
 	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	ValidateOnly  bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
@@ -918,7 +929,7 @@ var File_vws_storage_v1_volume_proto protoreflect.FileDescriptor
 
 const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"\n" +
-	"\x1bvws/storage/v1/volume.proto\x12\x0evws.storage.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cvws/common/v1/resource.proto\"\x87\x05\n" +
+	"\x1bvws/storage/v1/volume.proto\x12\x0evws.storage.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cvws/common/v1/resource.proto\"\x92\x06\n" +
 	"\x06Volume\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1d\n" +
 	"\x03uid\x18\x02 \x01(\tB\v\xe0A\x03\xe2\x8c\xcf\xd7\b\x02\b\x01R\x03uid\x12#\n" +
@@ -935,8 +946,12 @@ const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"updateTime\x12@\n" +
 	"\vdelete_time\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
-	"deleteTime\x1a9\n" +
+	"deleteTime\x12I\n" +
+	"\vannotations\x18\v \x03(\v2'.vws.storage.v1.Volume.AnnotationsEntryR\vannotations\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:Z\xeaAW\n" +
 	"\x12vws.storage/Volume\x120projects/{project}/zones/{zone}/volumes/{volume}*\avolumes2\x06volume\"\x99\x02\n" +
@@ -1037,7 +1052,7 @@ func file_vws_storage_v1_volume_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_storage_v1_volume_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_vws_storage_v1_volume_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_vws_storage_v1_volume_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_vws_storage_v1_volume_proto_goTypes = []any{
 	(VolumeType)(0),                    // 0: vws.storage.v1.VolumeType
 	(*Volume)(nil),                     // 1: vws.storage.v1.Volume
@@ -1052,43 +1067,45 @@ var file_vws_storage_v1_volume_proto_goTypes = []any{
 	(*ReportVolumeStatusRequest)(nil),  // 10: vws.storage.v1.ReportVolumeStatusRequest
 	(*ReportVolumeStatusResponse)(nil), // 11: vws.storage.v1.ReportVolumeStatusResponse
 	nil,                                // 12: vws.storage.v1.Volume.LabelsEntry
-	(*timestamppb.Timestamp)(nil),      // 13: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),           // 14: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),      // 15: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),    // 16: google.longrunning.Operation
+	nil,                                // 13: vws.storage.v1.Volume.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil),      // 14: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),           // 15: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),      // 16: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil),    // 17: google.longrunning.Operation
 }
 var file_vws_storage_v1_volume_proto_depIdxs = []int32{
 	12, // 0: vws.storage.v1.Volume.labels:type_name -> vws.storage.v1.Volume.LabelsEntry
 	2,  // 1: vws.storage.v1.Volume.spec:type_name -> vws.storage.v1.VolumeSpec
 	3,  // 2: vws.storage.v1.Volume.status:type_name -> vws.storage.v1.VolumeStatus
-	13, // 3: vws.storage.v1.Volume.create_time:type_name -> google.protobuf.Timestamp
-	13, // 4: vws.storage.v1.Volume.update_time:type_name -> google.protobuf.Timestamp
-	13, // 5: vws.storage.v1.Volume.delete_time:type_name -> google.protobuf.Timestamp
-	0,  // 6: vws.storage.v1.VolumeSpec.type:type_name -> vws.storage.v1.VolumeType
-	14, // 7: vws.storage.v1.VolumeStatus.observed:type_name -> vws.common.v1.ObservedState
-	1,  // 8: vws.storage.v1.ListVolumesResponse.volumes:type_name -> vws.storage.v1.Volume
-	1,  // 9: vws.storage.v1.CreateVolumeRequest.volume:type_name -> vws.storage.v1.Volume
-	1,  // 10: vws.storage.v1.UpdateVolumeRequest.volume:type_name -> vws.storage.v1.Volume
-	15, // 11: vws.storage.v1.UpdateVolumeRequest.update_mask:type_name -> google.protobuf.FieldMask
-	3,  // 12: vws.storage.v1.ReportVolumeStatusRequest.status:type_name -> vws.storage.v1.VolumeStatus
-	1,  // 13: vws.storage.v1.ReportVolumeStatusResponse.volume:type_name -> vws.storage.v1.Volume
-	4,  // 14: vws.storage.v1.VolumeService.GetVolume:input_type -> vws.storage.v1.GetVolumeRequest
-	5,  // 15: vws.storage.v1.VolumeService.ListVolumes:input_type -> vws.storage.v1.ListVolumesRequest
-	7,  // 16: vws.storage.v1.VolumeService.CreateVolume:input_type -> vws.storage.v1.CreateVolumeRequest
-	8,  // 17: vws.storage.v1.VolumeService.UpdateVolume:input_type -> vws.storage.v1.UpdateVolumeRequest
-	9,  // 18: vws.storage.v1.VolumeService.DeleteVolume:input_type -> vws.storage.v1.DeleteVolumeRequest
-	10, // 19: vws.storage.v1.VolumeService.ReportVolumeStatus:input_type -> vws.storage.v1.ReportVolumeStatusRequest
-	1,  // 20: vws.storage.v1.VolumeService.GetVolume:output_type -> vws.storage.v1.Volume
-	6,  // 21: vws.storage.v1.VolumeService.ListVolumes:output_type -> vws.storage.v1.ListVolumesResponse
-	16, // 22: vws.storage.v1.VolumeService.CreateVolume:output_type -> google.longrunning.Operation
-	16, // 23: vws.storage.v1.VolumeService.UpdateVolume:output_type -> google.longrunning.Operation
-	16, // 24: vws.storage.v1.VolumeService.DeleteVolume:output_type -> google.longrunning.Operation
-	11, // 25: vws.storage.v1.VolumeService.ReportVolumeStatus:output_type -> vws.storage.v1.ReportVolumeStatusResponse
-	20, // [20:26] is the sub-list for method output_type
-	14, // [14:20] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	14, // 3: vws.storage.v1.Volume.create_time:type_name -> google.protobuf.Timestamp
+	14, // 4: vws.storage.v1.Volume.update_time:type_name -> google.protobuf.Timestamp
+	14, // 5: vws.storage.v1.Volume.delete_time:type_name -> google.protobuf.Timestamp
+	13, // 6: vws.storage.v1.Volume.annotations:type_name -> vws.storage.v1.Volume.AnnotationsEntry
+	0,  // 7: vws.storage.v1.VolumeSpec.type:type_name -> vws.storage.v1.VolumeType
+	15, // 8: vws.storage.v1.VolumeStatus.observed:type_name -> vws.common.v1.ObservedState
+	1,  // 9: vws.storage.v1.ListVolumesResponse.volumes:type_name -> vws.storage.v1.Volume
+	1,  // 10: vws.storage.v1.CreateVolumeRequest.volume:type_name -> vws.storage.v1.Volume
+	1,  // 11: vws.storage.v1.UpdateVolumeRequest.volume:type_name -> vws.storage.v1.Volume
+	16, // 12: vws.storage.v1.UpdateVolumeRequest.update_mask:type_name -> google.protobuf.FieldMask
+	3,  // 13: vws.storage.v1.ReportVolumeStatusRequest.status:type_name -> vws.storage.v1.VolumeStatus
+	1,  // 14: vws.storage.v1.ReportVolumeStatusResponse.volume:type_name -> vws.storage.v1.Volume
+	4,  // 15: vws.storage.v1.VolumeService.GetVolume:input_type -> vws.storage.v1.GetVolumeRequest
+	5,  // 16: vws.storage.v1.VolumeService.ListVolumes:input_type -> vws.storage.v1.ListVolumesRequest
+	7,  // 17: vws.storage.v1.VolumeService.CreateVolume:input_type -> vws.storage.v1.CreateVolumeRequest
+	8,  // 18: vws.storage.v1.VolumeService.UpdateVolume:input_type -> vws.storage.v1.UpdateVolumeRequest
+	9,  // 19: vws.storage.v1.VolumeService.DeleteVolume:input_type -> vws.storage.v1.DeleteVolumeRequest
+	10, // 20: vws.storage.v1.VolumeService.ReportVolumeStatus:input_type -> vws.storage.v1.ReportVolumeStatusRequest
+	1,  // 21: vws.storage.v1.VolumeService.GetVolume:output_type -> vws.storage.v1.Volume
+	6,  // 22: vws.storage.v1.VolumeService.ListVolumes:output_type -> vws.storage.v1.ListVolumesResponse
+	17, // 23: vws.storage.v1.VolumeService.CreateVolume:output_type -> google.longrunning.Operation
+	17, // 24: vws.storage.v1.VolumeService.UpdateVolume:output_type -> google.longrunning.Operation
+	17, // 25: vws.storage.v1.VolumeService.DeleteVolume:output_type -> google.longrunning.Operation
+	11, // 26: vws.storage.v1.VolumeService.ReportVolumeStatus:output_type -> vws.storage.v1.ReportVolumeStatusResponse
+	21, // [21:27] is the sub-list for method output_type
+	15, // [15:21] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_vws_storage_v1_volume_proto_init() }
@@ -1106,7 +1123,7 @@ func file_vws_storage_v1_volume_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_storage_v1_volume_proto_rawDesc), len(file_vws_storage_v1_volume_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
