@@ -29,17 +29,20 @@ const (
 // Subnet is a zonal slice of a VPC.
 // Fields 1-10 are the shared resource envelope.
 type Subnet struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Uid           string                 `protobuf:"bytes,2,opt,name=uid,proto3" json:"uid,omitempty"`
-	Generation    int64                  `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
-	Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Spec          *SubnetSpec            `protobuf:"bytes,6,opt,name=spec,proto3" json:"spec,omitempty"`
-	Status        *SubnetStatus          `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
-	CreateTime    *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
-	DeleteTime    *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Name       string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Uid        string                 `protobuf:"bytes,2,opt,name=uid,proto3" json:"uid,omitempty"`
+	Generation int64                  `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
+	Etag       string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	Labels     map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Spec       *SubnetSpec            `protobuf:"bytes,6,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status     *SubnetStatus          `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	DeleteTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
+	// User metadata stored and returned verbatim; not filterable. See the
+	// envelope comment in vws/common/v1/resource.proto for limits.
+	Annotations   map[string]string `protobuf:"bytes,11,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -140,6 +143,13 @@ func (x *Subnet) GetUpdateTime() *timestamppb.Timestamp {
 func (x *Subnet) GetDeleteTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.DeleteTime
+	}
+	return nil
+}
+
+func (x *Subnet) GetAnnotations() map[string]string {
+	if x != nil {
+		return x.Annotations
 	}
 	return nil
 }
@@ -488,7 +498,8 @@ type UpdateSubnetRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Subnet *Subnet                `protobuf:"bytes,1,opt,name=subnet,proto3" json:"subnet,omitempty"`
 	// Paths are relative to Subnet. zone and ipv4_cidr are immutable.
-	// Omitted mask is treated as "spec,labels".
+	// Omitted mask is treated as "spec,labels". Use the path "annotations"
+	// to replace annotations; they are never updated by an omitted mask.
 	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	ValidateOnly  bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
@@ -738,7 +749,7 @@ var File_vws_network_v1_subnet_proto protoreflect.FileDescriptor
 
 const file_vws_network_v1_subnet_proto_rawDesc = "" +
 	"\n" +
-	"\x1bvws/network/v1/subnet.proto\x12\x0evws.network.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cvws/common/v1/resource.proto\"\x96\x05\n" +
+	"\x1bvws/network/v1/subnet.proto\x12\x0evws.network.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cvws/common/v1/resource.proto\"\xa1\x06\n" +
 	"\x06Subnet\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1d\n" +
 	"\x03uid\x18\x02 \x01(\tB\v\xe0A\x03\xe2\x8c\xcf\xd7\b\x02\b\x01R\x03uid\x12#\n" +
@@ -755,8 +766,12 @@ const file_vws_network_v1_subnet_proto_rawDesc = "" +
 	"updateTime\x12@\n" +
 	"\vdelete_time\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
-	"deleteTime\x1a9\n" +
+	"deleteTime\x12I\n" +
+	"\vannotations\x18\v \x03(\v2'.vws.network.v1.Subnet.AnnotationsEntryR\vannotations\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
+	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:i\xeaAf\n" +
 	"\x12vws.network/Subnet\x12?projects/{project}/regions/{region}/vpcs/{vpc}/subnets/{subnet}*\asubnets2\x06subnet\"o\n" +
@@ -832,7 +847,7 @@ func file_vws_network_v1_subnet_proto_rawDescGZIP() []byte {
 	return file_vws_network_v1_subnet_proto_rawDescData
 }
 
-var file_vws_network_v1_subnet_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_vws_network_v1_subnet_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_vws_network_v1_subnet_proto_goTypes = []any{
 	(*Subnet)(nil),                     // 0: vws.network.v1.Subnet
 	(*SubnetSpec)(nil),                 // 1: vws.network.v1.SubnetSpec
@@ -846,42 +861,44 @@ var file_vws_network_v1_subnet_proto_goTypes = []any{
 	(*ReportSubnetStatusRequest)(nil),  // 9: vws.network.v1.ReportSubnetStatusRequest
 	(*ReportSubnetStatusResponse)(nil), // 10: vws.network.v1.ReportSubnetStatusResponse
 	nil,                                // 11: vws.network.v1.Subnet.LabelsEntry
-	(*timestamppb.Timestamp)(nil),      // 12: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),           // 13: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),      // 14: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),    // 15: google.longrunning.Operation
+	nil,                                // 12: vws.network.v1.Subnet.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil),      // 13: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),           // 14: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),      // 15: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil),    // 16: google.longrunning.Operation
 }
 var file_vws_network_v1_subnet_proto_depIdxs = []int32{
 	11, // 0: vws.network.v1.Subnet.labels:type_name -> vws.network.v1.Subnet.LabelsEntry
 	1,  // 1: vws.network.v1.Subnet.spec:type_name -> vws.network.v1.SubnetSpec
 	2,  // 2: vws.network.v1.Subnet.status:type_name -> vws.network.v1.SubnetStatus
-	12, // 3: vws.network.v1.Subnet.create_time:type_name -> google.protobuf.Timestamp
-	12, // 4: vws.network.v1.Subnet.update_time:type_name -> google.protobuf.Timestamp
-	12, // 5: vws.network.v1.Subnet.delete_time:type_name -> google.protobuf.Timestamp
-	13, // 6: vws.network.v1.SubnetStatus.observed:type_name -> vws.common.v1.ObservedState
-	0,  // 7: vws.network.v1.ListSubnetsResponse.subnets:type_name -> vws.network.v1.Subnet
-	0,  // 8: vws.network.v1.CreateSubnetRequest.subnet:type_name -> vws.network.v1.Subnet
-	0,  // 9: vws.network.v1.UpdateSubnetRequest.subnet:type_name -> vws.network.v1.Subnet
-	14, // 10: vws.network.v1.UpdateSubnetRequest.update_mask:type_name -> google.protobuf.FieldMask
-	2,  // 11: vws.network.v1.ReportSubnetStatusRequest.status:type_name -> vws.network.v1.SubnetStatus
-	0,  // 12: vws.network.v1.ReportSubnetStatusResponse.subnet:type_name -> vws.network.v1.Subnet
-	3,  // 13: vws.network.v1.SubnetService.GetSubnet:input_type -> vws.network.v1.GetSubnetRequest
-	4,  // 14: vws.network.v1.SubnetService.ListSubnets:input_type -> vws.network.v1.ListSubnetsRequest
-	6,  // 15: vws.network.v1.SubnetService.CreateSubnet:input_type -> vws.network.v1.CreateSubnetRequest
-	7,  // 16: vws.network.v1.SubnetService.UpdateSubnet:input_type -> vws.network.v1.UpdateSubnetRequest
-	8,  // 17: vws.network.v1.SubnetService.DeleteSubnet:input_type -> vws.network.v1.DeleteSubnetRequest
-	9,  // 18: vws.network.v1.SubnetService.ReportSubnetStatus:input_type -> vws.network.v1.ReportSubnetStatusRequest
-	0,  // 19: vws.network.v1.SubnetService.GetSubnet:output_type -> vws.network.v1.Subnet
-	5,  // 20: vws.network.v1.SubnetService.ListSubnets:output_type -> vws.network.v1.ListSubnetsResponse
-	15, // 21: vws.network.v1.SubnetService.CreateSubnet:output_type -> google.longrunning.Operation
-	15, // 22: vws.network.v1.SubnetService.UpdateSubnet:output_type -> google.longrunning.Operation
-	15, // 23: vws.network.v1.SubnetService.DeleteSubnet:output_type -> google.longrunning.Operation
-	10, // 24: vws.network.v1.SubnetService.ReportSubnetStatus:output_type -> vws.network.v1.ReportSubnetStatusResponse
-	19, // [19:25] is the sub-list for method output_type
-	13, // [13:19] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	13, // 3: vws.network.v1.Subnet.create_time:type_name -> google.protobuf.Timestamp
+	13, // 4: vws.network.v1.Subnet.update_time:type_name -> google.protobuf.Timestamp
+	13, // 5: vws.network.v1.Subnet.delete_time:type_name -> google.protobuf.Timestamp
+	12, // 6: vws.network.v1.Subnet.annotations:type_name -> vws.network.v1.Subnet.AnnotationsEntry
+	14, // 7: vws.network.v1.SubnetStatus.observed:type_name -> vws.common.v1.ObservedState
+	0,  // 8: vws.network.v1.ListSubnetsResponse.subnets:type_name -> vws.network.v1.Subnet
+	0,  // 9: vws.network.v1.CreateSubnetRequest.subnet:type_name -> vws.network.v1.Subnet
+	0,  // 10: vws.network.v1.UpdateSubnetRequest.subnet:type_name -> vws.network.v1.Subnet
+	15, // 11: vws.network.v1.UpdateSubnetRequest.update_mask:type_name -> google.protobuf.FieldMask
+	2,  // 12: vws.network.v1.ReportSubnetStatusRequest.status:type_name -> vws.network.v1.SubnetStatus
+	0,  // 13: vws.network.v1.ReportSubnetStatusResponse.subnet:type_name -> vws.network.v1.Subnet
+	3,  // 14: vws.network.v1.SubnetService.GetSubnet:input_type -> vws.network.v1.GetSubnetRequest
+	4,  // 15: vws.network.v1.SubnetService.ListSubnets:input_type -> vws.network.v1.ListSubnetsRequest
+	6,  // 16: vws.network.v1.SubnetService.CreateSubnet:input_type -> vws.network.v1.CreateSubnetRequest
+	7,  // 17: vws.network.v1.SubnetService.UpdateSubnet:input_type -> vws.network.v1.UpdateSubnetRequest
+	8,  // 18: vws.network.v1.SubnetService.DeleteSubnet:input_type -> vws.network.v1.DeleteSubnetRequest
+	9,  // 19: vws.network.v1.SubnetService.ReportSubnetStatus:input_type -> vws.network.v1.ReportSubnetStatusRequest
+	0,  // 20: vws.network.v1.SubnetService.GetSubnet:output_type -> vws.network.v1.Subnet
+	5,  // 21: vws.network.v1.SubnetService.ListSubnets:output_type -> vws.network.v1.ListSubnetsResponse
+	16, // 22: vws.network.v1.SubnetService.CreateSubnet:output_type -> google.longrunning.Operation
+	16, // 23: vws.network.v1.SubnetService.UpdateSubnet:output_type -> google.longrunning.Operation
+	16, // 24: vws.network.v1.SubnetService.DeleteSubnet:output_type -> google.longrunning.Operation
+	10, // 25: vws.network.v1.SubnetService.ReportSubnetStatus:output_type -> vws.network.v1.ReportSubnetStatusResponse
+	20, // [20:26] is the sub-list for method output_type
+	14, // [14:20] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_vws_network_v1_subnet_proto_init() }
@@ -895,7 +912,7 @@ func file_vws_network_v1_subnet_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_network_v1_subnet_proto_rawDesc), len(file_vws_network_v1_subnet_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
