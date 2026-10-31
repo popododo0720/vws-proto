@@ -40,8 +40,15 @@ option java_package = "dev.vws.common.v1";
 // An AWS-compatible CreateTags request merges into the current annotations: a
 // key in the request overwrites the value of the same key, a key repeated
 // within one request keeps the last value, and entries the request does not
-// name stay. The 50-entry limit applies to the merged user entries. An Update
-// RPC with UpdateMask path `annotations` replaces the whole map instead.
+// name stay. The 50-entry limit applies to the merged user entries.
+//
+// An Update RPC with UpdateMask path `annotations` replaces the user entries
+// but keeps every existing server-set key with the `aws:` prefix and its
+// value, so a write that omits one leaves it in place. A write may send a
+// stored `aws:` key with its stored value unchanged; that is not a change and
+// is accepted. AWS reserves that prefix and does not let a user edit or
+// delete such a tag
+// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#tag-restrictions).
 //
 // The server accepts at least 64 KiB of annotations per resource.
 // Annotations are stored and returned verbatim, are not filterable, and do
