@@ -61,6 +61,12 @@ message OperationMetadata {
   string request_id = 4;
   google.protobuf.Timestamp create_time = 5;
   google.protobuf.Timestamp end_time = 6;
+
+  // Server-recorded action at accept time, for a verb with more than one
+  // subtype. Empty means unset, and the verb alone is enough. Example values
+  // are "AssociateAddress", "DisassociateAddress", "StartInstances" and
+  // "StopInstances".
+  string action = 7;
 }
 
 enum OperationVerb {

@@ -120,13 +120,18 @@ func (OperationVerb) EnumDescriptor() ([]byte, []int) {
 // validate_only checks the request and writes nothing. It returns a succeeded
 // operation whose response is unset.
 type OperationMetadata struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Resource      string                 `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
-	Verb          OperationVerb          `protobuf:"varint,2,opt,name=verb,proto3,enum=vws.common.v1.OperationVerb" json:"verb,omitempty"`
-	Generation    int64                  `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
-	RequestId     string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	CreateTime    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	EndTime       *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Resource   string                 `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
+	Verb       OperationVerb          `protobuf:"varint,2,opt,name=verb,proto3,enum=vws.common.v1.OperationVerb" json:"verb,omitempty"`
+	Generation int64                  `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
+	RequestId  string                 `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	CreateTime *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	EndTime    *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	// Server-recorded action at accept time, for a verb with more than one
+	// subtype. Empty means unset, and the verb alone is enough. Example values
+	// are "AssociateAddress", "DisassociateAddress", "StartInstances" and
+	// "StopInstances".
+	Action        string `protobuf:"bytes,7,opt,name=action,proto3" json:"action,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -203,11 +208,18 @@ func (x *OperationMetadata) GetEndTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *OperationMetadata) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
 var File_vws_common_v1_operation_proto protoreflect.FileDescriptor
 
 const file_vws_common_v1_operation_proto_rawDesc = "" +
 	"\n" +
-	"\x1dvws/common/v1/operation.proto\x12\rvws.common.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x94\x02\n" +
+	"\x1dvws/common/v1/operation.proto\x12\rvws.common.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xac\x02\n" +
 	"\x11OperationMetadata\x12\x1a\n" +
 	"\bresource\x18\x01 \x01(\tR\bresource\x120\n" +
 	"\x04verb\x18\x02 \x01(\x0e2\x1c.vws.common.v1.OperationVerbR\x04verb\x12\x1e\n" +
@@ -218,7 +230,8 @@ const file_vws_common_v1_operation_proto_rawDesc = "" +
 	"request_id\x18\x04 \x01(\tR\trequestId\x12;\n" +
 	"\vcreate_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x125\n" +
-	"\bend_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime*\x80\x01\n" +
+	"\bend_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12\x16\n" +
+	"\x06action\x18\a \x01(\tR\x06action*\x80\x01\n" +
 	"\rOperationVerb\x12\x1e\n" +
 	"\x1aOPERATION_VERB_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15OPERATION_VERB_CREATE\x10\x01\x12\x19\n" +
