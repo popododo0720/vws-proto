@@ -25,7 +25,8 @@ const (
 
 type LookupOperationRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The caller's project: "projects/{project}".
+	// The caller's project: "projects/{project}". Operations are its children
+	// ("projects/{project}/operations/{operation}").
 	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// The request_id sent on the original mutating RPC.
 	RequestId     string `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
@@ -128,9 +129,9 @@ var File_vws_compute_v1_operation_lookup_proto protoreflect.FileDescriptor
 
 const file_vws_compute_v1_operation_lookup_proto_rawDesc = "" +
 	"\n" +
-	"%vws/compute/v1/operation_lookup.proto\x12\x0evws.compute.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a#google/longrunning/operations.proto\"a\n" +
-	"\x16LookupOperationRequest\x12\x1b\n" +
-	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\x12*\n" +
+	"%vws/compute/v1/operation_lookup.proto\x12\x0evws.compute.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\"\x8a\x01\n" +
+	"\x16LookupOperationRequest\x12D\n" +
+	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA&\x12$longrunning.googleapis.com/OperationR\x06parent\x12*\n" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x02\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"V\n" +
 	"\x17LookupOperationResponse\x12;\n" +

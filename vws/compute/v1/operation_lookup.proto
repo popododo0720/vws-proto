@@ -5,6 +5,7 @@ package vws.compute.v1;
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/field_info.proto";
+import "google/api/resource.proto";
 import "google/longrunning/operations.proto";
 
 option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/compute/v1;computev1";
@@ -36,8 +37,12 @@ service OperationLookupService {
 }
 
 message LookupOperationRequest {
-  // The caller's project: "projects/{project}".
-  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // The caller's project: "projects/{project}". Operations are its children
+  // ("projects/{project}/operations/{operation}").
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "longrunning.googleapis.com/Operation"
+  ];
   // The request_id sent on the original mutating RPC.
   string request_id = 2 [
     (google.api.field_info).format = UUID4,
