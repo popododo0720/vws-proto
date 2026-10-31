@@ -9,7 +9,8 @@ A failed rule returns the status shape and `ErrorInfo.reason` in the [gRPC error
 | Resource id (except Object), project, region, zone | `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`, length 1-63 | `vws/common/v1/resource.proto` `ResourceId` |
 | Label key | `[a-z][a-z0-9_-]{0,62}` | the envelope comment in the same file |
 | Label value | UTF-8, 0-63 bytes, no ASCII control characters | the same file |
-| Annotation key and value (Instance, Volume, Vpc, Subnet) | Key 1-128 characters, value 0-256 characters, UTF-8 with no control characters. At most 50 entries. Servers accept at least 64 KiB per resource. Stored and returned verbatim, not filterable, no generation change; an identical write is a no-op. UpdateMask path `annotations` | the envelope comment in `vws/common/v1/resource.proto` |
+| Annotation key and value (Instance, Volume, Vpc, Subnet) | Key 1-128 and value 0-256 characters of UTF-8 with no control characters, counted in Unicode characters, not bytes. At most 50 user entries. A key beginning with `aws:` is reserved: it does not count toward the 50, and a user create or update that sets or changes one is `INVALID_ARGUMENT / INVALID_SPEC`. Servers accept at least 64 KiB per resource. Stored and returned verbatim, not filterable, no generation change; an identical write is a no-op | the envelope comment in `vws/common/v1/resource.proto` |
+| Annotation write | `CreateTags` merges: a key in the request overwrites the value of the same key, a key repeated within one request keeps the last value, and keys the request does not name stay. The 50-entry limit applies to the merged user entries. UpdateMask path `annotations` replaces the whole map | the same file |
 | Object key | 1-1024 bytes after decoding, not `.` or `..`, does not start or end with `/`, no `//`, no ASCII control characters. RFC 3986 percent-encoding in paths (`/` is `%2F`) | `vws/storage/v1/object.proto` `Object` |
 | Volume `type` | One of the EBS types `GP2`, `GP3`, `IO1`, `IO2`, `ST1`, `SC1`, `STANDARD` (EC2 `VolumeType`). `UNSPECIFIED` is invalid. `SSD` is deprecated: clients do not send it, and a stored `SSD` volume reads as `GP2` unless the admin maps it otherwise (vws-storage#123). Immutable | `vws/storage/v1/volume.proto` `VolumeType` |
 | Volume `iops` and `throughput_mibps` | As in EC2 CreateVolume. GP3: `iops` 3000-80000 (0 uses 3000) and `throughput_mibps` 125-2000 (0 uses 125). IO1: `iops` 100-64000, required. IO2: `iops` 100-256000, required. Every other type, and `throughput_mibps` on every type but GP3: must be 0 | `vws/storage/v1/volume.proto` `VolumeSpec` |
@@ -37,7 +38,9 @@ The minimum inputs server repos put in their tests:
 - Ids of length 0, 63 and 64. Ids with upper case, underscores, or leading or trailing hyphens.
 - Objects whose key is `.`, `..`, the empty string, 1025 bytes, `a//b`, `/a`, or has control characters.
 - A label with a 64-byte value, a label with a 64-character key.
-- Annotations with a 129-character key, a 257-character value, an empty key, a control character, and 51 entries.
+- Annotations with a 128-character key and a 256-character value of multibyte characters (for example `é` or `漢`), which must be accepted because lengths are counted in Unicode characters, not bytes.
+- Annotations with a 129-character key, a 257-character value, an empty key, a control character, and 51 user entries.
+- A user create with an `aws:` key must be rejected, and 50 user entries plus server-set `aws:` entries must be accepted.
 - Create and update requests with an `OUTPUT_ONLY` field (for example `claim_name`) filled in.
 - A status report with a lower `generation`, an update with a wrong `etag`, a different body for the same `request_id`.
 - IAM: a 65-character name, duplicate names differing only in case, an invalid JSON policy, an unsupported condition operator, a third access key, reuse of the same TOTP code, an expired session token and temporary key.
