@@ -592,8 +592,14 @@ type DeleteAccessKeyRequest struct {
 	// changes when UpdateUser moves spec.path; expected_user_path is the AIP-122
 	// resource name and does not change.
 	ExpectedUserArn string `protobuf:"bytes,6,opt,name=expected_user_arn,json=expectedUserArn,proto3" json:"expected_user_arn,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Optional precondition, the parent User's etag as read by the caller. When
+	// set, the server commits the write only while the user is still at this
+	// etag. A mismatch, or a change of the user that lands before the commit, is
+	// ABORTED (ConcurrentModification) and no state changes. Omitted means no
+	// check.
+	UserEtag      string `protobuf:"bytes,7,opt,name=user_etag,json=userEtag,proto3" json:"user_etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteAccessKeyRequest) Reset() {
@@ -668,12 +674,25 @@ func (x *DeleteAccessKeyRequest) GetExpectedUserArn() string {
 	return ""
 }
 
+func (x *DeleteAccessKeyRequest) GetUserEtag() string {
+	if x != nil {
+		return x.UserEtag
+	}
+	return ""
+}
+
 type CreateAccessKeyRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// A repeated request_id within 24 hours is ALREADY_EXISTS, never the
 	// secret again. After a lost response, delete the key and create another.
-	RequestId     string `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	RequestId string `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Optional precondition, the parent User's etag as read by the caller. When
+	// set, the server commits the write only while the user is still at this
+	// etag. A mismatch, or a change of the user that lands before the commit, is
+	// ABORTED (ConcurrentModification) and no state changes. Omitted means no
+	// check.
+	UserEtag      string `protobuf:"bytes,3,opt,name=user_etag,json=userEtag,proto3" json:"user_etag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -718,6 +737,13 @@ func (x *CreateAccessKeyRequest) GetParent() string {
 func (x *CreateAccessKeyRequest) GetRequestId() string {
 	if x != nil {
 		return x.RequestId
+	}
+	return ""
+}
+
+func (x *CreateAccessKeyRequest) GetUserEtag() string {
+	if x != nil {
+		return x.UserEtag
 	}
 	return ""
 }
@@ -834,7 +860,7 @@ const file_vws_iam_v1_access_key_proto_rawDesc = "" +
 	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12B\n" +
 	"\x12expected_user_path\x18\x06 \x01(\tB\x14\xe0A\x01\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x10expectedUserPath\x12/\n" +
-	"\x11expected_user_arn\x18\a \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\"\xab\x02\n" +
+	"\x11expected_user_arn\x18\a \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\"\xcd\x02\n" +
 	"\x16DeleteAccessKeyRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11vws.iam/AccessKeyR\x04name\x12*\n" +
@@ -844,11 +870,13 @@ const file_vws_iam_v1_access_key_proto_rawDesc = "" +
 	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\x12B\n" +
 	"\x12expected_user_path\x18\x05 \x01(\tB\x14\xe0A\x01\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x10expectedUserPath\x12/\n" +
-	"\x11expected_user_arn\x18\x06 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\"w\n" +
+	"\x11expected_user_arn\x18\x06 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\x12 \n" +
+	"\tuser_etag\x18\a \x01(\tB\x03\xe0A\x01R\buserEtag\"\x99\x01\n" +
 	"\x16CreateAccessKeyRequest\x121\n" +
 	"\x06parent\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\x12\x11vws.iam/AccessKeyR\x06parent\x12*\n" +
 	"\n" +
-	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"\x83\x01\n" +
+	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12 \n" +
+	"\tuser_etag\x18\x03 \x01(\tB\x03\xe0A\x01R\buserEtag\"\x83\x01\n" +
 	"\x17CreateAccessKeyResponse\x124\n" +
 	"\n" +
 	"access_key\x18\x01 \x01(\v2\x15.vws.iam.v1.AccessKeyR\taccessKey\x122\n" +
