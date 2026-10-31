@@ -28,12 +28,24 @@ option java_package = "dev.vws.common.v1";
 // UTF-8 with no ASCII control characters.
 //
 // Annotations hold user metadata that does not fit the label grammar, for
-// example EC2 tags. Keys are 1 to 128 characters and values 0 to 256
-// characters of UTF-8 with no control characters. At most 50 entries.
+// example EC2 tags. Keys are 1 to 128 and values 0 to 256 characters of UTF-8
+// with no control characters. Lengths are counted in Unicode characters, not
+// bytes. At most 50 user entries.
+//
+// A key that begins with `aws:` is reserved for the server. A user create or
+// update that sets or changes one is rejected with INVALID_ARGUMENT /
+// INVALID_SPEC. The server may set reserved keys, and they do not count toward
+// the 50-entry limit.
+//
+// An AWS-compatible CreateTags request merges into the current annotations: a
+// key in the request overwrites the value of the same key, a key repeated
+// within one request keeps the last value, and entries the request does not
+// name stay. The 50-entry limit applies to the merged user entries. An Update
+// RPC with UpdateMask path `annotations` replaces the whole map instead.
+//
 // The server accepts at least 64 KiB of annotations per resource.
 // Annotations are stored and returned verbatim, are not filterable, and do
-// not change generation; writing an identical map is a no-op. The UpdateMask
-// path is `annotations`.
+// not change generation; writing an identical map is a no-op.
 //
 // EC2 accepts any character in a tag. AWS documents the character set allowed
 // across its services as letters, numbers, spaces and `+ - = . _ : / @`, and
