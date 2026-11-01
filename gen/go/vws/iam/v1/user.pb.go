@@ -26,6 +26,67 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// LoginProfileWriteMode is the existence precondition of SetLoginProfile.
+// AWS CreateLoginProfile maps to CREATE_ONLY and UpdateLoginProfile to MUST_EXIST.
+type LoginProfileWriteMode int32
+
+const (
+	// Same as UPSERT.
+	LoginProfileWriteMode_LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED LoginProfileWriteMode = 0
+	// Create the profile or replace the existing hash.
+	LoginProfileWriteMode_LOGIN_PROFILE_WRITE_MODE_UPSERT LoginProfileWriteMode = 1
+	// An existing profile is ALREADY_EXISTS / ALREADY_EXISTS (AWS
+	// EntityAlreadyExists, 409) and nothing changes.
+	LoginProfileWriteMode_LOGIN_PROFILE_WRITE_MODE_CREATE_ONLY LoginProfileWriteMode = 2
+	// A missing profile is NOT_FOUND / RESOURCE_NOT_FOUND (AWS NoSuchEntity, 404)
+	// and nothing changes. An update racing a DeleteLoginProfile never brings a
+	// deleted profile back.
+	LoginProfileWriteMode_LOGIN_PROFILE_WRITE_MODE_MUST_EXIST LoginProfileWriteMode = 3
+)
+
+// Enum value maps for LoginProfileWriteMode.
+var (
+	LoginProfileWriteMode_name = map[int32]string{
+		0: "LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED",
+		1: "LOGIN_PROFILE_WRITE_MODE_UPSERT",
+		2: "LOGIN_PROFILE_WRITE_MODE_CREATE_ONLY",
+		3: "LOGIN_PROFILE_WRITE_MODE_MUST_EXIST",
+	}
+	LoginProfileWriteMode_value = map[string]int32{
+		"LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED": 0,
+		"LOGIN_PROFILE_WRITE_MODE_UPSERT":      1,
+		"LOGIN_PROFILE_WRITE_MODE_CREATE_ONLY": 2,
+		"LOGIN_PROFILE_WRITE_MODE_MUST_EXIST":  3,
+	}
+)
+
+func (x LoginProfileWriteMode) Enum() *LoginProfileWriteMode {
+	p := new(LoginProfileWriteMode)
+	*p = x
+	return p
+}
+
+func (x LoginProfileWriteMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LoginProfileWriteMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_vws_iam_v1_user_proto_enumTypes[0].Descriptor()
+}
+
+func (LoginProfileWriteMode) Type() protoreflect.EnumType {
+	return &file_vws_iam_v1_user_proto_enumTypes[0]
+}
+
+func (x LoginProfileWriteMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LoginProfileWriteMode.Descriptor instead.
+func (LoginProfileWriteMode) EnumDescriptor() ([]byte, []int) {
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{0}
+}
+
 // User is an IAM user. The project is the AWS account.
 // Fields 1-10 are the shared resource envelope.
 type User struct {
@@ -711,8 +772,13 @@ type SetLoginProfileRequest struct {
 	// 8 to 128 characters. A weaker password is INVALID_ARGUMENT / INVALID_SPEC.
 	Password              string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	PasswordResetRequired bool   `protobuf:"varint,3,opt,name=password_reset_required,json=passwordResetRequired,proto3" json:"password_reset_required,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	// Whether a profile may or must already exist. The server checks this in the
+	// same store mutation that writes the hash, so concurrent calls cannot both
+	// pass the check. Unspecified behaves as UPSERT (the behaviour before this
+	// field existed).
+	Mode          LoginProfileWriteMode `protobuf:"varint,4,opt,name=mode,proto3,enum=vws.iam.v1.LoginProfileWriteMode" json:"mode,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SetLoginProfileRequest) Reset() {
@@ -764,6 +830,13 @@ func (x *SetLoginProfileRequest) GetPasswordResetRequired() bool {
 		return x.PasswordResetRequired
 	}
 	return false
+}
+
+func (x *SetLoginProfileRequest) GetMode() LoginProfileWriteMode {
+	if x != nil {
+		return x.Mode
+	}
+	return LoginProfileWriteMode_LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED
 }
 
 type DeleteLoginProfileRequest struct {
@@ -1110,12 +1183,13 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
-	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\xa1\x01\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\xdd\x01\n" +
 	"\x16SetLoginProfileRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\x12%\n" +
 	"\bpassword\x18\x02 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\bpassword\x126\n" +
-	"\x17password_reset_required\x18\x03 \x01(\bR\x15passwordResetRequired\"E\n" +
+	"\x17password_reset_required\x18\x03 \x01(\bR\x15passwordResetRequired\x12:\n" +
+	"\x04mode\x18\x04 \x01(\x0e2!.vws.iam.v1.LoginProfileWriteModeB\x03\xe0A\x01R\x04mode\"E\n" +
 	"\x19DeleteLoginProfileRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\"\x9d\x01\n" +
@@ -1131,7 +1205,12 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\x12*\n" +
 	"\n" +
-	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId2\xff\n" +
+	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId*\xb9\x01\n" +
+	"\x15LoginProfileWriteMode\x12(\n" +
+	"$LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED\x10\x00\x12#\n" +
+	"\x1fLOGIN_PROFILE_WRITE_MODE_UPSERT\x10\x01\x12(\n" +
+	"$LOGIN_PROFILE_WRITE_MODE_CREATE_ONLY\x10\x02\x12'\n" +
+	"#LOGIN_PROFILE_WRITE_MODE_MUST_EXIST\x10\x032\xff\n" +
 	"\n" +
 	"\vUserService\x12^\n" +
 	"\aGetUser\x12\x1a.vws.iam.v1.GetUserRequest\x1a\x10.vws.iam.v1.User\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{name=projects/*/users/*}\x12o\n" +
@@ -1164,69 +1243,72 @@ func file_vws_iam_v1_user_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_user_proto_rawDescData
 }
 
+var file_vws_iam_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_vws_iam_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_vws_iam_v1_user_proto_goTypes = []any{
-	(*User)(nil),                       // 0: vws.iam.v1.User
-	(*UserSpec)(nil),                   // 1: vws.iam.v1.UserSpec
-	(*UserStatus)(nil),                 // 2: vws.iam.v1.UserStatus
-	(*GetUserRequest)(nil),             // 3: vws.iam.v1.GetUserRequest
-	(*ListUsersRequest)(nil),           // 4: vws.iam.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),          // 5: vws.iam.v1.ListUsersResponse
-	(*CreateUserRequest)(nil),          // 6: vws.iam.v1.CreateUserRequest
-	(*UpdateUserRequest)(nil),          // 7: vws.iam.v1.UpdateUserRequest
-	(*DeleteUserRequest)(nil),          // 8: vws.iam.v1.DeleteUserRequest
-	(*SetLoginProfileRequest)(nil),     // 9: vws.iam.v1.SetLoginProfileRequest
-	(*DeleteLoginProfileRequest)(nil),  // 10: vws.iam.v1.DeleteLoginProfileRequest
-	(*ChangePasswordRequest)(nil),      // 11: vws.iam.v1.ChangePasswordRequest
-	(*SetLoginProfileResponse)(nil),    // 12: vws.iam.v1.SetLoginProfileResponse
-	(*DeleteLoginProfileResponse)(nil), // 13: vws.iam.v1.DeleteLoginProfileResponse
-	(*ChangePasswordResponse)(nil),     // 14: vws.iam.v1.ChangePasswordResponse
-	(*RevokeUserSessionsRequest)(nil),  // 15: vws.iam.v1.RevokeUserSessionsRequest
-	nil,                                // 16: vws.iam.v1.User.LabelsEntry
-	nil,                                // 17: vws.iam.v1.UserSpec.InlinePoliciesEntry
-	(*timestamppb.Timestamp)(nil),      // 18: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),           // 19: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),      // 20: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),    // 21: google.longrunning.Operation
+	(LoginProfileWriteMode)(0),         // 0: vws.iam.v1.LoginProfileWriteMode
+	(*User)(nil),                       // 1: vws.iam.v1.User
+	(*UserSpec)(nil),                   // 2: vws.iam.v1.UserSpec
+	(*UserStatus)(nil),                 // 3: vws.iam.v1.UserStatus
+	(*GetUserRequest)(nil),             // 4: vws.iam.v1.GetUserRequest
+	(*ListUsersRequest)(nil),           // 5: vws.iam.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),          // 6: vws.iam.v1.ListUsersResponse
+	(*CreateUserRequest)(nil),          // 7: vws.iam.v1.CreateUserRequest
+	(*UpdateUserRequest)(nil),          // 8: vws.iam.v1.UpdateUserRequest
+	(*DeleteUserRequest)(nil),          // 9: vws.iam.v1.DeleteUserRequest
+	(*SetLoginProfileRequest)(nil),     // 10: vws.iam.v1.SetLoginProfileRequest
+	(*DeleteLoginProfileRequest)(nil),  // 11: vws.iam.v1.DeleteLoginProfileRequest
+	(*ChangePasswordRequest)(nil),      // 12: vws.iam.v1.ChangePasswordRequest
+	(*SetLoginProfileResponse)(nil),    // 13: vws.iam.v1.SetLoginProfileResponse
+	(*DeleteLoginProfileResponse)(nil), // 14: vws.iam.v1.DeleteLoginProfileResponse
+	(*ChangePasswordResponse)(nil),     // 15: vws.iam.v1.ChangePasswordResponse
+	(*RevokeUserSessionsRequest)(nil),  // 16: vws.iam.v1.RevokeUserSessionsRequest
+	nil,                                // 17: vws.iam.v1.User.LabelsEntry
+	nil,                                // 18: vws.iam.v1.UserSpec.InlinePoliciesEntry
+	(*timestamppb.Timestamp)(nil),      // 19: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),           // 20: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),      // 21: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil),    // 22: google.longrunning.Operation
 }
 var file_vws_iam_v1_user_proto_depIdxs = []int32{
-	16, // 0: vws.iam.v1.User.labels:type_name -> vws.iam.v1.User.LabelsEntry
-	1,  // 1: vws.iam.v1.User.spec:type_name -> vws.iam.v1.UserSpec
-	2,  // 2: vws.iam.v1.User.status:type_name -> vws.iam.v1.UserStatus
-	18, // 3: vws.iam.v1.User.create_time:type_name -> google.protobuf.Timestamp
-	18, // 4: vws.iam.v1.User.update_time:type_name -> google.protobuf.Timestamp
-	18, // 5: vws.iam.v1.User.delete_time:type_name -> google.protobuf.Timestamp
-	17, // 6: vws.iam.v1.UserSpec.inline_policies:type_name -> vws.iam.v1.UserSpec.InlinePoliciesEntry
-	19, // 7: vws.iam.v1.UserStatus.observed:type_name -> vws.common.v1.ObservedState
-	18, // 8: vws.iam.v1.UserStatus.password_last_used_time:type_name -> google.protobuf.Timestamp
-	18, // 9: vws.iam.v1.UserStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
-	0,  // 10: vws.iam.v1.ListUsersResponse.users:type_name -> vws.iam.v1.User
-	0,  // 11: vws.iam.v1.CreateUserRequest.user:type_name -> vws.iam.v1.User
-	0,  // 12: vws.iam.v1.UpdateUserRequest.user:type_name -> vws.iam.v1.User
-	20, // 13: vws.iam.v1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
-	3,  // 14: vws.iam.v1.UserService.GetUser:input_type -> vws.iam.v1.GetUserRequest
-	4,  // 15: vws.iam.v1.UserService.ListUsers:input_type -> vws.iam.v1.ListUsersRequest
-	6,  // 16: vws.iam.v1.UserService.CreateUser:input_type -> vws.iam.v1.CreateUserRequest
-	7,  // 17: vws.iam.v1.UserService.UpdateUser:input_type -> vws.iam.v1.UpdateUserRequest
-	8,  // 18: vws.iam.v1.UserService.DeleteUser:input_type -> vws.iam.v1.DeleteUserRequest
-	15, // 19: vws.iam.v1.UserService.RevokeUserSessions:input_type -> vws.iam.v1.RevokeUserSessionsRequest
-	9,  // 20: vws.iam.v1.UserService.SetLoginProfile:input_type -> vws.iam.v1.SetLoginProfileRequest
-	10, // 21: vws.iam.v1.UserService.DeleteLoginProfile:input_type -> vws.iam.v1.DeleteLoginProfileRequest
-	11, // 22: vws.iam.v1.UserService.ChangePassword:input_type -> vws.iam.v1.ChangePasswordRequest
-	0,  // 23: vws.iam.v1.UserService.GetUser:output_type -> vws.iam.v1.User
-	5,  // 24: vws.iam.v1.UserService.ListUsers:output_type -> vws.iam.v1.ListUsersResponse
-	21, // 25: vws.iam.v1.UserService.CreateUser:output_type -> google.longrunning.Operation
-	21, // 26: vws.iam.v1.UserService.UpdateUser:output_type -> google.longrunning.Operation
-	21, // 27: vws.iam.v1.UserService.DeleteUser:output_type -> google.longrunning.Operation
-	21, // 28: vws.iam.v1.UserService.RevokeUserSessions:output_type -> google.longrunning.Operation
-	12, // 29: vws.iam.v1.UserService.SetLoginProfile:output_type -> vws.iam.v1.SetLoginProfileResponse
-	13, // 30: vws.iam.v1.UserService.DeleteLoginProfile:output_type -> vws.iam.v1.DeleteLoginProfileResponse
-	14, // 31: vws.iam.v1.UserService.ChangePassword:output_type -> vws.iam.v1.ChangePasswordResponse
-	23, // [23:32] is the sub-list for method output_type
-	14, // [14:23] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	17, // 0: vws.iam.v1.User.labels:type_name -> vws.iam.v1.User.LabelsEntry
+	2,  // 1: vws.iam.v1.User.spec:type_name -> vws.iam.v1.UserSpec
+	3,  // 2: vws.iam.v1.User.status:type_name -> vws.iam.v1.UserStatus
+	19, // 3: vws.iam.v1.User.create_time:type_name -> google.protobuf.Timestamp
+	19, // 4: vws.iam.v1.User.update_time:type_name -> google.protobuf.Timestamp
+	19, // 5: vws.iam.v1.User.delete_time:type_name -> google.protobuf.Timestamp
+	18, // 6: vws.iam.v1.UserSpec.inline_policies:type_name -> vws.iam.v1.UserSpec.InlinePoliciesEntry
+	20, // 7: vws.iam.v1.UserStatus.observed:type_name -> vws.common.v1.ObservedState
+	19, // 8: vws.iam.v1.UserStatus.password_last_used_time:type_name -> google.protobuf.Timestamp
+	19, // 9: vws.iam.v1.UserStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
+	1,  // 10: vws.iam.v1.ListUsersResponse.users:type_name -> vws.iam.v1.User
+	1,  // 11: vws.iam.v1.CreateUserRequest.user:type_name -> vws.iam.v1.User
+	1,  // 12: vws.iam.v1.UpdateUserRequest.user:type_name -> vws.iam.v1.User
+	21, // 13: vws.iam.v1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
+	0,  // 14: vws.iam.v1.SetLoginProfileRequest.mode:type_name -> vws.iam.v1.LoginProfileWriteMode
+	4,  // 15: vws.iam.v1.UserService.GetUser:input_type -> vws.iam.v1.GetUserRequest
+	5,  // 16: vws.iam.v1.UserService.ListUsers:input_type -> vws.iam.v1.ListUsersRequest
+	7,  // 17: vws.iam.v1.UserService.CreateUser:input_type -> vws.iam.v1.CreateUserRequest
+	8,  // 18: vws.iam.v1.UserService.UpdateUser:input_type -> vws.iam.v1.UpdateUserRequest
+	9,  // 19: vws.iam.v1.UserService.DeleteUser:input_type -> vws.iam.v1.DeleteUserRequest
+	16, // 20: vws.iam.v1.UserService.RevokeUserSessions:input_type -> vws.iam.v1.RevokeUserSessionsRequest
+	10, // 21: vws.iam.v1.UserService.SetLoginProfile:input_type -> vws.iam.v1.SetLoginProfileRequest
+	11, // 22: vws.iam.v1.UserService.DeleteLoginProfile:input_type -> vws.iam.v1.DeleteLoginProfileRequest
+	12, // 23: vws.iam.v1.UserService.ChangePassword:input_type -> vws.iam.v1.ChangePasswordRequest
+	1,  // 24: vws.iam.v1.UserService.GetUser:output_type -> vws.iam.v1.User
+	6,  // 25: vws.iam.v1.UserService.ListUsers:output_type -> vws.iam.v1.ListUsersResponse
+	22, // 26: vws.iam.v1.UserService.CreateUser:output_type -> google.longrunning.Operation
+	22, // 27: vws.iam.v1.UserService.UpdateUser:output_type -> google.longrunning.Operation
+	22, // 28: vws.iam.v1.UserService.DeleteUser:output_type -> google.longrunning.Operation
+	22, // 29: vws.iam.v1.UserService.RevokeUserSessions:output_type -> google.longrunning.Operation
+	13, // 30: vws.iam.v1.UserService.SetLoginProfile:output_type -> vws.iam.v1.SetLoginProfileResponse
+	14, // 31: vws.iam.v1.UserService.DeleteLoginProfile:output_type -> vws.iam.v1.DeleteLoginProfileResponse
+	15, // 32: vws.iam.v1.UserService.ChangePassword:output_type -> vws.iam.v1.ChangePasswordResponse
+	24, // [24:33] is the sub-list for method output_type
+	15, // [15:24] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_user_proto_init() }
@@ -1239,13 +1321,14 @@ func file_vws_iam_v1_user_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_user_proto_rawDesc), len(file_vws_iam_v1_user_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_vws_iam_v1_user_proto_goTypes,
 		DependencyIndexes: file_vws_iam_v1_user_proto_depIdxs,
+		EnumInfos:         file_vws_iam_v1_user_proto_enumTypes,
 		MessageInfos:      file_vws_iam_v1_user_proto_msgTypes,
 	}.Build()
 	File_vws_iam_v1_user_proto = out.File

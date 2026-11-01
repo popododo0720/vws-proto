@@ -91,6 +91,7 @@ service UserService {
   }
 
   // SetLoginProfile sets or replaces the console password (argon2id at rest).
+  // SetLoginProfileRequest.mode selects create-only, must-exist or upsert.
   // Not an operation: the password must not be kept in an operation record.
   rpc SetLoginProfile(SetLoginProfileRequest) returns (SetLoginProfileResponse) {
     option (google.api.http) = {
@@ -243,6 +244,27 @@ message SetLoginProfileRequest {
     debug_redact = true
   ];
   bool password_reset_required = 3;
+  // Whether a profile may or must already exist. The server checks this in the
+  // same store mutation that writes the hash, so concurrent calls cannot both
+  // pass the check. Unspecified behaves as UPSERT (the behaviour before this
+  // field existed).
+  LoginProfileWriteMode mode = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// LoginProfileWriteMode is the existence precondition of SetLoginProfile.
+// AWS CreateLoginProfile maps to CREATE_ONLY and UpdateLoginProfile to MUST_EXIST.
+enum LoginProfileWriteMode {
+  // Same as UPSERT.
+  LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED = 0;
+  // Create the profile or replace the existing hash.
+  LOGIN_PROFILE_WRITE_MODE_UPSERT = 1;
+  // An existing profile is ALREADY_EXISTS / ALREADY_EXISTS (AWS
+  // EntityAlreadyExists, 409) and nothing changes.
+  LOGIN_PROFILE_WRITE_MODE_CREATE_ONLY = 2;
+  // A missing profile is NOT_FOUND / RESOURCE_NOT_FOUND (AWS NoSuchEntity, 404)
+  // and nothing changes. An update racing a DeleteLoginProfile never brings a
+  // deleted profile back.
+  LOGIN_PROFILE_WRITE_MODE_MUST_EXIST = 3;
 }
 
 message DeleteLoginProfileRequest {

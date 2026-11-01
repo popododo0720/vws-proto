@@ -67,6 +67,7 @@ type UserServiceClient interface {
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	RevokeUserSessions(ctx context.Context, in *RevokeUserSessionsRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// SetLoginProfile sets or replaces the console password (argon2id at rest).
+	// SetLoginProfileRequest.mode selects create-only, must-exist or upsert.
 	// Not an operation: the password must not be kept in an operation record.
 	SetLoginProfile(ctx context.Context, in *SetLoginProfileRequest, opts ...grpc.CallOption) (*SetLoginProfileResponse, error)
 	DeleteLoginProfile(ctx context.Context, in *DeleteLoginProfileRequest, opts ...grpc.CallOption) (*DeleteLoginProfileResponse, error)
@@ -208,6 +209,7 @@ type UserServiceServer interface {
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	RevokeUserSessions(context.Context, *RevokeUserSessionsRequest) (*longrunningpb.Operation, error)
 	// SetLoginProfile sets or replaces the console password (argon2id at rest).
+	// SetLoginProfileRequest.mode selects create-only, must-exist or upsert.
 	// Not an operation: the password must not be kept in an operation record.
 	SetLoginProfile(context.Context, *SetLoginProfileRequest) (*SetLoginProfileResponse, error)
 	DeleteLoginProfile(context.Context, *DeleteLoginProfileRequest) (*DeleteLoginProfileResponse, error)
