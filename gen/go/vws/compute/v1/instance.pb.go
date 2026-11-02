@@ -459,8 +459,14 @@ type VolumeAttachment struct {
 	// ModifyInstanceAttribute) set it explicitly. Mutable: changing it updates
 	// the spec and takes effect at the next termination.
 	DeleteOnTermination *bool `protobuf:"varint,4,opt,name=delete_on_termination,json=deleteOnTermination,proto3,oneof" json:"delete_on_termination,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// EC2 VolumeAttachment.AttachTime: when the attach of this volume to this
+	// instance initiated. The server sets it when the entry first appears in
+	// spec.volumes (CreateInstance for the boot volume and any other initial
+	// volumes, the accepted attach otherwise) and keeps it unchanged on every
+	// later update while the entry stays. Values sent by clients are ignored.
+	AttachTime    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=attach_time,json=attachTime,proto3" json:"attach_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *VolumeAttachment) Reset() {
@@ -519,6 +525,13 @@ func (x *VolumeAttachment) GetDeleteOnTermination() bool {
 		return *x.DeleteOnTermination
 	}
 	return false
+}
+
+func (x *VolumeAttachment) GetAttachTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AttachTime
+	}
+	return nil
 }
 
 type InstanceStatus struct {
@@ -601,7 +614,13 @@ type ObservedVolumeAttachment struct {
 	DeviceName string                 `protobuf:"bytes,2,opt,name=device_name,json=deviceName,proto3" json:"device_name,omitempty"`
 	State      VolumeAttachState      `protobuf:"varint,3,opt,name=state,proto3,enum=vws.compute.v1.VolumeAttachState" json:"state,omitempty"`
 	// When state last changed.
-	StateTime     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=state_time,json=stateTime,proto3" json:"state_time,omitempty"`
+	StateTime *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=state_time,json=stateTime,proto3" json:"state_time,omitempty"`
+	// EC2 VolumeAttachment.AttachTime. The node copies spec.volumes[].attach_time
+	// when it first writes this entry and never changes it afterwards, so it
+	// stays the attach initiation time through ATTACHED, BUSY and DETACHING
+	// (after the spec entry is gone). Unlike state_time it does not move on
+	// state changes.
+	AttachTime    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=attach_time,json=attachTime,proto3" json:"attach_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -660,6 +679,13 @@ func (x *ObservedVolumeAttachment) GetState() VolumeAttachState {
 func (x *ObservedVolumeAttachment) GetStateTime() *timestamppb.Timestamp {
 	if x != nil {
 		return x.StateTime
+	}
+	return nil
+}
+
+func (x *ObservedVolumeAttachment) GetAttachTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AttachTime
 	}
 	return nil
 }
@@ -1266,20 +1292,22 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\x12vws.network/SubnetR\x06subnet\x12!\n" +
 	"\fprivate_ipv4\x18\x03 \x01(\tR\vprivateIpv4\x12G\n" +
 	"\x0fsecurity_groups\x18\x04 \x03(\tB\x1e\xfaA\x1b\n" +
-	"\x19vws.network/SecurityGroupR\x0esecurityGroups\"\xd3\x01\n" +
+	"\x19vws.network/SecurityGroupR\x0esecurityGroups\"\x95\x02\n" +
 	"\x10VolumeAttachment\x122\n" +
 	"\x06volume\x18\x01 \x01(\tB\x1a\xe0A\x02\xfaA\x14\n" +
 	"\x12vws.storage/VolumeR\x06volume\x12$\n" +
 	"\vdevice_name\x18\x02 \x01(\tB\x03\xe0A\x02R\n" +
 	"deviceName\x12\x12\n" +
 	"\x04boot\x18\x03 \x01(\bR\x04boot\x127\n" +
-	"\x15delete_on_termination\x18\x04 \x01(\bH\x00R\x13deleteOnTermination\x88\x01\x01B\x18\n" +
+	"\x15delete_on_termination\x18\x04 \x01(\bH\x00R\x13deleteOnTermination\x88\x01\x01\x12@\n" +
+	"\vattach_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"attachTimeB\x18\n" +
 	"\x16_delete_on_termination\"\xb1\x02\n" +
 	"\x0eInstanceStatus\x128\n" +
 	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\x123\n" +
 	"\x05power\x18\x02 \x01(\x0e2\x1d.vws.compute.v1.InstancePowerR\x05power\x12W\n" +
 	"\x12network_interfaces\x18\x03 \x03(\v2(.vws.compute.v1.ObservedNetworkInterfaceR\x11networkInterfaces\x12B\n" +
-	"\avolumes\x18\x05 \x03(\v2(.vws.compute.v1.ObservedVolumeAttachmentR\avolumesJ\x04\b\x04\x10\x05R\rassigned_node\"\xe0\x01\n" +
+	"\avolumes\x18\x05 \x03(\v2(.vws.compute.v1.ObservedVolumeAttachmentR\avolumesJ\x04\b\x04\x10\x05R\rassigned_node\"\xa2\x02\n" +
 	"\x18ObservedVolumeAttachment\x12/\n" +
 	"\x06volume\x18\x01 \x01(\tB\x17\xfaA\x14\n" +
 	"\x12vws.storage/VolumeR\x06volume\x12\x1f\n" +
@@ -1287,7 +1315,9 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"deviceName\x127\n" +
 	"\x05state\x18\x03 \x01(\x0e2!.vws.compute.v1.VolumeAttachStateR\x05state\x129\n" +
 	"\n" +
-	"state_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tstateTime\"\x97\x01\n" +
+	"state_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tstateTime\x12@\n" +
+	"\vattach_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"attachTime\"\x97\x01\n" +
 	"\x18ObservedNetworkInterface\x12\x1f\n" +
 	"\vdevice_name\x18\x01 \x01(\tR\n" +
 	"deviceName\x12\x16\n" +
@@ -1409,35 +1439,37 @@ var file_vws_compute_v1_instance_proto_depIdxs = []int32{
 	1,  // 7: vws.compute.v1.InstanceSpec.power:type_name -> vws.compute.v1.InstancePower
 	4,  // 8: vws.compute.v1.InstanceSpec.network_interfaces:type_name -> vws.compute.v1.NetworkInterface
 	5,  // 9: vws.compute.v1.InstanceSpec.volumes:type_name -> vws.compute.v1.VolumeAttachment
-	20, // 10: vws.compute.v1.InstanceStatus.observed:type_name -> vws.common.v1.ObservedState
-	1,  // 11: vws.compute.v1.InstanceStatus.power:type_name -> vws.compute.v1.InstancePower
-	8,  // 12: vws.compute.v1.InstanceStatus.network_interfaces:type_name -> vws.compute.v1.ObservedNetworkInterface
-	7,  // 13: vws.compute.v1.InstanceStatus.volumes:type_name -> vws.compute.v1.ObservedVolumeAttachment
-	0,  // 14: vws.compute.v1.ObservedVolumeAttachment.state:type_name -> vws.compute.v1.VolumeAttachState
-	19, // 15: vws.compute.v1.ObservedVolumeAttachment.state_time:type_name -> google.protobuf.Timestamp
-	2,  // 16: vws.compute.v1.ListInstancesResponse.instances:type_name -> vws.compute.v1.Instance
-	2,  // 17: vws.compute.v1.CreateInstanceRequest.instance:type_name -> vws.compute.v1.Instance
-	2,  // 18: vws.compute.v1.UpdateInstanceRequest.instance:type_name -> vws.compute.v1.Instance
-	21, // 19: vws.compute.v1.UpdateInstanceRequest.update_mask:type_name -> google.protobuf.FieldMask
-	6,  // 20: vws.compute.v1.ReportInstanceStatusRequest.status:type_name -> vws.compute.v1.InstanceStatus
-	2,  // 21: vws.compute.v1.ReportInstanceStatusResponse.instance:type_name -> vws.compute.v1.Instance
-	9,  // 22: vws.compute.v1.InstanceService.GetInstance:input_type -> vws.compute.v1.GetInstanceRequest
-	10, // 23: vws.compute.v1.InstanceService.ListInstances:input_type -> vws.compute.v1.ListInstancesRequest
-	12, // 24: vws.compute.v1.InstanceService.CreateInstance:input_type -> vws.compute.v1.CreateInstanceRequest
-	13, // 25: vws.compute.v1.InstanceService.UpdateInstance:input_type -> vws.compute.v1.UpdateInstanceRequest
-	14, // 26: vws.compute.v1.InstanceService.DeleteInstance:input_type -> vws.compute.v1.DeleteInstanceRequest
-	15, // 27: vws.compute.v1.InstanceService.ReportInstanceStatus:input_type -> vws.compute.v1.ReportInstanceStatusRequest
-	2,  // 28: vws.compute.v1.InstanceService.GetInstance:output_type -> vws.compute.v1.Instance
-	11, // 29: vws.compute.v1.InstanceService.ListInstances:output_type -> vws.compute.v1.ListInstancesResponse
-	22, // 30: vws.compute.v1.InstanceService.CreateInstance:output_type -> google.longrunning.Operation
-	22, // 31: vws.compute.v1.InstanceService.UpdateInstance:output_type -> google.longrunning.Operation
-	22, // 32: vws.compute.v1.InstanceService.DeleteInstance:output_type -> google.longrunning.Operation
-	16, // 33: vws.compute.v1.InstanceService.ReportInstanceStatus:output_type -> vws.compute.v1.ReportInstanceStatusResponse
-	28, // [28:34] is the sub-list for method output_type
-	22, // [22:28] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	19, // 10: vws.compute.v1.VolumeAttachment.attach_time:type_name -> google.protobuf.Timestamp
+	20, // 11: vws.compute.v1.InstanceStatus.observed:type_name -> vws.common.v1.ObservedState
+	1,  // 12: vws.compute.v1.InstanceStatus.power:type_name -> vws.compute.v1.InstancePower
+	8,  // 13: vws.compute.v1.InstanceStatus.network_interfaces:type_name -> vws.compute.v1.ObservedNetworkInterface
+	7,  // 14: vws.compute.v1.InstanceStatus.volumes:type_name -> vws.compute.v1.ObservedVolumeAttachment
+	0,  // 15: vws.compute.v1.ObservedVolumeAttachment.state:type_name -> vws.compute.v1.VolumeAttachState
+	19, // 16: vws.compute.v1.ObservedVolumeAttachment.state_time:type_name -> google.protobuf.Timestamp
+	19, // 17: vws.compute.v1.ObservedVolumeAttachment.attach_time:type_name -> google.protobuf.Timestamp
+	2,  // 18: vws.compute.v1.ListInstancesResponse.instances:type_name -> vws.compute.v1.Instance
+	2,  // 19: vws.compute.v1.CreateInstanceRequest.instance:type_name -> vws.compute.v1.Instance
+	2,  // 20: vws.compute.v1.UpdateInstanceRequest.instance:type_name -> vws.compute.v1.Instance
+	21, // 21: vws.compute.v1.UpdateInstanceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	6,  // 22: vws.compute.v1.ReportInstanceStatusRequest.status:type_name -> vws.compute.v1.InstanceStatus
+	2,  // 23: vws.compute.v1.ReportInstanceStatusResponse.instance:type_name -> vws.compute.v1.Instance
+	9,  // 24: vws.compute.v1.InstanceService.GetInstance:input_type -> vws.compute.v1.GetInstanceRequest
+	10, // 25: vws.compute.v1.InstanceService.ListInstances:input_type -> vws.compute.v1.ListInstancesRequest
+	12, // 26: vws.compute.v1.InstanceService.CreateInstance:input_type -> vws.compute.v1.CreateInstanceRequest
+	13, // 27: vws.compute.v1.InstanceService.UpdateInstance:input_type -> vws.compute.v1.UpdateInstanceRequest
+	14, // 28: vws.compute.v1.InstanceService.DeleteInstance:input_type -> vws.compute.v1.DeleteInstanceRequest
+	15, // 29: vws.compute.v1.InstanceService.ReportInstanceStatus:input_type -> vws.compute.v1.ReportInstanceStatusRequest
+	2,  // 30: vws.compute.v1.InstanceService.GetInstance:output_type -> vws.compute.v1.Instance
+	11, // 31: vws.compute.v1.InstanceService.ListInstances:output_type -> vws.compute.v1.ListInstancesResponse
+	22, // 32: vws.compute.v1.InstanceService.CreateInstance:output_type -> google.longrunning.Operation
+	22, // 33: vws.compute.v1.InstanceService.UpdateInstance:output_type -> google.longrunning.Operation
+	22, // 34: vws.compute.v1.InstanceService.DeleteInstance:output_type -> google.longrunning.Operation
+	16, // 35: vws.compute.v1.InstanceService.ReportInstanceStatus:output_type -> vws.compute.v1.ReportInstanceStatusResponse
+	30, // [30:36] is the sub-list for method output_type
+	24, // [24:30] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_vws_compute_v1_instance_proto_init() }
