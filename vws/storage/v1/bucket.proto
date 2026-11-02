@@ -110,6 +110,28 @@ message BucketSpec {
   // When true, object updates add a version and object deletes write a delete marker.
   // Existing versions are not separate resources. Get returns NOT_FOUND after a delete marker.
   bool versioning = 2;
+  // S3 bucket namespace (S3 CreateBucket x-amz-bucket-namespace). UNSPECIFIED
+  // creates a GLOBAL bucket and reads back as GLOBAL. An ACCOUNT_REGIONAL
+  // bucket id must end with "-{account}-{region}-an", where {account} is the
+  // caller's 12-digit account id and {region} is spec.region; any other id is
+  // INVALID_ARGUMENT / INVALID_BUCKET_NAMESPACE. A GLOBAL id must not end with
+  // "-an" (INVALID_ARGUMENT / INVALID_BUCKET_NAMESPACE). Immutable.
+  BucketNamespace namespace = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+}
+
+// BucketNamespace is the S3 general purpose bucket namespace. Each value is
+// the x-amz-bucket-namespace header value of the same name
+// (BUCKET_NAMESPACE_ACCOUNT_REGIONAL is "account-regional").
+enum BucketNamespace {
+  BUCKET_NAMESPACE_UNSPECIFIED = 0;
+  // The shared namespace. A name is unique across every account and region.
+  BUCKET_NAMESPACE_GLOBAL = 1;
+  // The account regional namespace, a reserved subdivision of the global
+  // namespace that only the owning account can create buckets in.
+  BUCKET_NAMESPACE_ACCOUNT_REGIONAL = 2;
 }
 
 message BucketStatus {
