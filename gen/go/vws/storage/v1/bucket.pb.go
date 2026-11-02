@@ -26,6 +26,61 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// BucketNamespace is the S3 general purpose bucket namespace. Each value is
+// the x-amz-bucket-namespace header value of the same name
+// (BUCKET_NAMESPACE_ACCOUNT_REGIONAL is "account-regional").
+type BucketNamespace int32
+
+const (
+	BucketNamespace_BUCKET_NAMESPACE_UNSPECIFIED BucketNamespace = 0
+	// The shared namespace. A name is unique across every account and region.
+	BucketNamespace_BUCKET_NAMESPACE_GLOBAL BucketNamespace = 1
+	// The account regional namespace, a reserved subdivision of the global
+	// namespace that only the owning account can create buckets in.
+	BucketNamespace_BUCKET_NAMESPACE_ACCOUNT_REGIONAL BucketNamespace = 2
+)
+
+// Enum value maps for BucketNamespace.
+var (
+	BucketNamespace_name = map[int32]string{
+		0: "BUCKET_NAMESPACE_UNSPECIFIED",
+		1: "BUCKET_NAMESPACE_GLOBAL",
+		2: "BUCKET_NAMESPACE_ACCOUNT_REGIONAL",
+	}
+	BucketNamespace_value = map[string]int32{
+		"BUCKET_NAMESPACE_UNSPECIFIED":      0,
+		"BUCKET_NAMESPACE_GLOBAL":           1,
+		"BUCKET_NAMESPACE_ACCOUNT_REGIONAL": 2,
+	}
+)
+
+func (x BucketNamespace) Enum() *BucketNamespace {
+	p := new(BucketNamespace)
+	*p = x
+	return p
+}
+
+func (x BucketNamespace) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BucketNamespace) Descriptor() protoreflect.EnumDescriptor {
+	return file_vws_storage_v1_bucket_proto_enumTypes[0].Descriptor()
+}
+
+func (BucketNamespace) Type() protoreflect.EnumType {
+	return &file_vws_storage_v1_bucket_proto_enumTypes[0]
+}
+
+func (x BucketNamespace) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BucketNamespace.Descriptor instead.
+func (BucketNamespace) EnumDescriptor() ([]byte, []int) {
+	return file_vws_storage_v1_bucket_proto_rawDescGZIP(), []int{0}
+}
+
 // Bucket is a project-scoped container for objects.
 // Fields 1-10 are the shared resource envelope.
 // Delete is rejected with DEPENDENCY_MISSING while the bucket still has objects.
@@ -151,7 +206,14 @@ type BucketSpec struct {
 	Region string `protobuf:"bytes,1,opt,name=region,proto3" json:"region,omitempty"`
 	// When true, object updates add a version and object deletes write a delete marker.
 	// Existing versions are not separate resources. Get returns NOT_FOUND after a delete marker.
-	Versioning    bool `protobuf:"varint,2,opt,name=versioning,proto3" json:"versioning,omitempty"`
+	Versioning bool `protobuf:"varint,2,opt,name=versioning,proto3" json:"versioning,omitempty"`
+	// S3 bucket namespace (S3 CreateBucket x-amz-bucket-namespace). UNSPECIFIED
+	// creates a GLOBAL bucket and reads back as GLOBAL. An ACCOUNT_REGIONAL
+	// bucket id must end with "-{account}-{region}-an", where {account} is the
+	// caller's 12-digit account id and {region} is spec.region; any other id is
+	// INVALID_ARGUMENT / INVALID_BUCKET_NAMESPACE. A GLOBAL id must not end with
+	// "-an" (INVALID_ARGUMENT / INVALID_BUCKET_NAMESPACE). Immutable.
+	Namespace     BucketNamespace `protobuf:"varint,3,opt,name=namespace,proto3,enum=vws.storage.v1.BucketNamespace" json:"namespace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -198,6 +260,13 @@ func (x *BucketSpec) GetVersioning() bool {
 		return x.Versioning
 	}
 	return false
+}
+
+func (x *BucketSpec) GetNamespace() BucketNamespace {
+	if x != nil {
+		return x.Namespace
+	}
+	return BucketNamespace_BUCKET_NAMESPACE_UNSPECIFIED
 }
 
 type BucketStatus struct {
@@ -753,13 +822,14 @@ const file_vws_storage_v1_bucket_proto_rawDesc = "" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:M\xeaAJ\n" +
-	"\x12vws.storage/Bucket\x12#projects/{project}/buckets/{bucket}*\abuckets2\x06bucket\"L\n" +
+	"\x12vws.storage/Bucket\x12#projects/{project}/buckets/{bucket}*\abuckets2\x06bucket\"\x93\x01\n" +
 	"\n" +
 	"BucketSpec\x12\x1e\n" +
 	"\x06region\x18\x01 \x01(\tB\x06\xe0A\x02\xe0A\x05R\x06region\x12\x1e\n" +
 	"\n" +
 	"versioning\x18\x02 \x01(\bR\n" +
-	"versioning\"H\n" +
+	"versioning\x12E\n" +
+	"\tnamespace\x18\x03 \x01(\x0e2\x1f.vws.storage.v1.BucketNamespaceB\x06\xe0A\x01\xe0A\x05R\tnamespace\"H\n" +
 	"\fBucketStatus\x128\n" +
 	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\"B\n" +
 	"\x10GetBucketRequest\x12.\n" +
@@ -802,7 +872,11 @@ const file_vws_storage_v1_bucket_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"L\n" +
 	"\x1aReportBucketStatusResponse\x12.\n" +
-	"\x06bucket\x18\x01 \x01(\v2\x16.vws.storage.v1.BucketR\x06bucket2\xe9\a\n" +
+	"\x06bucket\x18\x01 \x01(\v2\x16.vws.storage.v1.BucketR\x06bucket*w\n" +
+	"\x0fBucketNamespace\x12 \n" +
+	"\x1cBUCKET_NAMESPACE_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17BUCKET_NAMESPACE_GLOBAL\x10\x01\x12%\n" +
+	"!BUCKET_NAMESPACE_ACCOUNT_REGIONAL\x10\x022\xe9\a\n" +
 	"\rBucketService\x12n\n" +
 	"\tGetBucket\x12 .vws.storage.v1.GetBucketRequest\x1a\x16.vws.storage.v1.Bucket\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=projects/*/buckets/*}\x12\x7f\n" +
 	"\vListBuckets\x12\".vws.storage.v1.ListBucketsRequest\x1a#.vws.storage.v1.ListBucketsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{parent=projects/*}/buckets\x12\xbe\x01\n" +
@@ -827,56 +901,59 @@ func file_vws_storage_v1_bucket_proto_rawDescGZIP() []byte {
 	return file_vws_storage_v1_bucket_proto_rawDescData
 }
 
+var file_vws_storage_v1_bucket_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_vws_storage_v1_bucket_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_vws_storage_v1_bucket_proto_goTypes = []any{
-	(*Bucket)(nil),                     // 0: vws.storage.v1.Bucket
-	(*BucketSpec)(nil),                 // 1: vws.storage.v1.BucketSpec
-	(*BucketStatus)(nil),               // 2: vws.storage.v1.BucketStatus
-	(*GetBucketRequest)(nil),           // 3: vws.storage.v1.GetBucketRequest
-	(*ListBucketsRequest)(nil),         // 4: vws.storage.v1.ListBucketsRequest
-	(*ListBucketsResponse)(nil),        // 5: vws.storage.v1.ListBucketsResponse
-	(*CreateBucketRequest)(nil),        // 6: vws.storage.v1.CreateBucketRequest
-	(*UpdateBucketRequest)(nil),        // 7: vws.storage.v1.UpdateBucketRequest
-	(*DeleteBucketRequest)(nil),        // 8: vws.storage.v1.DeleteBucketRequest
-	(*ReportBucketStatusRequest)(nil),  // 9: vws.storage.v1.ReportBucketStatusRequest
-	(*ReportBucketStatusResponse)(nil), // 10: vws.storage.v1.ReportBucketStatusResponse
-	nil,                                // 11: vws.storage.v1.Bucket.LabelsEntry
-	(*timestamppb.Timestamp)(nil),      // 12: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),           // 13: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),      // 14: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),    // 15: google.longrunning.Operation
+	(BucketNamespace)(0),               // 0: vws.storage.v1.BucketNamespace
+	(*Bucket)(nil),                     // 1: vws.storage.v1.Bucket
+	(*BucketSpec)(nil),                 // 2: vws.storage.v1.BucketSpec
+	(*BucketStatus)(nil),               // 3: vws.storage.v1.BucketStatus
+	(*GetBucketRequest)(nil),           // 4: vws.storage.v1.GetBucketRequest
+	(*ListBucketsRequest)(nil),         // 5: vws.storage.v1.ListBucketsRequest
+	(*ListBucketsResponse)(nil),        // 6: vws.storage.v1.ListBucketsResponse
+	(*CreateBucketRequest)(nil),        // 7: vws.storage.v1.CreateBucketRequest
+	(*UpdateBucketRequest)(nil),        // 8: vws.storage.v1.UpdateBucketRequest
+	(*DeleteBucketRequest)(nil),        // 9: vws.storage.v1.DeleteBucketRequest
+	(*ReportBucketStatusRequest)(nil),  // 10: vws.storage.v1.ReportBucketStatusRequest
+	(*ReportBucketStatusResponse)(nil), // 11: vws.storage.v1.ReportBucketStatusResponse
+	nil,                                // 12: vws.storage.v1.Bucket.LabelsEntry
+	(*timestamppb.Timestamp)(nil),      // 13: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),           // 14: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),      // 15: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil),    // 16: google.longrunning.Operation
 }
 var file_vws_storage_v1_bucket_proto_depIdxs = []int32{
-	11, // 0: vws.storage.v1.Bucket.labels:type_name -> vws.storage.v1.Bucket.LabelsEntry
-	1,  // 1: vws.storage.v1.Bucket.spec:type_name -> vws.storage.v1.BucketSpec
-	2,  // 2: vws.storage.v1.Bucket.status:type_name -> vws.storage.v1.BucketStatus
-	12, // 3: vws.storage.v1.Bucket.create_time:type_name -> google.protobuf.Timestamp
-	12, // 4: vws.storage.v1.Bucket.update_time:type_name -> google.protobuf.Timestamp
-	12, // 5: vws.storage.v1.Bucket.delete_time:type_name -> google.protobuf.Timestamp
-	13, // 6: vws.storage.v1.BucketStatus.observed:type_name -> vws.common.v1.ObservedState
-	0,  // 7: vws.storage.v1.ListBucketsResponse.buckets:type_name -> vws.storage.v1.Bucket
-	0,  // 8: vws.storage.v1.CreateBucketRequest.bucket:type_name -> vws.storage.v1.Bucket
-	0,  // 9: vws.storage.v1.UpdateBucketRequest.bucket:type_name -> vws.storage.v1.Bucket
-	14, // 10: vws.storage.v1.UpdateBucketRequest.update_mask:type_name -> google.protobuf.FieldMask
-	2,  // 11: vws.storage.v1.ReportBucketStatusRequest.status:type_name -> vws.storage.v1.BucketStatus
-	0,  // 12: vws.storage.v1.ReportBucketStatusResponse.bucket:type_name -> vws.storage.v1.Bucket
-	3,  // 13: vws.storage.v1.BucketService.GetBucket:input_type -> vws.storage.v1.GetBucketRequest
-	4,  // 14: vws.storage.v1.BucketService.ListBuckets:input_type -> vws.storage.v1.ListBucketsRequest
-	6,  // 15: vws.storage.v1.BucketService.CreateBucket:input_type -> vws.storage.v1.CreateBucketRequest
-	7,  // 16: vws.storage.v1.BucketService.UpdateBucket:input_type -> vws.storage.v1.UpdateBucketRequest
-	8,  // 17: vws.storage.v1.BucketService.DeleteBucket:input_type -> vws.storage.v1.DeleteBucketRequest
-	9,  // 18: vws.storage.v1.BucketService.ReportBucketStatus:input_type -> vws.storage.v1.ReportBucketStatusRequest
-	0,  // 19: vws.storage.v1.BucketService.GetBucket:output_type -> vws.storage.v1.Bucket
-	5,  // 20: vws.storage.v1.BucketService.ListBuckets:output_type -> vws.storage.v1.ListBucketsResponse
-	15, // 21: vws.storage.v1.BucketService.CreateBucket:output_type -> google.longrunning.Operation
-	15, // 22: vws.storage.v1.BucketService.UpdateBucket:output_type -> google.longrunning.Operation
-	15, // 23: vws.storage.v1.BucketService.DeleteBucket:output_type -> google.longrunning.Operation
-	10, // 24: vws.storage.v1.BucketService.ReportBucketStatus:output_type -> vws.storage.v1.ReportBucketStatusResponse
-	19, // [19:25] is the sub-list for method output_type
-	13, // [13:19] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	12, // 0: vws.storage.v1.Bucket.labels:type_name -> vws.storage.v1.Bucket.LabelsEntry
+	2,  // 1: vws.storage.v1.Bucket.spec:type_name -> vws.storage.v1.BucketSpec
+	3,  // 2: vws.storage.v1.Bucket.status:type_name -> vws.storage.v1.BucketStatus
+	13, // 3: vws.storage.v1.Bucket.create_time:type_name -> google.protobuf.Timestamp
+	13, // 4: vws.storage.v1.Bucket.update_time:type_name -> google.protobuf.Timestamp
+	13, // 5: vws.storage.v1.Bucket.delete_time:type_name -> google.protobuf.Timestamp
+	0,  // 6: vws.storage.v1.BucketSpec.namespace:type_name -> vws.storage.v1.BucketNamespace
+	14, // 7: vws.storage.v1.BucketStatus.observed:type_name -> vws.common.v1.ObservedState
+	1,  // 8: vws.storage.v1.ListBucketsResponse.buckets:type_name -> vws.storage.v1.Bucket
+	1,  // 9: vws.storage.v1.CreateBucketRequest.bucket:type_name -> vws.storage.v1.Bucket
+	1,  // 10: vws.storage.v1.UpdateBucketRequest.bucket:type_name -> vws.storage.v1.Bucket
+	15, // 11: vws.storage.v1.UpdateBucketRequest.update_mask:type_name -> google.protobuf.FieldMask
+	3,  // 12: vws.storage.v1.ReportBucketStatusRequest.status:type_name -> vws.storage.v1.BucketStatus
+	1,  // 13: vws.storage.v1.ReportBucketStatusResponse.bucket:type_name -> vws.storage.v1.Bucket
+	4,  // 14: vws.storage.v1.BucketService.GetBucket:input_type -> vws.storage.v1.GetBucketRequest
+	5,  // 15: vws.storage.v1.BucketService.ListBuckets:input_type -> vws.storage.v1.ListBucketsRequest
+	7,  // 16: vws.storage.v1.BucketService.CreateBucket:input_type -> vws.storage.v1.CreateBucketRequest
+	8,  // 17: vws.storage.v1.BucketService.UpdateBucket:input_type -> vws.storage.v1.UpdateBucketRequest
+	9,  // 18: vws.storage.v1.BucketService.DeleteBucket:input_type -> vws.storage.v1.DeleteBucketRequest
+	10, // 19: vws.storage.v1.BucketService.ReportBucketStatus:input_type -> vws.storage.v1.ReportBucketStatusRequest
+	1,  // 20: vws.storage.v1.BucketService.GetBucket:output_type -> vws.storage.v1.Bucket
+	6,  // 21: vws.storage.v1.BucketService.ListBuckets:output_type -> vws.storage.v1.ListBucketsResponse
+	16, // 22: vws.storage.v1.BucketService.CreateBucket:output_type -> google.longrunning.Operation
+	16, // 23: vws.storage.v1.BucketService.UpdateBucket:output_type -> google.longrunning.Operation
+	16, // 24: vws.storage.v1.BucketService.DeleteBucket:output_type -> google.longrunning.Operation
+	11, // 25: vws.storage.v1.BucketService.ReportBucketStatus:output_type -> vws.storage.v1.ReportBucketStatusResponse
+	20, // [20:26] is the sub-list for method output_type
+	14, // [14:20] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_vws_storage_v1_bucket_proto_init() }
@@ -889,13 +966,14 @@ func file_vws_storage_v1_bucket_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_storage_v1_bucket_proto_rawDesc), len(file_vws_storage_v1_bucket_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_vws_storage_v1_bucket_proto_goTypes,
 		DependencyIndexes: file_vws_storage_v1_bucket_proto_depIdxs,
+		EnumInfos:         file_vws_storage_v1_bucket_proto_enumTypes,
 		MessageInfos:      file_vws_storage_v1_bucket_proto_msgTypes,
 	}.Build()
 	File_vws_storage_v1_bucket_proto = out.File

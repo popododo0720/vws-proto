@@ -32,7 +32,7 @@ The reason decides the gRPC code. `retryable` is the field in `ReconciliationFai
 | --- | --- | --- |
 | `RESOURCE_NOT_FOUND` | `NOT_FOUND` | No |
 | `ALREADY_EXISTS` | `ALREADY_EXISTS` | No |
-| `INVALID_RESOURCE_ID`, `INVALID_SPEC` | `INVALID_ARGUMENT` | No |
+| `INVALID_RESOURCE_ID`, `INVALID_SPEC`, `INVALID_BUCKET_NAMESPACE` | `INVALID_ARGUMENT` | No |
 | `IDEMPOTENCY_CONFLICT` | `ABORTED` | No. The same id with a different body stays refused |
 | `ETAG_MISMATCH`, `GENERATION_CONFLICT` | `ABORTED` | Read the current state, then retry |
 | `DEPENDENCY_NOT_READY`, `DEPENDENCY_MISSING` | `FAILED_PRECONDITION` | No |

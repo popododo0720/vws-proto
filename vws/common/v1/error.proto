@@ -15,7 +15,7 @@ option java_package = "dev.vws.common.v1";
 //
 //	NOT_FOUND              RESOURCE_NOT_FOUND
 //	ALREADY_EXISTS         ALREADY_EXISTS
-//	INVALID_ARGUMENT       INVALID_RESOURCE_ID, INVALID_SPEC
+//	INVALID_ARGUMENT       INVALID_RESOURCE_ID, INVALID_SPEC, INVALID_BUCKET_NAMESPACE
 //	ABORTED                IDEMPOTENCY_CONFLICT, ETAG_MISMATCH, GENERATION_CONFLICT
 //	FAILED_PRECONDITION    DEPENDENCY_NOT_READY, DEPENDENCY_MISSING
 //	RESOURCE_EXHAUSTED     QUOTA_EXCEEDED
@@ -44,6 +44,10 @@ enum ErrorReason {
   ERROR_REASON_TOKEN_EXPIRED = 14;
   // An IAM policy denied the call (AWS AccessDenied).
   ERROR_REASON_ACCESS_DENIED = 15;
+  // A bucket id that does not fit the requested S3 bucket namespace: an
+  // account-regional id without the caller's "-{account}-{region}-an" suffix,
+  // or a global id ending with "-an" (S3 InvalidBucketNamespace).
+  ERROR_REASON_INVALID_BUCKET_NAMESPACE = 16;
 }
 
 // ReconciliationFailure is an extra detail on google.rpc.Status when a node
