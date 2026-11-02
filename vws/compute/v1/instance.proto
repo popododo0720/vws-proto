@@ -171,6 +171,12 @@ message VolumeAttachment {
   // ModifyInstanceAttribute) set it explicitly. Mutable: changing it updates
   // the spec and takes effect at the next termination.
   optional bool delete_on_termination = 4;
+  // EC2 VolumeAttachment.AttachTime: when the attach of this volume to this
+  // instance initiated. The server sets it when the entry first appears in
+  // spec.volumes (CreateInstance for the boot volume and any other initial
+  // volumes, the accepted attach otherwise) and keeps it unchanged on every
+  // later update while the entry stays. Values sent by clients are ignored.
+  google.protobuf.Timestamp attach_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message InstanceStatus {
@@ -195,6 +201,12 @@ message ObservedVolumeAttachment {
   VolumeAttachState state = 3;
   // When state last changed.
   google.protobuf.Timestamp state_time = 4;
+  // EC2 VolumeAttachment.AttachTime. The node copies spec.volumes[].attach_time
+  // when it first writes this entry and never changes it afterwards, so it
+  // stays the attach initiation time through ATTACHED, BUSY and DETACHING
+  // (after the spec entry is gone). Unlike state_time it does not move on
+  // state changes.
+  google.protobuf.Timestamp attach_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // VolumeAttachState mirrors EC2 VolumeAttachment.State. ATTACHED means the
