@@ -46,10 +46,16 @@ fi
 [[ $level == major && $minor$patch != 00 ]] && fail "a major bump resets minor and patch to 0"
 [[ $level == minor && $patch != 0 ]] && fail "a minor bump resets patch to 0"
 
-breaking=no
-if ! buf breaking ".git#tag=$tag" --against ".git#tag=$prev" >&2; then
-  breaking=yes
-fi
+for t in "$prev" "$tag"; do
+  buf build ".git#tag=$t" -o /dev/null || fail "buf build fails on $t"
+done
+rc=0
+buf breaking ".git#tag=$tag" --against ".git#tag=$prev" >&2 || rc=$?
+case $rc in
+  0) breaking=no ;;
+  100) breaking=yes ;;
+  *) fail "buf breaking exited $rc" ;;
+esac
 proto=no
 if ! git diff --quiet "refs/tags/$prev^{commit}" "$commit" -- '*.proto'; then
   proto=yes
