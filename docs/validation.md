@@ -24,6 +24,9 @@ A failed rule returns the status shape and `ErrorInfo.reason` in the [gRPC error
 | `expected_user_arn` | IAM user ARN `arn:vws:iam::{project}:user{path}{user}`. When set and different from the parent user's current ARN, `FAILED_PRECONDITION` and no state change. Omitted means no check. The ARN contains the IAM path, so this catches a path move by `UpdateUser` | `vws/iam/v1/access_key.proto` `UpdateAccessKeyRequest`, `DeleteAccessKeyRequest` |
 | Access key `user_etag` | Optional string, the parent User's etag as read by the caller. When set, the write commits only while the user is still at this etag. A mismatch, or a change of the user that lands before the commit, is `ABORTED` (AWS `ConcurrentModification`) and no state change. Omitted means no check | `vws/iam/v1/access_key.proto` `CreateAccessKeyRequest`, `DeleteAccessKeyRequest` |
 | Login profile `mode` | `LoginProfileWriteMode`. `UNSPECIFIED` or `UPSERT` creates or replaces the hash. `CREATE_ONLY` on an existing profile is `ALREADY_EXISTS / ALREADY_EXISTS` (AWS `EntityAlreadyExists`). `MUST_EXIST` on a missing profile is `NOT_FOUND / RESOURCE_NOT_FOUND` (AWS `NoSuchEntity`). Checked in the same store mutation as the hash write; nothing changes on error | `vws/iam/v1/user.proto` `SetLoginProfileRequest` |
+| `ResyncMfaDevice` `user_name` | 1-128 characters of `[\w+=,.@-]`. `INVALID_ARGUMENT / INVALID_SPEC` (AWS `ValidationError`) | `vws/iam/v1/mfa_device.proto` `ResyncMfaDeviceRequest` |
+| `ResyncMfaDevice` `serial_number` | 9-256 characters of `[\w+=/:,.@-]`. `INVALID_ARGUMENT / INVALID_SPEC`. A serial that is not a device enabled for the user is `NOT_FOUND / RESOURCE_NOT_FOUND` | `vws/iam/v1/mfa_device.proto` `ResyncMfaDeviceRequest` |
+| `ResyncMfaDevice` `authentication_code_1`, `authentication_code_2` | Exactly six digits each. `INVALID_ARGUMENT / INVALID_SPEC` otherwise. A wrong, out-of-window or already used pair is `UNAUTHENTICATED / INVALID_CREDENTIALS` | `vws/iam/v1/mfa_device.proto` `ResyncMfaDeviceRequest` |
 | IAM `path` | Starts and ends with `/`, 1-512 characters | the same files |
 | Policy document | AWS JSON, `Version` `2012-10-17`. At most 6144 characters excluding whitespace. Unparseable, or a condition outside `docs/iam.md`, is `INVALID_ARGUMENT / INVALID_SPEC` | `policy.proto` |
 | IAM tag key | 1-128 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, not beginning with `aws:`. Case sensitive. At most 50 tags per policy or virtual MFA device. `INVALID_ARGUMENT / INVALID_SPEC` when invalid, `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED` past 50 | `policy.proto` `Tag`, `mfa_device.proto` `TagMFADevice` |
@@ -48,7 +51,7 @@ The minimum inputs server repos put in their tests:
 - An annotations UpdateMask write that omits a server-set `aws:` key leaves the key and its value in place, and one that sends that key with its stored value is accepted.
 - Create and update requests with an `OUTPUT_ONLY` field (for example `claim_name`) filled in.
 - A status report with a lower `generation`, an update with a wrong `etag`, a different body for the same `request_id`.
-- IAM: a 65-character name, duplicate names differing only in case, an invalid JSON policy, an unsupported condition operator, a third access key, reuse of the same TOTP code, an expired session token and temporary key.
+- IAM: a 65-character name, duplicate names differing only in case, an invalid JSON policy, an unsupported condition operator, a third access key, reuse of the same TOTP code, an expired session token and temporary key, a resync with a 129-character user name, an 8- or 257-character serial, a five-digit or non-digit code, and a reused pair.
 
 ## Schema change rules
 

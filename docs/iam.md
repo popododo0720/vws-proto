@@ -10,7 +10,7 @@ The contract of the vws-iam service. The design is vws-iam#1, and this API is vw
 
 ## Operations
 
-There is no state for a node to reconcile, so the server stores the resource and its status (`observed` READY, same generation) at once and returns a finished operation. Decisions (vws-proto#24 review): AWS name grammar, no operation for secret RPCs, IAM operations READY at once, project = account ARN. `CreateAccessKey` and `CreateVirtualMfaDevice`, whose responses carry a secret, and `SetLoginProfile` and `ChangePassword`, which take a password, are not operations (so no secret stays in an operation record). These four are the exceptions to this repo's AIP-151 rule.
+There is no state for a node to reconcile, so the server stores the resource and its status (`observed` READY, same generation) at once and returns a finished operation. Decisions (vws-proto#24 review): AWS name grammar, no operation for secret RPCs, IAM operations READY at once, project = account ARN. `CreateAccessKey` and `CreateVirtualMfaDevice`, whose responses carry a secret, and `SetLoginProfile`, `ChangePassword` and `ResyncMfaDevice`, which take a password or TOTP codes, are not operations (so no secret stays in an operation record). These are the exceptions to this repo's AIP-151 rule.
 
 ## Authentication and authorization (AuthService, TokenService)
 
@@ -82,3 +82,10 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Invalid input is `INVALID_ARGUMENT / INVALID_SPEC`; the 51st tag is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED`. A later `TagMFADevice` overwrites the value of a key it names. `UntagMFADevice` ignores a key that is not attached.
 - A tag change does not change any timestamp of the device: AWS has no update time for a virtual MFA device, so `create_time`, `update_time` and `status.enable_time` stay as they were.
 - `TagMFADevice` and `UntagMFADevice` are operations (AIP-151) and idempotent by `request_id`. `ListMFADeviceTags` sorts by key and pages.
+
+## MFA device resync (#113)
+
+- `MfaDeviceService.ResyncMfaDevice` is AWS `ResyncMFADevice`. It finds two consecutive codes within +/-10 minutes of the server clock and stores the device clock drift.
+- It is not an operation. The request carries TOTP codes, and no secret belongs in an operation record. The response is empty, as AWS returns only a request id.
+- Errors: a length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC`. An unknown user, or a serial that is not a device enabled for the user, is `NOT_FOUND / RESOURCE_NOT_FOUND`. A wrong, out-of-window or already used pair is `UNAUTHENTICATED / INVALID_CREDENTIALS` and counts towards the device lockout. A locked device is `PERMISSION_DENIED / ACCESS_DENIED`. A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT`.
+- Retry: codes are single use, so a retry of a request that already succeeded is `UNAUTHENTICATED`. The stored drift stays, and the client resyncs again with two new codes.

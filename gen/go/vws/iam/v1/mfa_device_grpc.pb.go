@@ -26,6 +26,7 @@ const (
 	MfaDeviceService_CreateVirtualMfaDevice_FullMethodName = "/vws.iam.v1.MfaDeviceService/CreateVirtualMfaDevice"
 	MfaDeviceService_EnableMfaDevice_FullMethodName        = "/vws.iam.v1.MfaDeviceService/EnableMfaDevice"
 	MfaDeviceService_DeactivateMfaDevice_FullMethodName    = "/vws.iam.v1.MfaDeviceService/DeactivateMfaDevice"
+	MfaDeviceService_ResyncMfaDevice_FullMethodName        = "/vws.iam.v1.MfaDeviceService/ResyncMfaDevice"
 	MfaDeviceService_TagMFADevice_FullMethodName           = "/vws.iam.v1.MfaDeviceService/TagMFADevice"
 	MfaDeviceService_UntagMFADevice_FullMethodName         = "/vws.iam.v1.MfaDeviceService/UntagMFADevice"
 	MfaDeviceService_ListMFADeviceTags_FullMethodName      = "/vws.iam.v1.MfaDeviceService/ListMFADeviceTags"
@@ -57,6 +58,23 @@ type MfaDeviceServiceClient interface {
 	// Wrong codes are UNAUTHENTICATED / INVALID_CREDENTIALS.
 	EnableMfaDevice(ctx context.Context, in *EnableMfaDeviceRequest, opts ...grpc.CallOption) (*EnableMfaDeviceResponse, error)
 	DeactivateMfaDevice(ctx context.Context, in *DeactivateMfaDeviceRequest, opts ...grpc.CallOption) (*DeactivateMfaDeviceResponse, error)
+	// ResyncMfaDevice is AWS ResyncMFADevice. It finds two consecutive codes
+	// within +/-10 minutes of the server clock and stores the device clock drift.
+	// It is synchronous and not an operation because the request carries TOTP
+	// codes, the same reason as EnableMfaDevice.
+	// A length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC (AWS
+	// ValidationError). An unknown user, or a serial that is not a device enabled
+	// for that user, is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A wrong,
+	// out-of-window or already used pair is UNAUTHENTICATED / INVALID_CREDENTIALS
+	// (InvalidAuthenticationCode) and counts towards the device lockout. A locked
+	// device is PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). A write that
+	// keeps losing to concurrent writes is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// Codes are single use, so a retry of a request that already succeeded is
+	// UNAUTHENTICATED. The drift it stored stays, and the client resyncs again
+	// with two new codes.
+	// Authorization (iam:ResyncMFADevice) is console-api's.
+	ResyncMfaDevice(ctx context.Context, in *ResyncMfaDeviceRequest, opts ...grpc.CallOption) (*ResyncMfaDeviceResponse, error)
 	// AIP-151: every mutation returns google.longrunning.Operation.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
@@ -135,6 +153,16 @@ func (c *mfaDeviceServiceClient) DeactivateMfaDevice(ctx context.Context, in *De
 	return out, nil
 }
 
+func (c *mfaDeviceServiceClient) ResyncMfaDevice(ctx context.Context, in *ResyncMfaDeviceRequest, opts ...grpc.CallOption) (*ResyncMfaDeviceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResyncMfaDeviceResponse)
+	err := c.cc.Invoke(ctx, MfaDeviceService_ResyncMfaDevice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mfaDeviceServiceClient) TagMFADevice(ctx context.Context, in *TagMFADeviceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(longrunningpb.Operation)
@@ -191,6 +219,23 @@ type MfaDeviceServiceServer interface {
 	// Wrong codes are UNAUTHENTICATED / INVALID_CREDENTIALS.
 	EnableMfaDevice(context.Context, *EnableMfaDeviceRequest) (*EnableMfaDeviceResponse, error)
 	DeactivateMfaDevice(context.Context, *DeactivateMfaDeviceRequest) (*DeactivateMfaDeviceResponse, error)
+	// ResyncMfaDevice is AWS ResyncMFADevice. It finds two consecutive codes
+	// within +/-10 minutes of the server clock and stores the device clock drift.
+	// It is synchronous and not an operation because the request carries TOTP
+	// codes, the same reason as EnableMfaDevice.
+	// A length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC (AWS
+	// ValidationError). An unknown user, or a serial that is not a device enabled
+	// for that user, is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A wrong,
+	// out-of-window or already used pair is UNAUTHENTICATED / INVALID_CREDENTIALS
+	// (InvalidAuthenticationCode) and counts towards the device lockout. A locked
+	// device is PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). A write that
+	// keeps losing to concurrent writes is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// Codes are single use, so a retry of a request that already succeeded is
+	// UNAUTHENTICATED. The drift it stored stays, and the client resyncs again
+	// with two new codes.
+	// Authorization (iam:ResyncMFADevice) is console-api's.
+	ResyncMfaDevice(context.Context, *ResyncMfaDeviceRequest) (*ResyncMfaDeviceResponse, error)
 	// AIP-151: every mutation returns google.longrunning.Operation.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
@@ -226,6 +271,9 @@ func (UnimplementedMfaDeviceServiceServer) EnableMfaDevice(context.Context, *Ena
 }
 func (UnimplementedMfaDeviceServiceServer) DeactivateMfaDevice(context.Context, *DeactivateMfaDeviceRequest) (*DeactivateMfaDeviceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeactivateMfaDevice not implemented")
+}
+func (UnimplementedMfaDeviceServiceServer) ResyncMfaDevice(context.Context, *ResyncMfaDeviceRequest) (*ResyncMfaDeviceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResyncMfaDevice not implemented")
 }
 func (UnimplementedMfaDeviceServiceServer) TagMFADevice(context.Context, *TagMFADeviceRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method TagMFADevice not implemented")
@@ -365,6 +413,24 @@ func _MfaDeviceService_DeactivateMfaDevice_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MfaDeviceService_ResyncMfaDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResyncMfaDeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MfaDeviceServiceServer).ResyncMfaDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MfaDeviceService_ResyncMfaDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MfaDeviceServiceServer).ResyncMfaDevice(ctx, req.(*ResyncMfaDeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MfaDeviceService_TagMFADevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TagMFADeviceRequest)
 	if err := dec(in); err != nil {
@@ -449,6 +515,10 @@ var MfaDeviceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeactivateMfaDevice",
 			Handler:    _MfaDeviceService_DeactivateMfaDevice_Handler,
+		},
+		{
+			MethodName: "ResyncMfaDevice",
+			Handler:    _MfaDeviceService_ResyncMfaDevice_Handler,
 		},
 		{
 			MethodName: "TagMFADevice",
