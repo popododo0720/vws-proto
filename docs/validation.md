@@ -27,6 +27,7 @@ A failed rule returns the status shape and `ErrorInfo.reason` in the [gRPC error
 | `ResyncMfaDevice` `user_name` | 1-128 characters of `[\w+=,.@-]`. `INVALID_ARGUMENT / INVALID_SPEC` (AWS `ValidationError`) | `vws/iam/v1/mfa_device.proto` `ResyncMfaDeviceRequest` |
 | `ResyncMfaDevice` `serial_number` | 9-256 characters of `[\w+=/:,.@-]`. `INVALID_ARGUMENT / INVALID_SPEC`. A serial that is not a device enabled for the user is `NOT_FOUND / RESOURCE_NOT_FOUND` | `vws/iam/v1/mfa_device.proto` `ResyncMfaDeviceRequest` |
 | `ResyncMfaDevice` `authentication_code_1`, `authentication_code_2` | Exactly six digits each. `INVALID_ARGUMENT / INVALID_SPEC` otherwise. A wrong, out-of-window or already used pair is `UNAUTHENTICATED / INVALID_CREDENTIALS` | `vws/iam/v1/mfa_device.proto` `ResyncMfaDeviceRequest` |
+| `PutRolePermissionsBoundary` `permissions_boundary` | 20-2048 characters, else `INVALID_ARGUMENT / INVALID_SPEC` (AWS `ValidationError`). Not of the form `arn:vws:iam::{project}:policy/...` is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). Not a managed policy of the role's project, path included, is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). The role id in `name` is IamName, 1-64 characters | `vws/iam/v1/role.proto` `PutRolePermissionsBoundaryRequest` |
 | IAM `path` | Starts and ends with `/`, 1-512 characters | the same files |
 | Policy document | AWS JSON, `Version` `2012-10-17`. At most 6144 characters excluding whitespace. Unparseable, or a condition outside `docs/iam.md`, is `INVALID_ARGUMENT / INVALID_SPEC` | `policy.proto` |
 | IAM tag key | 1-128 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, not beginning with `aws:`. Case sensitive. At most 50 tags per policy or virtual MFA device. `INVALID_ARGUMENT / INVALID_SPEC` when invalid, `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED` past 50 | `policy.proto` `Tag`, `mfa_device.proto` `TagMFADevice` |
@@ -51,7 +52,7 @@ The minimum inputs server repos put in their tests:
 - An annotations UpdateMask write that omits a server-set `aws:` key leaves the key and its value in place, and one that sends that key with its stored value is accepted.
 - Create and update requests with an `OUTPUT_ONLY` field (for example `claim_name`) filled in.
 - A status report with a lower `generation`, an update with a wrong `etag`, a different body for the same `request_id`.
-- IAM: a 65-character name, duplicate names differing only in case, an invalid JSON policy, an unsupported condition operator, a third access key, reuse of the same TOTP code, an expired session token and temporary key, a resync with a 129-character user name, an 8- or 257-character serial, a five-digit or non-digit code, and a reused pair.
+- IAM: a 65-character name, duplicate names differing only in case, an invalid JSON policy, an unsupported condition operator, a third access key, reuse of the same TOTP code, an expired session token and temporary key, a resync with a 129-character user name, an 8- or 257-character serial, a five-digit or non-digit code, and a reused pair, a permissions boundary ARN of 19 or 2049 characters, a user ARN as the boundary, and another project's policy ARN.
 
 ## Schema change rules
 

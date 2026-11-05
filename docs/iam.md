@@ -10,7 +10,7 @@ The contract of the vws-iam service. The design is vws-iam#1, and this API is vw
 
 ## Operations
 
-There is no state for a node to reconcile, so the server stores the resource and its status (`observed` READY, same generation) at once and returns a finished operation. Decisions (vws-proto#24 review): AWS name grammar, no operation for secret RPCs, IAM operations READY at once, project = account ARN. `CreateAccessKey` and `CreateVirtualMfaDevice`, whose responses carry a secret, and `SetLoginProfile`, `ChangePassword` and `ResyncMfaDevice`, which take a password or TOTP codes, are not operations (so no secret stays in an operation record). These are the exceptions to this repo's AIP-151 rule.
+There is no state for a node to reconcile, so the server stores the resource and its status (`observed` READY, same generation) at once and returns a finished operation. Decisions (vws-proto#24 review): AWS name grammar, no operation for secret RPCs, IAM operations READY at once, project = account ARN. `CreateAccessKey` and `CreateVirtualMfaDevice`, whose responses carry a secret, and `SetLoginProfile`, `ChangePassword` and `ResyncMfaDevice`, which take a password or TOTP codes, are not operations (so no secret stays in an operation record). `PutRolePermissionsBoundary` is not an operation either, because the AWS call is synchronous and the server stores the boundary in one conditional write. These are the exceptions to this repo's AIP-151 rule.
 
 ## Authentication and authorization (AuthService, TokenService)
 
@@ -89,3 +89,12 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - It is not an operation. The request carries TOTP codes, and no secret belongs in an operation record. The response is empty, as AWS returns only a request id.
 - Errors: a length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC`. An unknown user, or a serial that is not a device enabled for the user, is `NOT_FOUND / RESOURCE_NOT_FOUND`. A wrong, out-of-window or already used pair is `UNAUTHENTICATED / INVALID_CREDENTIALS` and counts towards the device lockout. A locked device is `PERMISSION_DENIED / ACCESS_DENIED`. A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT`.
 - Retry: codes are single use, so a retry of a request that already succeeded is `UNAUTHENTICATED`. The stored drift stays, and the client resyncs again with two new codes.
+
+## Role permissions boundary (#115)
+
+- `RoleService.PutRolePermissionsBoundary` is AWS `PutRolePermissionsBoundary`. It sets `RoleSpec.permissions_boundary_arn` to a managed policy of the role's project and replaces any boundary the role has. `GetRole` returns it; AWS `PermissionsBoundaryType` is always `PermissionsBoundaryPolicy`. `CreateRole` and `UpdateRole` do not change it.
+- The boundary is stored only. `Authorize` does not apply it, as permission boundaries are not in Phase 1 policy evaluation.
+- It is not an operation. The response is empty, as AWS returns only a request id.
+- Errors: a role name or ARN length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`), and an ARN that is not a managed policy ARN is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). An unknown role, or a policy that is not a managed policy of the project (path included), is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A service-linked role is `FAILED_PRECONDITION / UNMODIFIABLE_ENTITY` (`UnmodifiableEntity`). A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`).
+- Retry: a role that already has this boundary succeeds without a write, so a retry after a lost response succeeds. A retry after another caller set a different boundary replaces it (last writer wins, as in AWS).
+- Authorization (`iam:PutRolePermissionsBoundary`) is console-api's.
