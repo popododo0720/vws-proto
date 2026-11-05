@@ -17,7 +17,7 @@ option java_package = "dev.vws.common.v1";
 //	ALREADY_EXISTS         ALREADY_EXISTS
 //	INVALID_ARGUMENT       INVALID_RESOURCE_ID, INVALID_SPEC, INVALID_BUCKET_NAMESPACE
 //	ABORTED                IDEMPOTENCY_CONFLICT, ETAG_MISMATCH, GENERATION_CONFLICT
-//	FAILED_PRECONDITION    DEPENDENCY_NOT_READY, DEPENDENCY_MISSING
+//	FAILED_PRECONDITION    DEPENDENCY_NOT_READY, DEPENDENCY_MISSING, UNMODIFIABLE_ENTITY
 //	RESOURCE_EXHAUSTED     QUOTA_EXCEEDED
 //	UNAVAILABLE            RECONCILIATION_FAILED when retryable is true
 //	INTERNAL               RECONCILIATION_FAILED when retryable is false
@@ -48,6 +48,9 @@ enum ErrorReason {
   // account-regional id without the caller's "-{account}-{region}-an" suffix,
   // or a global id ending with "-an" (S3 InvalidBucketNamespace).
   ERROR_REASON_INVALID_BUCKET_NAMESPACE = 16;
+  // The resource is protected and this call may not change it, such as a
+  // service-linked IAM role (AWS UnmodifiableEntity).
+  ERROR_REASON_UNMODIFIABLE_ENTITY = 17;
 }
 
 // ReconciliationFailure is an extra detail on google.rpc.Status when a node

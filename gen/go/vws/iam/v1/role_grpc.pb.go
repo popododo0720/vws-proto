@@ -20,12 +20,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RoleService_GetRole_FullMethodName            = "/vws.iam.v1.RoleService/GetRole"
-	RoleService_ListRoles_FullMethodName          = "/vws.iam.v1.RoleService/ListRoles"
-	RoleService_CreateRole_FullMethodName         = "/vws.iam.v1.RoleService/CreateRole"
-	RoleService_UpdateRole_FullMethodName         = "/vws.iam.v1.RoleService/UpdateRole"
-	RoleService_DeleteRole_FullMethodName         = "/vws.iam.v1.RoleService/DeleteRole"
-	RoleService_RevokeRoleSessions_FullMethodName = "/vws.iam.v1.RoleService/RevokeRoleSessions"
+	RoleService_GetRole_FullMethodName                    = "/vws.iam.v1.RoleService/GetRole"
+	RoleService_ListRoles_FullMethodName                  = "/vws.iam.v1.RoleService/ListRoles"
+	RoleService_CreateRole_FullMethodName                 = "/vws.iam.v1.RoleService/CreateRole"
+	RoleService_UpdateRole_FullMethodName                 = "/vws.iam.v1.RoleService/UpdateRole"
+	RoleService_DeleteRole_FullMethodName                 = "/vws.iam.v1.RoleService/DeleteRole"
+	RoleService_RevokeRoleSessions_FullMethodName         = "/vws.iam.v1.RoleService/RevokeRoleSessions"
+	RoleService_PutRolePermissionsBoundary_FullMethodName = "/vws.iam.v1.RoleService/PutRolePermissionsBoundary"
 )
 
 // RoleServiceClient is the client API for RoleService service.
@@ -63,6 +64,23 @@ type RoleServiceClient interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	RevokeRoleSessions(ctx context.Context, in *RevokeRoleSessionsRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	// PutRolePermissionsBoundary is AWS PutRolePermissionsBoundary. It sets
+	// spec.permissions_boundary_arn to a managed policy of the role's project,
+	// replacing any boundary the role has. The trust and permission policies
+	// stay. It is synchronous and not an operation, as the AWS call is: one
+	// conditional store write, returned once stored.
+	// A RoleName or ARN length or pattern fault is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError), and an ARN that is not a managed
+	// policy ARN is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). An unknown
+	// role, or a policy that is not a managed policy of the project, is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A service-linked role is
+	// FAILED_PRECONDITION / UNMODIFIABLE_ENTITY (UnmodifiableEntity). A write that
+	// keeps losing to concurrent writes is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// A role that already has this boundary succeeds without a write, so a
+	// retry after a lost response succeeds.
+	// Authorization (iam:PutRolePermissionsBoundary) is console-api's.
+	PutRolePermissionsBoundary(ctx context.Context, in *PutRolePermissionsBoundaryRequest, opts ...grpc.CallOption) (*PutRolePermissionsBoundaryResponse, error)
 }
 
 type roleServiceClient struct {
@@ -133,6 +151,16 @@ func (c *roleServiceClient) RevokeRoleSessions(ctx context.Context, in *RevokeRo
 	return out, nil
 }
 
+func (c *roleServiceClient) PutRolePermissionsBoundary(ctx context.Context, in *PutRolePermissionsBoundaryRequest, opts ...grpc.CallOption) (*PutRolePermissionsBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutRolePermissionsBoundaryResponse)
+	err := c.cc.Invoke(ctx, RoleService_PutRolePermissionsBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoleServiceServer is the server API for RoleService service.
 // All implementations must embed UnimplementedRoleServiceServer
 // for forward compatibility.
@@ -168,6 +196,23 @@ type RoleServiceServer interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	RevokeRoleSessions(context.Context, *RevokeRoleSessionsRequest) (*longrunningpb.Operation, error)
+	// PutRolePermissionsBoundary is AWS PutRolePermissionsBoundary. It sets
+	// spec.permissions_boundary_arn to a managed policy of the role's project,
+	// replacing any boundary the role has. The trust and permission policies
+	// stay. It is synchronous and not an operation, as the AWS call is: one
+	// conditional store write, returned once stored.
+	// A RoleName or ARN length or pattern fault is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError), and an ARN that is not a managed
+	// policy ARN is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). An unknown
+	// role, or a policy that is not a managed policy of the project, is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A service-linked role is
+	// FAILED_PRECONDITION / UNMODIFIABLE_ENTITY (UnmodifiableEntity). A write that
+	// keeps losing to concurrent writes is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// A role that already has this boundary succeeds without a write, so a
+	// retry after a lost response succeeds.
+	// Authorization (iam:PutRolePermissionsBoundary) is console-api's.
+	PutRolePermissionsBoundary(context.Context, *PutRolePermissionsBoundaryRequest) (*PutRolePermissionsBoundaryResponse, error)
 	mustEmbedUnimplementedRoleServiceServer()
 }
 
@@ -195,6 +240,9 @@ func (UnimplementedRoleServiceServer) DeleteRole(context.Context, *DeleteRoleReq
 }
 func (UnimplementedRoleServiceServer) RevokeRoleSessions(context.Context, *RevokeRoleSessionsRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method RevokeRoleSessions not implemented")
+}
+func (UnimplementedRoleServiceServer) PutRolePermissionsBoundary(context.Context, *PutRolePermissionsBoundaryRequest) (*PutRolePermissionsBoundaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PutRolePermissionsBoundary not implemented")
 }
 func (UnimplementedRoleServiceServer) mustEmbedUnimplementedRoleServiceServer() {}
 func (UnimplementedRoleServiceServer) testEmbeddedByValue()                     {}
@@ -325,6 +373,24 @@ func _RoleService_RevokeRoleSessions_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoleService_PutRolePermissionsBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutRolePermissionsBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleServiceServer).PutRolePermissionsBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleService_PutRolePermissionsBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleServiceServer).PutRolePermissionsBoundary(ctx, req.(*PutRolePermissionsBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoleService_ServiceDesc is the grpc.ServiceDesc for RoleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -355,6 +421,10 @@ var RoleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevokeRoleSessions",
 			Handler:    _RoleService_RevokeRoleSessions_Handler,
+		},
+		{
+			MethodName: "PutRolePermissionsBoundary",
+			Handler:    _RoleService_PutRolePermissionsBoundary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

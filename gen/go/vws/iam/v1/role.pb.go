@@ -157,8 +157,13 @@ type RoleSpec struct {
 	// PutRolePolicy PolicyName) -> JSON policy document.
 	InlinePolicies map[string]string `protobuf:"bytes,5,rep,name=inline_policies,json=inlinePolicies,proto3" json:"inline_policies,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Description    string            `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// AWS PermissionsBoundary.PermissionsBoundaryArn, a managed policy ARN
+	// arn:vws:iam::{project}:policy{path}{policy}. Empty means no boundary.
+	// PermissionsBoundaryType is always PermissionsBoundaryPolicy. Set only by
+	// PutRolePermissionsBoundary. CreateRole and UpdateRole do not change it.
+	PermissionsBoundaryArn string `protobuf:"bytes,7,opt,name=permissions_boundary_arn,json=permissionsBoundaryArn,proto3" json:"permissions_boundary_arn,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *RoleSpec) Reset() {
@@ -229,6 +234,13 @@ func (x *RoleSpec) GetInlinePolicies() map[string]string {
 func (x *RoleSpec) GetDescription() string {
 	if x != nil {
 		return x.Description
+	}
+	return ""
+}
+
+func (x *RoleSpec) GetPermissionsBoundaryArn() string {
+	if x != nil {
+		return x.PermissionsBoundaryArn
 	}
 	return ""
 }
@@ -737,6 +749,100 @@ func (x *RevokeRoleSessionsRequest) GetRequestId() string {
 	return ""
 }
 
+type PutRolePermissionsBoundaryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}/roles/{role}. The role id is AWS RoleName, 1-64
+	// characters of [\w+=,.@-].
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// AWS PermissionsBoundary, 20-2048 characters. A managed policy ARN
+	// arn:vws:iam::{project}:policy{path}{policy} of the role's project.
+	PermissionsBoundary string `protobuf:"bytes,2,opt,name=permissions_boundary,json=permissionsBoundary,proto3" json:"permissions_boundary,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *PutRolePermissionsBoundaryRequest) Reset() {
+	*x = PutRolePermissionsBoundaryRequest{}
+	mi := &file_vws_iam_v1_role_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutRolePermissionsBoundaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutRolePermissionsBoundaryRequest) ProtoMessage() {}
+
+func (x *PutRolePermissionsBoundaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_role_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutRolePermissionsBoundaryRequest.ProtoReflect.Descriptor instead.
+func (*PutRolePermissionsBoundaryRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *PutRolePermissionsBoundaryRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PutRolePermissionsBoundaryRequest) GetPermissionsBoundary() string {
+	if x != nil {
+		return x.PermissionsBoundary
+	}
+	return ""
+}
+
+// PutRolePermissionsBoundaryResponse is empty, as AWS returns only a request
+// id. GetRole reads the boundary back.
+type PutRolePermissionsBoundaryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutRolePermissionsBoundaryResponse) Reset() {
+	*x = PutRolePermissionsBoundaryResponse{}
+	mi := &file_vws_iam_v1_role_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutRolePermissionsBoundaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutRolePermissionsBoundaryResponse) ProtoMessage() {}
+
+func (x *PutRolePermissionsBoundaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_role_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutRolePermissionsBoundaryResponse.ProtoReflect.Descriptor instead.
+func (*PutRolePermissionsBoundaryResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{11}
+}
+
 var File_vws_iam_v1_role_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_role_proto_rawDesc = "" +
@@ -763,14 +869,15 @@ const file_vws_iam_v1_role_proto_rawDesc = "" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:?\xeaA<\n" +
-	"\fvws.iam/Role\x12\x1fprojects/{project}/roles/{role}*\x05roles2\x04role\"\xf7\x02\n" +
+	"\fvws.iam/Role\x12\x1fprojects/{project}/roles/{role}*\x05roles2\x04role\"\xb6\x03\n" +
 	"\bRoleSpec\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x121\n" +
 	"\x12assume_role_policy\x18\x02 \x01(\tB\x03\xe0A\x02R\x10assumeRolePolicy\x12?\n" +
 	"\x1cmax_session_duration_seconds\x18\x03 \x01(\x05R\x19maxSessionDurationSeconds\x12+\n" +
 	"\x11attached_policies\x18\x04 \x03(\tR\x10attachedPolicies\x12Q\n" +
 	"\x0finline_policies\x18\x05 \x03(\v2(.vws.iam.v1.RoleSpec.InlinePoliciesEntryR\x0einlinePolicies\x12 \n" +
-	"\vdescription\x18\x06 \x01(\tR\vdescription\x1aA\n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\x12=\n" +
+	"\x18permissions_boundary_arn\x18\a \x01(\tB\x03\xe0A\x03R\x16permissionsBoundaryArn\x1aA\n" +
 	"\x13InlinePoliciesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc3\x01\n" +
@@ -817,7 +924,12 @@ const file_vws_iam_v1_role_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/RoleR\x04name\x12*\n" +
 	"\n" +
-	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId2\xb5\a\n" +
+	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"\x85\x01\n" +
+	"!PutRolePermissionsBoundaryRequest\x12(\n" +
+	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
+	"\fvws.iam/RoleR\x04name\x126\n" +
+	"\x14permissions_boundary\x18\x02 \x01(\tB\x03\xe0A\x02R\x13permissionsBoundary\"$\n" +
+	"\"PutRolePermissionsBoundaryResponse2\xf4\b\n" +
 	"\vRoleService\x12^\n" +
 	"\aGetRole\x12\x1a.vws.iam.v1.GetRoleRequest\x1a\x10.vws.iam.v1.Role\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{name=projects/*/roles/*}\x12o\n" +
 	"\tListRoles\x12\x1c.vws.iam.v1.ListRolesRequest\x1a\x1d.vws.iam.v1.ListRolesResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{parent=projects/*}/roles\x12\xac\x01\n" +
@@ -831,7 +943,8 @@ const file_vws_iam_v1_role_proto_rawDesc = "" +
 	"DeleteRole\x12\x1d.vws.iam.v1.DeleteRoleRequest\x1a\x1d.google.longrunning.Operation\"Z\xcaA2\n" +
 	"\x0fvws.iam.v1.Role\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02\x1f*\x1d/v1/{name=projects/*/roles/*}\x12\xc8\x01\n" +
 	"\x12RevokeRoleSessions\x12%.vws.iam.v1.RevokeRoleSessionsRequest\x1a\x1d.google.longrunning.Operation\"l\xcaA2\n" +
-	"\x0fvws.iam.v1.Role\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/roles/*}:revokeSessionsBX\n" +
+	"\x0fvws.iam.v1.Role\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/roles/*}:revokeSessions\x12\xbc\x01\n" +
+	"\x1aPutRolePermissionsBoundary\x12-.vws.iam.v1.PutRolePermissionsBoundaryRequest\x1a..vws.iam.v1.PutRolePermissionsBoundaryResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{name=projects/*/roles/*}:putPermissionsBoundaryBX\n" +
 	"\x0edev.vws.iam.v1B\tRoleProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -846,53 +959,57 @@ func file_vws_iam_v1_role_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_role_proto_rawDescData
 }
 
-var file_vws_iam_v1_role_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_vws_iam_v1_role_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_vws_iam_v1_role_proto_goTypes = []any{
-	(*Role)(nil),                      // 0: vws.iam.v1.Role
-	(*RoleSpec)(nil),                  // 1: vws.iam.v1.RoleSpec
-	(*RoleStatus)(nil),                // 2: vws.iam.v1.RoleStatus
-	(*GetRoleRequest)(nil),            // 3: vws.iam.v1.GetRoleRequest
-	(*ListRolesRequest)(nil),          // 4: vws.iam.v1.ListRolesRequest
-	(*ListRolesResponse)(nil),         // 5: vws.iam.v1.ListRolesResponse
-	(*CreateRoleRequest)(nil),         // 6: vws.iam.v1.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),         // 7: vws.iam.v1.UpdateRoleRequest
-	(*DeleteRoleRequest)(nil),         // 8: vws.iam.v1.DeleteRoleRequest
-	(*RevokeRoleSessionsRequest)(nil), // 9: vws.iam.v1.RevokeRoleSessionsRequest
-	nil,                               // 10: vws.iam.v1.Role.LabelsEntry
-	nil,                               // 11: vws.iam.v1.RoleSpec.InlinePoliciesEntry
-	(*timestamppb.Timestamp)(nil),     // 12: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),          // 13: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),     // 14: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),   // 15: google.longrunning.Operation
+	(*Role)(nil),                               // 0: vws.iam.v1.Role
+	(*RoleSpec)(nil),                           // 1: vws.iam.v1.RoleSpec
+	(*RoleStatus)(nil),                         // 2: vws.iam.v1.RoleStatus
+	(*GetRoleRequest)(nil),                     // 3: vws.iam.v1.GetRoleRequest
+	(*ListRolesRequest)(nil),                   // 4: vws.iam.v1.ListRolesRequest
+	(*ListRolesResponse)(nil),                  // 5: vws.iam.v1.ListRolesResponse
+	(*CreateRoleRequest)(nil),                  // 6: vws.iam.v1.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),                  // 7: vws.iam.v1.UpdateRoleRequest
+	(*DeleteRoleRequest)(nil),                  // 8: vws.iam.v1.DeleteRoleRequest
+	(*RevokeRoleSessionsRequest)(nil),          // 9: vws.iam.v1.RevokeRoleSessionsRequest
+	(*PutRolePermissionsBoundaryRequest)(nil),  // 10: vws.iam.v1.PutRolePermissionsBoundaryRequest
+	(*PutRolePermissionsBoundaryResponse)(nil), // 11: vws.iam.v1.PutRolePermissionsBoundaryResponse
+	nil,                             // 12: vws.iam.v1.Role.LabelsEntry
+	nil,                             // 13: vws.iam.v1.RoleSpec.InlinePoliciesEntry
+	(*timestamppb.Timestamp)(nil),   // 14: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),        // 15: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),   // 16: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil), // 17: google.longrunning.Operation
 }
 var file_vws_iam_v1_role_proto_depIdxs = []int32{
-	10, // 0: vws.iam.v1.Role.labels:type_name -> vws.iam.v1.Role.LabelsEntry
+	12, // 0: vws.iam.v1.Role.labels:type_name -> vws.iam.v1.Role.LabelsEntry
 	1,  // 1: vws.iam.v1.Role.spec:type_name -> vws.iam.v1.RoleSpec
 	2,  // 2: vws.iam.v1.Role.status:type_name -> vws.iam.v1.RoleStatus
-	12, // 3: vws.iam.v1.Role.create_time:type_name -> google.protobuf.Timestamp
-	12, // 4: vws.iam.v1.Role.update_time:type_name -> google.protobuf.Timestamp
-	12, // 5: vws.iam.v1.Role.delete_time:type_name -> google.protobuf.Timestamp
-	11, // 6: vws.iam.v1.RoleSpec.inline_policies:type_name -> vws.iam.v1.RoleSpec.InlinePoliciesEntry
-	13, // 7: vws.iam.v1.RoleStatus.observed:type_name -> vws.common.v1.ObservedState
-	12, // 8: vws.iam.v1.RoleStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
+	14, // 3: vws.iam.v1.Role.create_time:type_name -> google.protobuf.Timestamp
+	14, // 4: vws.iam.v1.Role.update_time:type_name -> google.protobuf.Timestamp
+	14, // 5: vws.iam.v1.Role.delete_time:type_name -> google.protobuf.Timestamp
+	13, // 6: vws.iam.v1.RoleSpec.inline_policies:type_name -> vws.iam.v1.RoleSpec.InlinePoliciesEntry
+	15, // 7: vws.iam.v1.RoleStatus.observed:type_name -> vws.common.v1.ObservedState
+	14, // 8: vws.iam.v1.RoleStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
 	0,  // 9: vws.iam.v1.ListRolesResponse.roles:type_name -> vws.iam.v1.Role
 	0,  // 10: vws.iam.v1.CreateRoleRequest.role:type_name -> vws.iam.v1.Role
 	0,  // 11: vws.iam.v1.UpdateRoleRequest.role:type_name -> vws.iam.v1.Role
-	14, // 12: vws.iam.v1.UpdateRoleRequest.update_mask:type_name -> google.protobuf.FieldMask
+	16, // 12: vws.iam.v1.UpdateRoleRequest.update_mask:type_name -> google.protobuf.FieldMask
 	3,  // 13: vws.iam.v1.RoleService.GetRole:input_type -> vws.iam.v1.GetRoleRequest
 	4,  // 14: vws.iam.v1.RoleService.ListRoles:input_type -> vws.iam.v1.ListRolesRequest
 	6,  // 15: vws.iam.v1.RoleService.CreateRole:input_type -> vws.iam.v1.CreateRoleRequest
 	7,  // 16: vws.iam.v1.RoleService.UpdateRole:input_type -> vws.iam.v1.UpdateRoleRequest
 	8,  // 17: vws.iam.v1.RoleService.DeleteRole:input_type -> vws.iam.v1.DeleteRoleRequest
 	9,  // 18: vws.iam.v1.RoleService.RevokeRoleSessions:input_type -> vws.iam.v1.RevokeRoleSessionsRequest
-	0,  // 19: vws.iam.v1.RoleService.GetRole:output_type -> vws.iam.v1.Role
-	5,  // 20: vws.iam.v1.RoleService.ListRoles:output_type -> vws.iam.v1.ListRolesResponse
-	15, // 21: vws.iam.v1.RoleService.CreateRole:output_type -> google.longrunning.Operation
-	15, // 22: vws.iam.v1.RoleService.UpdateRole:output_type -> google.longrunning.Operation
-	15, // 23: vws.iam.v1.RoleService.DeleteRole:output_type -> google.longrunning.Operation
-	15, // 24: vws.iam.v1.RoleService.RevokeRoleSessions:output_type -> google.longrunning.Operation
-	19, // [19:25] is the sub-list for method output_type
-	13, // [13:19] is the sub-list for method input_type
+	10, // 19: vws.iam.v1.RoleService.PutRolePermissionsBoundary:input_type -> vws.iam.v1.PutRolePermissionsBoundaryRequest
+	0,  // 20: vws.iam.v1.RoleService.GetRole:output_type -> vws.iam.v1.Role
+	5,  // 21: vws.iam.v1.RoleService.ListRoles:output_type -> vws.iam.v1.ListRolesResponse
+	17, // 22: vws.iam.v1.RoleService.CreateRole:output_type -> google.longrunning.Operation
+	17, // 23: vws.iam.v1.RoleService.UpdateRole:output_type -> google.longrunning.Operation
+	17, // 24: vws.iam.v1.RoleService.DeleteRole:output_type -> google.longrunning.Operation
+	17, // 25: vws.iam.v1.RoleService.RevokeRoleSessions:output_type -> google.longrunning.Operation
+	11, // 26: vws.iam.v1.RoleService.PutRolePermissionsBoundary:output_type -> vws.iam.v1.PutRolePermissionsBoundaryResponse
+	20, // [20:27] is the sub-list for method output_type
+	13, // [13:20] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name
 	13, // [13:13] is the sub-list for extension extendee
 	0,  // [0:13] is the sub-list for field type_name
@@ -909,7 +1026,7 @@ func file_vws_iam_v1_role_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_role_proto_rawDesc), len(file_vws_iam_v1_role_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
