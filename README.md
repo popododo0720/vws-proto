@@ -74,7 +74,7 @@ While subnets, security groups or objects exist under a parent, deleting the par
 
 ## Go module
 
-The repo root is the Go module `github.com/popododo0720/vws-proto`. The generated code is committed in `gen/go`. Tags have no prefix, like `v0.1.0`, not `gen/go/v0.1.0`.
+The repo root is the Go module `github.com/popododo0720/vws-proto`. The generated code is committed in `gen/go`. Tags have no prefix, like `v0.1.0`, not `gen/go/v0.1.0`. The version rules and the tagging procedure are in `docs/release.md`.
 
 ```sh
 go get github.com/popododo0720/vws-proto@v0.1.0
