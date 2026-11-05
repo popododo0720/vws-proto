@@ -9,6 +9,7 @@ git config user.email t@example.com
 git config user.name t
 git config tag.gpgSign false
 printf 'version: v2\n' >buf.yaml
+printf 'module example.com/a\n' >go.mod
 mkdir -p a/v1
 
 commit() {
@@ -68,6 +69,17 @@ commit 'message M { string a = 1; }' breaking-again
 git tag -a v1.1.0 -m v1.1.0
 expect fail v1.1.0
 git tag -d v1.1.0 >/dev/null
+printf 'version: v2\nbreaking:\n  ignore: [a]\n' >buf.yaml
+git commit -qam loosen-breaking-config
+git tag -a v1.1.0 -m v1.1.0
+expect fail v1.1.0
+git tag -d v1.1.0 >/dev/null
+git tag -a v2.0.0 -m x
+expect fail v2.0.0
+git tag -d v2.0.0 >/dev/null
+printf 'module example.com/a/v2\n' >go.mod
+git add go.mod
+git commit -qm module-v2
 git tag -a v2.1.0 -m x
 expect fail v2.1.0
 git tag -d v2.1.0 >/dev/null

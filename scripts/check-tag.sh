@@ -45,12 +45,17 @@ else
 fi
 [[ $level == major && $minor$patch != 00 ]] && fail "a major bump resets minor and patch to 0"
 [[ $level == minor && $patch != 0 ]] && fail "a minor bump resets patch to 0"
+if [[ $major -ge 2 ]]; then
+  module=$(git show "$commit:go.mod" 2>/dev/null | awk '$1 == "module" { print $2; exit }')
+  [[ $module == */v$major ]] || fail "go.mod declares module ${module:-none}; a v$major tag needs the /v$major suffix"
+fi
 
 for t in "$prev" "$tag"; do
   buf build ".git#tag=$t" -o /dev/null || fail "buf build fails on $t"
 done
 rc=0
-buf breaking ".git#tag=$tag" --against ".git#tag=$prev" >&2 || rc=$?
+buf breaking ".git#tag=$tag" --against ".git#tag=$prev" \
+  --config "$(git show "refs/tags/$prev:buf.yaml")" >&2 || rc=$?
 case $rc in
   0) breaking=no ;;
   100) breaking=yes ;;
