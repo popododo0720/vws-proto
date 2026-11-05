@@ -1,0 +1,34 @@
+# Runs scripts/check-tag.sh on every pushed release tag, and its selftest on pull requests.
+# A pushed tag is checked after the fact; a red run means the tag breaks docs/release.md.
+name: tag
+
+on:
+  pull_request:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  check-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.55.1"
+          github_token: ${{ github.token }}
+      - name: check-tag.sh selftest
+        if: github.event_name == 'pull_request'
+        run: scripts/check-tag_test.sh
+      - name: check-tag.sh on the pushed tag
+        if: github.event_name == 'push'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git fetch --force --tags origin
+          git fetch origin main
+          scripts/check-tag.sh "$TAG" origin/main
