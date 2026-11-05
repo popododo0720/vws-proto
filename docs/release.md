@@ -12,7 +12,7 @@ Tags are `vMAJOR.MINOR.PATCH` with no prefix (`v0.9.0`, not `gen/go/v0.9.0`). A 
 | A change `buf breaking` rejects: deleted field, RPC or file, changed number or type | minor | major |
 | No `.proto` change: docs, scripts, CI, a generator bump | patch | patch |
 
-A bump resets the lower parts to 0. A PR that `buf breaking` rejects says so in its body and lists what each consumer must change. A deleted field's number and name go in `reserved`; a number is never reused.
+`buf breaking` runs with the previous tag's `buf.yaml`, so loosening the config in the same range does not hide a breaking change. A bump resets the lower parts to 0. A `v2` or later tag needs the `/vN` suffix on the module path in `go.mod`, the `go_package` options and `gen/go`, because Go cannot fetch it otherwise. A PR that `buf breaking` rejects says so in its body and lists what each consumer must change. A deleted field's number and name go in `reserved`; a number is never reused.
 
 ## Who tags
 
