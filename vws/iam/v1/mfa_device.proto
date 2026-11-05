@@ -69,6 +69,29 @@ service MfaDeviceService {
     };
   }
 
+  // ResyncMfaDevice is AWS ResyncMFADevice. It finds two consecutive codes
+  // within +/-10 minutes of the server clock and stores the device clock drift.
+  // It is synchronous and not an operation because the request carries TOTP
+  // codes, the same reason as EnableMfaDevice.
+  // A length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC (AWS
+  // ValidationError). An unknown user, or a serial that is not a device enabled
+  // for that user, is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A wrong,
+  // out-of-window or already used pair is UNAUTHENTICATED / INVALID_CREDENTIALS
+  // (InvalidAuthenticationCode) and counts towards the device lockout. A locked
+  // device is PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). A write that
+  // keeps losing to concurrent writes is ABORTED / GENERATION_CONFLICT
+  // (ConcurrentModification).
+  // Codes are single use, so a retry of a request that already succeeded is
+  // UNAUTHENTICATED. The drift it stored stays, and the client resyncs again
+  // with two new codes.
+  // Authorization (iam:ResyncMFADevice) is console-api's.
+  rpc ResyncMfaDevice(ResyncMfaDeviceRequest) returns (ResyncMfaDeviceResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}/mfaDevices:resync"
+      body: "*"
+    };
+  }
+
   // AIP-151: every mutation returns google.longrunning.Operation.
   // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
   // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
@@ -245,6 +268,38 @@ message EnableMfaDeviceResponse {
 message DeactivateMfaDeviceResponse {
   MfaDevice mfa_device = 1;
 }
+
+// ResyncMfaDeviceRequest carries two consecutive TOTP codes. Never log them.
+message ResyncMfaDeviceRequest {
+  // projects/{project}
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/MfaDevice"
+  ];
+  // AWS UserName, 1-128 characters of [\w+=,.@-].
+  string user_name = 2 [(google.api.field_behavior) = REQUIRED];
+  // AWS SerialNumber, 9-256 characters of [\w+=/:,.@-]. For a virtual device
+  // it is the ARN in MfaDeviceStatus.serial_number. console-api passes it as
+  // sent; vws-iam resolves it.
+  string serial_number = 3 [(google.api.field_behavior) = REQUIRED];
+  // Exactly six digits. The first of two consecutive codes. Never log it.
+  string authentication_code_1 = 4 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
+  // Exactly six digits. The second of two consecutive codes. Never log it.
+  string authentication_code_2 = 5 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
+  // Client address, for the per-IP MFA attempt limit and audit.
+  string source_ip = 6 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// ResyncMfaDeviceResponse is empty, as AWS returns only a request id.
+message ResyncMfaDeviceResponse {}
 
 // TagMFADevice adds or overwrites tags on a virtual MFA device. The whole
 // request fails and stores nothing when one tag is invalid, the request has
