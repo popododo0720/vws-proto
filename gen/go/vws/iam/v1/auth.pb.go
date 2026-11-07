@@ -1593,6 +1593,161 @@ func (x *DecodeAuthorizationMessageResponse) GetDecodedMessage() string {
 	return ""
 }
 
+type GetAccessKeyInfoRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// How the caller authenticated. vws-iam verifies it and derives the caller
+	// from it; required.
+	//
+	// Types that are valid to be assigned to Authentication:
+	//
+	//	*GetAccessKeyInfoRequest_Sigv4
+	//	*GetAccessKeyInfoRequest_ConsoleSessionToken
+	Authentication isGetAccessKeyInfoRequest_Authentication `protobuf_oneof:"authentication"`
+	// AWS AccessKeyId, 16-128 characters of [\w]. Shorter, longer or with
+	// another character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError).
+	AccessKeyId string `protobuf:"bytes,3,opt,name=access_key_id,json=accessKeyId,proto3" json:"access_key_id,omitempty"`
+	// Client IP of the current request, set by the gateway (console-api) from
+	// the connection it observed, never from a client-supplied value. On the
+	// console_session_token path vws-iam uses it as aws:SourceIp, not the IP
+	// stored at Login. Empty means unknown: the key is absent.
+	SourceIp      string `protobuf:"bytes,4,opt,name=source_ip,json=sourceIp,proto3" json:"source_ip,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAccessKeyInfoRequest) Reset() {
+	*x = GetAccessKeyInfoRequest{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAccessKeyInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAccessKeyInfoRequest) ProtoMessage() {}
+
+func (x *GetAccessKeyInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAccessKeyInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetAccessKeyInfoRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetAccessKeyInfoRequest) GetAuthentication() isGetAccessKeyInfoRequest_Authentication {
+	if x != nil {
+		return x.Authentication
+	}
+	return nil
+}
+
+func (x *GetAccessKeyInfoRequest) GetSigv4() *AuthenticateRequest {
+	if x != nil {
+		if x, ok := x.Authentication.(*GetAccessKeyInfoRequest_Sigv4); ok {
+			return x.Sigv4
+		}
+	}
+	return nil
+}
+
+func (x *GetAccessKeyInfoRequest) GetConsoleSessionToken() string {
+	if x != nil {
+		if x, ok := x.Authentication.(*GetAccessKeyInfoRequest_ConsoleSessionToken); ok {
+			return x.ConsoleSessionToken
+		}
+	}
+	return ""
+}
+
+func (x *GetAccessKeyInfoRequest) GetAccessKeyId() string {
+	if x != nil {
+		return x.AccessKeyId
+	}
+	return ""
+}
+
+func (x *GetAccessKeyInfoRequest) GetSourceIp() string {
+	if x != nil {
+		return x.SourceIp
+	}
+	return ""
+}
+
+type isGetAccessKeyInfoRequest_Authentication interface {
+	isGetAccessKeyInfoRequest_Authentication()
+}
+
+type GetAccessKeyInfoRequest_Sigv4 struct {
+	// The SigV4 request of the caller, signed for GetAccessKeyInfo. Its
+	// source_ip is aws:SourceIp.
+	Sigv4 *AuthenticateRequest `protobuf:"bytes,1,opt,name=sigv4,proto3,oneof"`
+}
+
+type GetAccessKeyInfoRequest_ConsoleSessionToken struct {
+	// Console session token, as from Login. Secret: never log it.
+	ConsoleSessionToken string `protobuf:"bytes,2,opt,name=console_session_token,json=consoleSessionToken,proto3,oneof"`
+}
+
+func (*GetAccessKeyInfoRequest_Sigv4) isGetAccessKeyInfoRequest_Authentication() {}
+
+func (*GetAccessKeyInfoRequest_ConsoleSessionToken) isGetAccessKeyInfoRequest_Authentication() {}
+
+type GetAccessKeyInfoResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// AWS Account: the project (account) id that owns the access key.
+	Account       string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAccessKeyInfoResponse) Reset() {
+	*x = GetAccessKeyInfoResponse{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAccessKeyInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAccessKeyInfoResponse) ProtoMessage() {}
+
+func (x *GetAccessKeyInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAccessKeyInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetAccessKeyInfoResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetAccessKeyInfoResponse) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
 var File_vws_iam_v1_auth_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_auth_proto_rawDesc = "" +
@@ -1704,7 +1859,15 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\tsource_ip\x18\x04 \x01(\tR\bsourceIpB\x10\n" +
 	"\x0eauthentication\"U\n" +
 	"\"DecodeAuthorizationMessageResponse\x12/\n" +
-	"\x0fdecoded_message\x18\x01 \x01(\tB\x06\xe0A\x03\x80\x01\x01R\x0edecodedMessage*\x82\x01\n" +
+	"\x0fdecoded_message\x18\x01 \x01(\tB\x06\xe0A\x03\x80\x01\x01R\x0edecodedMessage\"\xe5\x01\n" +
+	"\x17GetAccessKeyInfoRequest\x127\n" +
+	"\x05sigv4\x18\x01 \x01(\v2\x1f.vws.iam.v1.AuthenticateRequestH\x00R\x05sigv4\x129\n" +
+	"\x15console_session_token\x18\x02 \x01(\tB\x03\x80\x01\x01H\x00R\x13consoleSessionToken\x12'\n" +
+	"\raccess_key_id\x18\x03 \x01(\tB\x03\xe0A\x02R\vaccessKeyId\x12\x1b\n" +
+	"\tsource_ip\x18\x04 \x01(\tR\bsourceIpB\x10\n" +
+	"\x0eauthentication\"9\n" +
+	"\x18GetAccessKeyInfoResponse\x12\x1d\n" +
+	"\aaccount\x18\x01 \x01(\tB\x03\xe0A\x03R\aaccount*\x82\x01\n" +
 	"\rPrincipalType\x12\x1e\n" +
 	"\x1aPRINCIPAL_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13PRINCIPAL_TYPE_ROOT\x10\x01\x12\x17\n" +
@@ -1720,12 +1883,13 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\tAuthorize\x12\x1c.vws.iam.v1.AuthorizeRequest\x1a\x1d.vws.iam.v1.AuthorizeResponse\x12<\n" +
 	"\x05Login\x12\x18.vws.iam.v1.LoginRequest\x1a\x19.vws.iam.v1.LoginResponse\x12Z\n" +
 	"\x0fValidateSession\x12\".vws.iam.v1.ValidateSessionRequest\x1a#.vws.iam.v1.ValidateSessionResponse\x12?\n" +
-	"\x06Logout\x12\x19.vws.iam.v1.LogoutRequest\x1a\x1a.vws.iam.v1.LogoutResponse2\xb4\x02\n" +
+	"\x06Logout\x12\x19.vws.iam.v1.LogoutRequest\x1a\x1a.vws.iam.v1.LogoutResponse2\x93\x03\n" +
 	"\fTokenService\x12K\n" +
 	"\n" +
 	"AssumeRole\x12\x1d.vws.iam.v1.AssumeRoleRequest\x1a\x1e.vws.iam.v1.AssumeRoleResponse\x12Z\n" +
 	"\x0fGetSessionToken\x12\".vws.iam.v1.GetSessionTokenRequest\x1a#.vws.iam.v1.GetSessionTokenResponse\x12{\n" +
-	"\x1aDecodeAuthorizationMessage\x12-.vws.iam.v1.DecodeAuthorizationMessageRequest\x1a..vws.iam.v1.DecodeAuthorizationMessageResponseBX\n" +
+	"\x1aDecodeAuthorizationMessage\x12-.vws.iam.v1.DecodeAuthorizationMessageRequest\x1a..vws.iam.v1.DecodeAuthorizationMessageResponse\x12]\n" +
+	"\x10GetAccessKeyInfo\x12#.vws.iam.v1.GetAccessKeyInfoRequest\x1a$.vws.iam.v1.GetAccessKeyInfoResponseBX\n" +
 	"\x0edev.vws.iam.v1B\tAuthProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -1741,7 +1905,7 @@ func file_vws_iam_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_iam_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_vws_iam_v1_auth_proto_goTypes = []any{
 	(PrincipalType)(0),                         // 0: vws.iam.v1.PrincipalType
 	(Decision)(0),                              // 1: vws.iam.v1.Decision
@@ -1764,22 +1928,24 @@ var file_vws_iam_v1_auth_proto_goTypes = []any{
 	(*GetSessionTokenResponse)(nil),            // 18: vws.iam.v1.GetSessionTokenResponse
 	(*DecodeAuthorizationMessageRequest)(nil),  // 19: vws.iam.v1.DecodeAuthorizationMessageRequest
 	(*DecodeAuthorizationMessageResponse)(nil), // 20: vws.iam.v1.DecodeAuthorizationMessageResponse
-	nil,                           // 21: vws.iam.v1.AuthorizeRequest.ContextEntry
-	(*timestamppb.Timestamp)(nil), // 22: google.protobuf.Timestamp
+	(*GetAccessKeyInfoRequest)(nil),            // 21: vws.iam.v1.GetAccessKeyInfoRequest
+	(*GetAccessKeyInfoResponse)(nil),           // 22: vws.iam.v1.GetAccessKeyInfoResponse
+	nil,                                        // 23: vws.iam.v1.AuthorizeRequest.ContextEntry
+	(*timestamppb.Timestamp)(nil),              // 24: google.protobuf.Timestamp
 }
 var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	0,  // 0: vws.iam.v1.Principal.type:type_name -> vws.iam.v1.PrincipalType
-	22, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
-	22, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
+	24, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
+	24, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 3: vws.iam.v1.AuthenticateResponse.principal:type_name -> vws.iam.v1.Principal
-	22, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
+	24, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 5: vws.iam.v1.AuthorizeRequest.principal:type_name -> vws.iam.v1.Principal
-	21, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
+	23, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
 	1,  // 7: vws.iam.v1.AuthorizeResponse.decision:type_name -> vws.iam.v1.Decision
-	22, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
+	24, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 9: vws.iam.v1.LoginResponse.principal:type_name -> vws.iam.v1.Principal
 	2,  // 10: vws.iam.v1.ValidateSessionResponse.principal:type_name -> vws.iam.v1.Principal
-	22, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
+	24, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 12: vws.iam.v1.AssumeRoleRequest.caller:type_name -> vws.iam.v1.Principal
 	4,  // 13: vws.iam.v1.AssumeRoleRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
 	3,  // 14: vws.iam.v1.AssumeRoleResponse.credentials:type_name -> vws.iam.v1.Credentials
@@ -1788,28 +1954,31 @@ var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	4,  // 17: vws.iam.v1.GetSessionTokenRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
 	3,  // 18: vws.iam.v1.GetSessionTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
 	4,  // 19: vws.iam.v1.DecodeAuthorizationMessageRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
-	7,  // 20: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
-	4,  // 21: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
-	6,  // 22: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
-	9,  // 23: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
-	11, // 24: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
-	13, // 25: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
-	15, // 26: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
-	17, // 27: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
-	19, // 28: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
-	5,  // 29: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
-	8,  // 30: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
-	10, // 31: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
-	12, // 32: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
-	14, // 33: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
-	16, // 34: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
-	18, // 35: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
-	20, // 36: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
-	29, // [29:37] is the sub-list for method output_type
-	21, // [21:29] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	4,  // 20: vws.iam.v1.GetAccessKeyInfoRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
+	7,  // 21: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
+	4,  // 22: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
+	6,  // 23: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
+	9,  // 24: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
+	11, // 25: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
+	13, // 26: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
+	15, // 27: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
+	17, // 28: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
+	19, // 29: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
+	21, // 30: vws.iam.v1.TokenService.GetAccessKeyInfo:input_type -> vws.iam.v1.GetAccessKeyInfoRequest
+	5,  // 31: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
+	8,  // 32: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
+	10, // 33: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
+	12, // 34: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
+	14, // 35: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
+	16, // 36: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
+	18, // 37: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
+	20, // 38: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
+	22, // 39: vws.iam.v1.TokenService.GetAccessKeyInfo:output_type -> vws.iam.v1.GetAccessKeyInfoResponse
+	31, // [31:40] is the sub-list for method output_type
+	22, // [22:31] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_auth_proto_init() }
@@ -1829,13 +1998,17 @@ func file_vws_iam_v1_auth_proto_init() {
 		(*DecodeAuthorizationMessageRequest_Sigv4)(nil),
 		(*DecodeAuthorizationMessageRequest_ConsoleSessionToken)(nil),
 	}
+	file_vws_iam_v1_auth_proto_msgTypes[19].OneofWrappers = []any{
+		(*GetAccessKeyInfoRequest_Sigv4)(nil),
+		(*GetAccessKeyInfoRequest_ConsoleSessionToken)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_auth_proto_rawDesc), len(file_vws_iam_v1_auth_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   20,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

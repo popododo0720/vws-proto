@@ -79,6 +79,19 @@ service TokenService {
   // (MissingAuthenticationToken). Read only and idempotent: a repeat
   // returns the same JSON.
   rpc DecodeAuthorizationMessage(DecodeAuthorizationMessageRequest) returns (DecodeAuthorizationMessageResponse);
+
+  // GetAccessKeyInfo is AWS STS GetAccessKeyInfo: it returns the project
+  // (account) that owns an access key, which may be any project. The caller
+  // needs sts:GetAccessKeyInfo on "*", checked before the key is looked up,
+  // so a caller without it learns nothing about the key; otherwise
+  // PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). A SigV4 request signed
+  // for another action is AccessDenied, and a replayed one is refused as for
+  // AssumeRole. No authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+  // (MissingAuthenticationToken). An active or inactive key returns its
+  // project; a key that does not exist (never created, deleted or not yet
+  // active) is NOT_FOUND / RESOURCE_NOT_FOUND (InvalidClientTokenId). Read
+  // only and idempotent: a repeat returns the same account.
+  rpc GetAccessKeyInfo(GetAccessKeyInfoRequest) returns (GetAccessKeyInfoResponse);
 }
 
 // Principal is the authenticated caller, as resolved by vws-iam.
@@ -378,4 +391,29 @@ message DecodeAuthorizationMessageResponse {
     (google.api.field_behavior) = OUTPUT_ONLY,
     debug_redact = true
   ];
+}
+
+message GetAccessKeyInfoRequest {
+  // How the caller authenticated. vws-iam verifies it and derives the caller
+  // from it; required.
+  oneof authentication {
+    // The SigV4 request of the caller, signed for GetAccessKeyInfo. Its
+    // source_ip is aws:SourceIp.
+    AuthenticateRequest sigv4 = 1;
+    // Console session token, as from Login. Secret: never log it.
+    string console_session_token = 2 [debug_redact = true];
+  }
+  // AWS AccessKeyId, 16-128 characters of [\w]. Shorter, longer or with
+  // another character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError).
+  string access_key_id = 3 [(google.api.field_behavior) = REQUIRED];
+  // Client IP of the current request, set by the gateway (console-api) from
+  // the connection it observed, never from a client-supplied value. On the
+  // console_session_token path vws-iam uses it as aws:SourceIp, not the IP
+  // stored at Login. Empty means unknown: the key is absent.
+  string source_ip = 4;
+}
+
+message GetAccessKeyInfoResponse {
+  // AWS Account: the project (account) id that owns the access key.
+  string account = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
