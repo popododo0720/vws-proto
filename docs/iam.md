@@ -21,6 +21,7 @@ There is no state for a node to reconcile, so the server stores the resource and
 | `Login`, `ValidateSession`, `Logout` | console-api console sign-in (vws-console-api#95) | password (+ TOTP) -> a session token for an HttpOnly cookie |
 | `AssumeRole`, `GetSessionToken` | console-api STS Query API | temporary credentials (`ASIA…`, secret, session token, expiry) |
 | `DecodeAuthorizationMessage` | console-api STS Query API | `encoded_message` -> the decoded JSON of the deny |
+| `GetAccessKeyInfo` | console-api STS Query API | `access_key_id` -> the `account` (project) that owns the key |
 
 AuthService and TokenService are for in-cluster use only. The chart's NetworkPolicy admits only console-api (vws-deploy#243).
 
@@ -106,3 +107,11 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - `source_ip` is set by console-api from the connection it observed, never from a client value. On the `console_session_token` path vws-iam uses it as `aws:SourceIp`, so an `IpAddress` Deny on `sts:DecodeAuthorizationMessage` applies to the current request, not the IP stored at Login. Empty means unknown: the key is absent and `IpAddress` does not match. On the `sigv4` path `sigv4.source_ip` is used.
 - Errors: no authentication is `UNAUTHENTICATED / INVALID_CREDENTIALS` (`MissingAuthenticationToken`). Missing permission, or a SigV4 request signed for another action, is `PERMISSION_DENIED / ACCESS_DENIED` (`AccessDenied`); a replayed SigV4 request is refused as for AssumeRole. An empty or over-long `encoded_message` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A malformed, tampered, expired, other-project or unknown-key message is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidAuthorizationMessageException`, HTTP 400).
 - It is not an operation: read only, and a repeat returns the same JSON. The encoded and decoded messages are `debug_redact` and never logged.
+
+## Get access key info (#85)
+
+- `TokenService.GetAccessKeyInfo` is AWS STS `GetAccessKeyInfo`. It returns the project (`account`) that owns `access_key_id`. The key may belong to any project, not only the caller's.
+- The caller comes only from the `authentication` oneof, as on `AssumeRole`. It needs `sts:GetAccessKeyInfo` on `*`, checked before the key is looked up, so a caller without it learns nothing about the key.
+- `source_ip` is set by console-api from the connection it observed, never from a client value. On the `console_session_token` path vws-iam uses it as `aws:SourceIp`; empty means unknown and the key is absent. On the `sigv4` path `sigv4.source_ip` is used.
+- Errors: no authentication is `UNAUTHENTICATED / INVALID_CREDENTIALS` (`MissingAuthenticationToken`). Missing permission, or a SigV4 request signed for another action, is `PERMISSION_DENIED / ACCESS_DENIED` (`AccessDenied`); a replayed SigV4 request is refused as for AssumeRole. An `access_key_id` shorter than 16, longer than 128, or with a character outside `[\w]` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A key that does not exist (never created, deleted, or not yet active) is `NOT_FOUND / RESOURCE_NOT_FOUND` (`InvalidClientTokenId`).
+- The key's state does not change the answer: an active or inactive key returns its project. It is not an operation: read only, and a repeat returns the same account.
