@@ -776,7 +776,25 @@ type SetLoginProfileRequest struct {
 	// same store mutation that writes the hash, so concurrent calls cannot both
 	// pass the check. Unspecified behaves as UPSERT (the behaviour before this
 	// field existed).
-	Mode          LoginProfileWriteMode `protobuf:"varint,4,opt,name=mode,proto3,enum=vws.iam.v1.LoginProfileWriteMode" json:"mode,omitempty"`
+	Mode LoginProfileWriteMode `protobuf:"varint,4,opt,name=mode,proto3,enum=vws.iam.v1.LoginProfileWriteMode" json:"mode,omitempty"`
+	// Optional precondition, the IAM user ARN of the user, shape
+	// "arn:vws:iam::{project}:user{path}{user}". When set, the server reads the
+	// User in the same store mutation as the write and checks that its current
+	// ARN equals this value. A mismatch is FAILED_PRECONDITION and no state
+	// changes. Omitted means no check. The ARN contains the IAM path, so it
+	// changes when UpdateUser moves spec.path. A user deleted and recreated
+	// under the same name and path has the same ARN; user_etag catches that.
+	ExpectedUserArn string `protobuf:"bytes,5,opt,name=expected_user_arn,json=expectedUserArn,proto3" json:"expected_user_arn,omitempty"`
+	// Optional precondition, the User's etag as read by the caller. When set,
+	// the server commits the write only while the user is still at this etag. A
+	// mismatch, or a change of the user that lands before the commit, is
+	// ABORTED (ConcurrentModification) and no state changes. A user deleted and
+	// recreated under the same name never matches an etag read before the
+	// delete. The login profile is part of the User, so a successful
+	// SetLoginProfile or DeleteLoginProfile changes the etag: a retry after a
+	// lost response reads the User again, or it is ABORTED. Omitted means no
+	// check.
+	UserEtag      string `protobuf:"bytes,6,opt,name=user_etag,json=userEtag,proto3" json:"user_etag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -839,9 +857,41 @@ func (x *SetLoginProfileRequest) GetMode() LoginProfileWriteMode {
 	return LoginProfileWriteMode_LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED
 }
 
+func (x *SetLoginProfileRequest) GetExpectedUserArn() string {
+	if x != nil {
+		return x.ExpectedUserArn
+	}
+	return ""
+}
+
+func (x *SetLoginProfileRequest) GetUserEtag() string {
+	if x != nil {
+		return x.UserEtag
+	}
+	return ""
+}
+
 type DeleteLoginProfileRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Optional precondition, the IAM user ARN of the user, shape
+	// "arn:vws:iam::{project}:user{path}{user}". When set, the server reads the
+	// User in the same store mutation as the delete and checks that its current
+	// ARN equals this value. A mismatch is FAILED_PRECONDITION and no state
+	// changes. Omitted means no check. The ARN contains the IAM path, so it
+	// changes when UpdateUser moves spec.path. A user deleted and recreated
+	// under the same name and path has the same ARN; user_etag catches that.
+	ExpectedUserArn string `protobuf:"bytes,2,opt,name=expected_user_arn,json=expectedUserArn,proto3" json:"expected_user_arn,omitempty"`
+	// Optional precondition, the User's etag as read by the caller. When set,
+	// the server commits the delete only while the user is still at this etag. A
+	// mismatch, or a change of the user that lands before the commit, is
+	// ABORTED (ConcurrentModification) and no state changes. A user deleted and
+	// recreated under the same name never matches an etag read before the
+	// delete. The login profile is part of the User, so a successful
+	// SetLoginProfile or DeleteLoginProfile changes the etag: a retry after a
+	// lost response reads the User again, or it is ABORTED. Omitted means no
+	// check.
+	UserEtag      string `protobuf:"bytes,3,opt,name=user_etag,json=userEtag,proto3" json:"user_etag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -879,6 +929,20 @@ func (*DeleteLoginProfileRequest) Descriptor() ([]byte, []int) {
 func (x *DeleteLoginProfileRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *DeleteLoginProfileRequest) GetExpectedUserArn() string {
+	if x != nil {
+		return x.ExpectedUserArn
+	}
+	return ""
+}
+
+func (x *DeleteLoginProfileRequest) GetUserEtag() string {
+	if x != nil {
+		return x.UserEtag
 	}
 	return ""
 }
@@ -1183,16 +1247,20 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
-	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\xdd\x01\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\xb0\x02\n" +
 	"\x16SetLoginProfileRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\x12%\n" +
 	"\bpassword\x18\x02 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\bpassword\x126\n" +
 	"\x17password_reset_required\x18\x03 \x01(\bR\x15passwordResetRequired\x12:\n" +
-	"\x04mode\x18\x04 \x01(\x0e2!.vws.iam.v1.LoginProfileWriteModeB\x03\xe0A\x01R\x04mode\"E\n" +
+	"\x04mode\x18\x04 \x01(\x0e2!.vws.iam.v1.LoginProfileWriteModeB\x03\xe0A\x01R\x04mode\x12/\n" +
+	"\x11expected_user_arn\x18\x05 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\x12 \n" +
+	"\tuser_etag\x18\x06 \x01(\tB\x03\xe0A\x01R\buserEtag\"\x98\x01\n" +
 	"\x19DeleteLoginProfileRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
-	"\fvws.iam/UserR\x04name\"\x9d\x01\n" +
+	"\fvws.iam/UserR\x04name\x12/\n" +
+	"\x11expected_user_arn\x18\x02 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\x12 \n" +
+	"\tuser_etag\x18\x03 \x01(\tB\x03\xe0A\x01R\buserEtag\"\x9d\x01\n" +
 	"\x15ChangePasswordRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\x12,\n" +
