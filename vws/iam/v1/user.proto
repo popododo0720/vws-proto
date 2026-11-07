@@ -207,8 +207,7 @@ message CreateUserRequest {
 message UpdateUserRequest {
   User user = 1 [(google.api.field_behavior) = REQUIRED];
   // Paths are relative to User. status and output-only fields are rejected.
-  // Omitted mask is treated as "spec,labels".
-  // The user id is the name; AWS UpdateUser NewUserName is not supported in Phase 1.
+  // Omitted mask is treated as "spec,labels", unless new_user_name is set.
   google.protobuf.FieldMask update_mask = 2;
   string request_id = 3 [
     (google.api.field_info).format = UUID4,
@@ -216,6 +215,20 @@ message UpdateUserRequest {
   ];
   bool validate_only = 4 [(google.api.field_behavior) = OPTIONAL];
   bool allow_missing = 5 [(google.api.field_behavior) = OPTIONAL];
+  // Optional new user id, AWS UpdateUser NewUserName. Must match IamName
+  // (docs/validation.md): [A-Za-z0-9+=,.@_-], 1 to 64 characters. Empty means
+  // no rename. When set, an empty update_mask is a rename only, and the mask
+  // may name only "spec.path" and "labels" (AWS NewPath with the new name);
+  // any other path is INVALID_ARGUMENT / INVALID_SPEC. The rename keeps the
+  // unique id and every reference to the user and changes the etag. A name
+  // already taken in the project, ignoring case, is ALREADY_EXISTS /
+  // ALREADY_EXISTS (AWS EntityAlreadyExists) and nothing changes. A stale etag
+  // is ABORTED / ETAG_MISMATCH (ConcurrentModification) and a repeated
+  // request_id returns the first result, as for any update. The operation
+  // response is the renamed User, whose name is the new resource name.
+  // allow_missing does not apply to a rename: a missing user is NOT_FOUND /
+  // RESOURCE_NOT_FOUND (AWS NoSuchEntity).
+  string new_user_name = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message DeleteUserRequest {
