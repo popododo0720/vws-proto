@@ -92,20 +92,38 @@ service TokenService {
   // active) is NOT_FOUND / RESOURCE_NOT_FOUND (InvalidClientTokenId). Read
   // only and idempotent: a repeat returns the same account.
   rpc GetAccessKeyInfo(GetAccessKeyInfoRequest) returns (GetAccessKeyInfoResponse);
+
+  // GetFederationToken is AWS STS GetFederationToken: temporary credentials
+  // for a federated user session named by the request. Only long-term
+  // credentials of an IAM user or the root user may call it; a console
+  // session, a session token, an assumed-role or a federated caller is
+  // PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The caller needs
+  // sts:GetFederationToken on the federated-user ARN. A SigV4 request signed
+  // for another action is AccessDenied, and a replayed one is refused as for
+  // AssumeRole. No authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+  // (MissingAuthenticationToken). Validation errors are on the request
+  // fields. The session's permissions are the intersection of the caller's
+  // policies and the session policies; no session policy means no
+  // permissions. A federated session cannot call IAM or STS except
+  // GetCallerIdentity. Nothing is stored: each call issues new credentials.
+  rpc GetFederationToken(GetFederationTokenRequest) returns (GetFederationTokenResponse);
 }
 
 // Principal is the authenticated caller, as resolved by vws-iam.
 message Principal {
   PrincipalType type = 1;
-  // arn:vws:iam::{project}:root, arn:vws:iam::{project}:user{path}{user}, or
-  // arn:vws:sts::{project}:assumed-role/{role}/{session}.
+  // arn:vws:iam::{project}:root, arn:vws:iam::{project}:user{path}{user},
+  // arn:vws:sts::{project}:assumed-role/{role}/{session}, or
+  // arn:vws:sts::{project}:federated-user/{name}.
   string arn = 2;
   // Project (AWS account id equivalent).
   string project = 3;
-  // AIDA... for a user, AROA...:{session} for an assumed role.
+  // AIDA... for a user, AROA...:{session} for an assumed role,
+  // {project}:{name} for a federated user.
   string unique_id = 4;
   // The user or role resource name, projects/{project}/users/{user} or
-  // projects/{project}/roles/{role}. Empty for root.
+  // projects/{project}/roles/{role}. Empty for root. For a federated user,
+  // the IAM user that called GetFederationToken (empty when root did).
   string resource = 5 [(google.api.resource_reference).type = "*"];
   // Session name of an assumed role.
   string session_name = 6;
@@ -113,6 +131,15 @@ message Principal {
   bool mfa_authenticated = 7;
   // aws:MultiFactorAuthAge is computed from this.
   google.protobuf.Timestamp auth_time = 8;
+  // Opaque, sealed by vws-iam: the session policies of a temporary session
+  // (federated user, assumed role). Authenticate and the STS RPCs set it;
+  // the gateway passes it to Authorize unchanged and never builds or reads
+  // it. Authorize opens it and allows only what both the principal's
+  // policies and the session policies allow. A FEDERATED_USER principal
+  // without it, or with one that does not open or belongs to another
+  // session, is DENY_IMPLICIT (fail closed). Empty for root and users.
+  // Never log it.
+  string session_context = 9 [debug_redact = true];
 }
 
 enum PrincipalType {
@@ -120,6 +147,8 @@ enum PrincipalType {
   PRINCIPAL_TYPE_ROOT = 1;
   PRINCIPAL_TYPE_USER = 2;
   PRINCIPAL_TYPE_ASSUMED_ROLE = 3;
+  // A GetFederationToken session.
+  PRINCIPAL_TYPE_FEDERATED_USER = 4;
 }
 
 // Credentials are temporary STS credentials.
@@ -188,7 +217,8 @@ message AuthorizeRequest {
   // The caller, as Authenticate, ValidateSession, or an STS call
   // returned it. vws-iam re-reads the policies of principal.resource; it does
   // not trust any other field except mfa_authenticated and auth_time, which
-  // it checks against the session or key that produced them.
+  // it checks against the session or key that produced them, and
+  // session_context, which it opens and verifies itself.
   Principal principal = 1 [(google.api.field_behavior) = REQUIRED];
   // "<service>:<Action>", for example "ec2:RunInstances" or "s3:PutObject".
   string action = 2 [(google.api.field_behavior) = REQUIRED];
@@ -416,4 +446,54 @@ message GetAccessKeyInfoRequest {
 message GetAccessKeyInfoResponse {
   // AWS Account: the project (account) id that owns the access key.
   string account = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message GetFederationTokenRequest {
+  // How the caller authenticated. vws-iam verifies it and derives the caller
+  // from it; required. Only a long-term key (sigv4) may call it: a console
+  // session is AccessDenied, as for GetSessionToken.
+  oneof authentication {
+    // The SigV4 request of the caller, signed for GetFederationToken. Its
+    // source_ip is aws:SourceIp.
+    AuthenticateRequest sigv4 = 1;
+    // Console session token, as from Login. Refused. Secret: never log it.
+    string console_session_token = 2 [debug_redact = true];
+  }
+  // AWS Name: 2-32 characters of [\w+=,.@-]. Otherwise INVALID_ARGUMENT /
+  // INVALID_SPEC (ValidationError).
+  string name = 3 [(google.api.field_behavior) = REQUIRED];
+  // 900 to 129600. Zero means 43200. A root caller's session is capped at
+  // 3600. Outside the range is INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError).
+  int32 duration_seconds = 4;
+  // AWS Policy: inline session policy JSON, 1-2048 characters of
+  // [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. A wrong length or
+  // character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError); a
+  // document that does not parse is INVALID_ARGUMENT / INVALID_SPEC
+  // (MalformedPolicyDocument). Do not log it.
+  string policy = 5 [(google.api.field_behavior) = INPUT_ONLY];
+  // AWS PolicyArns.member.N.arn: at most 10, each 20-2048 characters, each a
+  // managed policy of the caller's project. More than 10 or a wrong length is
+  // INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
+  // existing managed policy of the project is INVALID_ARGUMENT / INVALID_SPEC
+  // (MalformedPolicyDocument). policy and policy_arns packed over the
+  // 2048-character limit is INVALID_ARGUMENT / INVALID_SPEC
+  // (PackedPolicyTooLarge).
+  repeated string policy_arns = 6;
+}
+
+message GetFederationTokenResponse {
+  Credentials credentials = 1;
+  FederatedUser federated_user = 2;
+  // AWS PackedPolicySize: percentage (0-100) of the packed session policy
+  // limit that policy and policy_arns use.
+  int32 packed_policy_size = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// FederatedUser is AWS FederatedUser.
+message FederatedUser {
+  // {project}:{name}.
+  string federated_user_id = 1;
+  // arn:vws:sts::{project}:federated-user/{name}.
+  string arn = 2;
 }
