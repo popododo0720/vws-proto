@@ -2049,18 +2049,19 @@ type AssumeRoleWithSAMLRequest struct {
 	// (ValidationError).
 	DurationSeconds int32 `protobuf:"varint,4,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
 	// AWS Policy: inline session policy JSON, 1-2048 characters of
-	// [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. A wrong length or
-	// character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError); a
-	// document that does not parse is INVALID_ARGUMENT / INVALID_SPEC
-	// (MalformedPolicyDocument). Do not log it.
+	// [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. More than 2048
+	// characters, or another character, is INVALID_ARGUMENT / INVALID_SPEC
+	// (ValidationError); a document that does not parse is INVALID_ARGUMENT /
+	// INVALID_SPEC (MalformedPolicyDocument). Do not log it.
 	Policy string `protobuf:"bytes,5,opt,name=policy,proto3" json:"policy,omitempty"`
 	// AWS PolicyArns.member.N.arn: at most 10, each 20-2048 characters, each a
 	// managed policy of the role's project. More than 10 or a wrong length is
 	// INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
 	// existing managed policy of the project is INVALID_ARGUMENT /
-	// INVALID_SPEC (MalformedPolicyDocument). The plaintext of policy plus
-	// every policy_arns entry over 2048 characters in total is
-	// INVALID_ARGUMENT / INVALID_SPEC (PackedPolicyTooLarge).
+	// INVALID_SPEC (MalformedPolicyDocument). When policy and each entry pass
+	// their own limits, the plaintext of policy plus every policy_arns entry
+	// over 2048 characters in total is INVALID_ARGUMENT / INVALID_SPEC
+	// (PackedPolicyTooLarge).
 	PolicyArns []string `protobuf:"bytes,6,rep,name=policy_arns,json=policyArns,proto3" json:"policy_arns,omitempty"`
 	// Client IP of the current request, set by the gateway (console-api) from
 	// the connection it observed, never from a client-supplied value. Kept for
@@ -2158,7 +2159,7 @@ type AssumeRoleWithSAMLResponse struct {
 	PackedPolicySize int32 `protobuf:"varint,3,opt,name=packed_policy_size,json=packedPolicySize,proto3" json:"packed_policy_size,omitempty"`
 	// AWS Audience: the Recipient of the assertion's SubjectConfirmationData.
 	Audience string `protobuf:"bytes,4,opt,name=audience,proto3" json:"audience,omitempty"`
-	// AWS Issuer: the Issuer of the response.
+	// AWS Issuer: the Issuer element of the SAML assertion.
 	Issuer string `protobuf:"bytes,5,opt,name=issuer,proto3" json:"issuer,omitempty"`
 	// AWS Subject: the NameID of the assertion's Subject.
 	Subject string `protobuf:"bytes,6,opt,name=subject,proto3" json:"subject,omitempty"`

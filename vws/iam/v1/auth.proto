@@ -551,10 +551,10 @@ message AssumeRoleWithSAMLRequest {
   // (ValidationError).
   int32 duration_seconds = 4;
   // AWS Policy: inline session policy JSON, 1-2048 characters of
-  // [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. A wrong length or
-  // character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError); a
-  // document that does not parse is INVALID_ARGUMENT / INVALID_SPEC
-  // (MalformedPolicyDocument). Do not log it.
+  // [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. More than 2048
+  // characters, or another character, is INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError); a document that does not parse is INVALID_ARGUMENT /
+  // INVALID_SPEC (MalformedPolicyDocument). Do not log it.
   string policy = 5 [
     (google.api.field_behavior) = INPUT_ONLY,
     debug_redact = true
@@ -563,9 +563,10 @@ message AssumeRoleWithSAMLRequest {
   // managed policy of the role's project. More than 10 or a wrong length is
   // INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
   // existing managed policy of the project is INVALID_ARGUMENT /
-  // INVALID_SPEC (MalformedPolicyDocument). The plaintext of policy plus
-  // every policy_arns entry over 2048 characters in total is
-  // INVALID_ARGUMENT / INVALID_SPEC (PackedPolicyTooLarge).
+  // INVALID_SPEC (MalformedPolicyDocument). When policy and each entry pass
+  // their own limits, the plaintext of policy plus every policy_arns entry
+  // over 2048 characters in total is INVALID_ARGUMENT / INVALID_SPEC
+  // (PackedPolicyTooLarge).
   repeated string policy_arns = 6;
   // Client IP of the current request, set by the gateway (console-api) from
   // the connection it observed, never from a client-supplied value. Kept for
@@ -581,7 +582,7 @@ message AssumeRoleWithSAMLResponse {
   int32 packed_policy_size = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
   // AWS Audience: the Recipient of the assertion's SubjectConfirmationData.
   string audience = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
-  // AWS Issuer: the Issuer of the response.
+  // AWS Issuer: the Issuer element of the SAML assertion.
   string issuer = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
   // AWS Subject: the NameID of the assertion's Subject.
   string subject = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
