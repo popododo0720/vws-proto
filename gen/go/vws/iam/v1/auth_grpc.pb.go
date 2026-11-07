@@ -325,8 +325,9 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	TokenService_AssumeRole_FullMethodName      = "/vws.iam.v1.TokenService/AssumeRole"
-	TokenService_GetSessionToken_FullMethodName = "/vws.iam.v1.TokenService/GetSessionToken"
+	TokenService_AssumeRole_FullMethodName                 = "/vws.iam.v1.TokenService/AssumeRole"
+	TokenService_GetSessionToken_FullMethodName            = "/vws.iam.v1.TokenService/GetSessionToken"
+	TokenService_DecodeAuthorizationMessage_FullMethodName = "/vws.iam.v1.TokenService/DecodeAuthorizationMessage"
 )
 
 // TokenServiceClient is the client API for TokenService service.
@@ -352,6 +353,16 @@ type TokenServiceClient interface {
 	// when serial_number and token_code verify. Only a long-term key or the
 	// root user may call it.
 	GetSessionToken(ctx context.Context, in *GetSessionTokenRequest, opts ...grpc.CallOption) (*GetSessionTokenResponse, error)
+	// DecodeAuthorizationMessage is AWS STS DecodeAuthorizationMessage: it
+	// opens an AuthorizeResponse.encoded_message for an authorized caller.
+	// The caller needs sts:DecodeAuthorizationMessage on "*", checked before
+	// the message is opened; otherwise PERMISSION_DENIED / ACCESS_DENIED
+	// (AccessDenied). A SigV4 request signed for another action is
+	// AccessDenied, and a replayed one is refused as for AssumeRole. No
+	// authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+	// (MissingAuthenticationToken). Read only and idempotent: a repeat
+	// returns the same JSON.
+	DecodeAuthorizationMessage(ctx context.Context, in *DecodeAuthorizationMessageRequest, opts ...grpc.CallOption) (*DecodeAuthorizationMessageResponse, error)
 }
 
 type tokenServiceClient struct {
@@ -382,6 +393,16 @@ func (c *tokenServiceClient) GetSessionToken(ctx context.Context, in *GetSession
 	return out, nil
 }
 
+func (c *tokenServiceClient) DecodeAuthorizationMessage(ctx context.Context, in *DecodeAuthorizationMessageRequest, opts ...grpc.CallOption) (*DecodeAuthorizationMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DecodeAuthorizationMessageResponse)
+	err := c.cc.Invoke(ctx, TokenService_DecodeAuthorizationMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TokenServiceServer is the server API for TokenService service.
 // All implementations must embed UnimplementedTokenServiceServer
 // for forward compatibility.
@@ -405,6 +426,16 @@ type TokenServiceServer interface {
 	// when serial_number and token_code verify. Only a long-term key or the
 	// root user may call it.
 	GetSessionToken(context.Context, *GetSessionTokenRequest) (*GetSessionTokenResponse, error)
+	// DecodeAuthorizationMessage is AWS STS DecodeAuthorizationMessage: it
+	// opens an AuthorizeResponse.encoded_message for an authorized caller.
+	// The caller needs sts:DecodeAuthorizationMessage on "*", checked before
+	// the message is opened; otherwise PERMISSION_DENIED / ACCESS_DENIED
+	// (AccessDenied). A SigV4 request signed for another action is
+	// AccessDenied, and a replayed one is refused as for AssumeRole. No
+	// authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+	// (MissingAuthenticationToken). Read only and idempotent: a repeat
+	// returns the same JSON.
+	DecodeAuthorizationMessage(context.Context, *DecodeAuthorizationMessageRequest) (*DecodeAuthorizationMessageResponse, error)
 	mustEmbedUnimplementedTokenServiceServer()
 }
 
@@ -420,6 +451,9 @@ func (UnimplementedTokenServiceServer) AssumeRole(context.Context, *AssumeRoleRe
 }
 func (UnimplementedTokenServiceServer) GetSessionToken(context.Context, *GetSessionTokenRequest) (*GetSessionTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSessionToken not implemented")
+}
+func (UnimplementedTokenServiceServer) DecodeAuthorizationMessage(context.Context, *DecodeAuthorizationMessageRequest) (*DecodeAuthorizationMessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DecodeAuthorizationMessage not implemented")
 }
 func (UnimplementedTokenServiceServer) mustEmbedUnimplementedTokenServiceServer() {}
 func (UnimplementedTokenServiceServer) testEmbeddedByValue()                      {}
@@ -478,6 +512,24 @@ func _TokenService_GetSessionToken_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TokenService_DecodeAuthorizationMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DecodeAuthorizationMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServiceServer).DecodeAuthorizationMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenService_DecodeAuthorizationMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServiceServer).DecodeAuthorizationMessage(ctx, req.(*DecodeAuthorizationMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TokenService_ServiceDesc is the grpc.ServiceDesc for TokenService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -492,6 +544,10 @@ var TokenService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSessionToken",
 			Handler:    _TokenService_GetSessionToken_Handler,
+		},
+		{
+			MethodName: "DecodeAuthorizationMessage",
+			Handler:    _TokenService_DecodeAuthorizationMessage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
