@@ -17,9 +17,10 @@ There is no state for a node to reconcile, so the server stores the resource and
 | RPC | Caller | What it does |
 | --- | --- | --- |
 | `Authenticate` | console-api SigV4 verification | `access_key_id`, `date`, `region`, `service`, `canonical_request`, `string_to_sign`, `signature`, `session_token` (the same as console-api `sigv4.AuthRequest`) -> `account`, `arn`, `is_root` (+ `principal` with MFA and session information). Secrets never leave vws-iam |
-| `Authorize` | every console-api handler, other services | principal, action, resource ARN, condition keys -> ALLOW / DENY_EXPLICIT / DENY_IMPLICIT |
+| `Authorize` | every console-api handler, other services | principal, action, resource ARN, condition keys -> ALLOW / DENY_EXPLICIT / DENY_IMPLICIT, and `encoded_message` on a deny |
 | `Login`, `ValidateSession`, `Logout` | console-api console sign-in (vws-console-api#95) | password (+ TOTP) -> a session token for an HttpOnly cookie |
 | `AssumeRole`, `GetSessionToken` | console-api STS Query API | temporary credentials (`ASIA…`, secret, session token, expiry) |
+| `DecodeAuthorizationMessage` | console-api STS Query API | `encoded_message` -> the decoded JSON of the deny |
 
 AuthService and TokenService are for in-cluster use only. The chart's NetworkPolicy admits only console-api (vws-deploy#243).
 
@@ -97,3 +98,11 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: a role name or ARN length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`), and an ARN that is not a managed policy ARN is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). An unknown role, or a policy that is not a managed policy of the project (path included), is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A service-linked role is `FAILED_PRECONDITION / UNMODIFIABLE_ENTITY` (`UnmodifiableEntity`). A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`).
 - Retry: a role that already has this boundary succeeds without a write, so a retry after a lost response succeeds. A retry after another caller set a different boundary replaces it (last writer wins, as in AWS).
 - Authorization (`iam:PutRolePermissionsBoundary`) is console-api's.
+
+## Decode authorization message (#84)
+
+- `TokenService.DecodeAuthorizationMessage` is AWS STS `DecodeAuthorizationMessage`. It opens the `AuthorizeResponse.encoded_message` that vws-iam sets on a `DENY_*` decision; console-api returns that message the way AWS does, for example as the EC2 `UnauthorizedOperation` "Encoded authorization failure message". It is empty on `ALLOW`.
+- The caller comes only from the `authentication` oneof, as on `AssumeRole`. It needs `sts:DecodeAuthorizationMessage` on `*`, checked before the message is opened.
+- `source_ip` is set by console-api from the connection it observed, never from a client value. On the `console_session_token` path vws-iam uses it as `aws:SourceIp`, so an `IpAddress` Deny on `sts:DecodeAuthorizationMessage` applies to the current request, not the IP stored at Login. Empty means unknown: the key is absent and `IpAddress` does not match. On the `sigv4` path `sigv4.source_ip` is used.
+- Errors: no authentication is `UNAUTHENTICATED / INVALID_CREDENTIALS` (`MissingAuthenticationToken`). Missing permission, or a SigV4 request signed for another action, is `PERMISSION_DENIED / ACCESS_DENIED` (`AccessDenied`); a replayed SigV4 request is refused as for AssumeRole. An empty or over-long `encoded_message` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A malformed, tampered, expired, other-project or unknown-key message is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidAuthorizationMessageException`, HTTP 400).
+- It is not an operation: read only, and a repeat returns the same JSON. The encoded and decoded messages are `debug_redact` and never logged.
