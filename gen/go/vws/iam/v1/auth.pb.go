@@ -155,13 +155,15 @@ type Principal struct {
 	// aws:MultiFactorAuthAge is computed from this.
 	AuthTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=auth_time,json=authTime,proto3" json:"auth_time,omitempty"`
 	// Opaque, sealed by vws-iam: the session policies of a temporary session
-	// (federated user, assumed role). Authenticate and the STS RPCs set it;
-	// the gateway passes it to Authorize unchanged and never builds or reads
-	// it. Authorize opens it and allows only what both the principal's
-	// policies and the session policies allow. A FEDERATED_USER principal
-	// without it, or with one that does not open or belongs to another
-	// session, is DENY_IMPLICIT (fail closed). Empty for root and users.
-	// Never log it.
+	// (federated user, assumed role), bound to its arn, unique_id, project and
+	// expiry. Authenticate sets it when it resolves the session's credentials;
+	// the gateway passes the principal to Authorize unchanged and never builds
+	// or reads it. Authorize opens it and allows only what both the
+	// principal's policies and the session policies allow. A principal whose
+	// type is FEDERATED_USER or whose arn is a federated-user ARN, without it,
+	// or with one that does not open, has expired, or is bound to another
+	// arn, unique_id or project, is DENY_IMPLICIT (fail closed). Empty for
+	// root and users. Never log it.
 	SessionContext string `protobuf:"bytes,9,opt,name=session_context,json=sessionContext,proto3" json:"session_context,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -1800,9 +1802,10 @@ type GetFederationTokenRequest struct {
 	// managed policy of the caller's project. More than 10 or a wrong length is
 	// INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
 	// existing managed policy of the project is INVALID_ARGUMENT / INVALID_SPEC
-	// (MalformedPolicyDocument). policy and policy_arns packed over the
-	// 2048-character limit is INVALID_ARGUMENT / INVALID_SPEC
-	// (PackedPolicyTooLarge).
+	// (MalformedPolicyDocument). The plaintext of policy plus every
+	// policy_arns entry over 2048 characters in total is INVALID_ARGUMENT /
+	// INVALID_SPEC (PackedPolicyTooLarge). VWS seals the plaintext and has no
+	// separate packed binary limit.
 	PolicyArns    []string `protobuf:"bytes,6,rep,name=policy_arns,json=policyArns,proto3" json:"policy_arns,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1914,8 +1917,8 @@ type GetFederationTokenResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Credentials   *Credentials           `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
 	FederatedUser *FederatedUser         `protobuf:"bytes,2,opt,name=federated_user,json=federatedUser,proto3" json:"federated_user,omitempty"`
-	// AWS PackedPolicySize: percentage (0-100) of the packed session policy
-	// limit that policy and policy_arns use.
+	// AWS PackedPolicySize: percentage (0-100) of the 2048-character session
+	// policy limit that the plaintext of policy and policy_arns uses.
 	PackedPolicySize int32 `protobuf:"varint,3,opt,name=packed_policy_size,json=packedPolicySize,proto3" json:"packed_policy_size,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
@@ -2147,13 +2150,13 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\tsource_ip\x18\x04 \x01(\tR\bsourceIpB\x10\n" +
 	"\x0eauthentication\"9\n" +
 	"\x18GetAccessKeyInfoResponse\x12\x1d\n" +
-	"\aaccount\x18\x01 \x01(\tB\x03\xe0A\x03R\aaccount\"\xa3\x02\n" +
+	"\aaccount\x18\x01 \x01(\tB\x03\xe0A\x03R\aaccount\"\xa6\x02\n" +
 	"\x19GetFederationTokenRequest\x127\n" +
 	"\x05sigv4\x18\x01 \x01(\v2\x1f.vws.iam.v1.AuthenticateRequestH\x00R\x05sigv4\x129\n" +
 	"\x15console_session_token\x18\x02 \x01(\tB\x03\x80\x01\x01H\x00R\x13consoleSessionToken\x12\x17\n" +
 	"\x04name\x18\x03 \x01(\tB\x03\xe0A\x02R\x04name\x12)\n" +
-	"\x10duration_seconds\x18\x04 \x01(\x05R\x0fdurationSeconds\x12\x1b\n" +
-	"\x06policy\x18\x05 \x01(\tB\x03\xe0A\x04R\x06policy\x12\x1f\n" +
+	"\x10duration_seconds\x18\x04 \x01(\x05R\x0fdurationSeconds\x12\x1e\n" +
+	"\x06policy\x18\x05 \x01(\tB\x06\xe0A\x04\x80\x01\x01R\x06policy\x12\x1f\n" +
 	"\vpolicy_arns\x18\x06 \x03(\tR\n" +
 	"policyArnsB\x10\n" +
 	"\x0eauthentication\"\xcc\x01\n" +

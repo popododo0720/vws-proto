@@ -132,13 +132,15 @@ message Principal {
   // aws:MultiFactorAuthAge is computed from this.
   google.protobuf.Timestamp auth_time = 8;
   // Opaque, sealed by vws-iam: the session policies of a temporary session
-  // (federated user, assumed role). Authenticate and the STS RPCs set it;
-  // the gateway passes it to Authorize unchanged and never builds or reads
-  // it. Authorize opens it and allows only what both the principal's
-  // policies and the session policies allow. A FEDERATED_USER principal
-  // without it, or with one that does not open or belongs to another
-  // session, is DENY_IMPLICIT (fail closed). Empty for root and users.
-  // Never log it.
+  // (federated user, assumed role), bound to its arn, unique_id, project and
+  // expiry. Authenticate sets it when it resolves the session's credentials;
+  // the gateway passes the principal to Authorize unchanged and never builds
+  // or reads it. Authorize opens it and allows only what both the
+  // principal's policies and the session policies allow. A principal whose
+  // type is FEDERATED_USER or whose arn is a federated-user ARN, without it,
+  // or with one that does not open, has expired, or is bound to another
+  // arn, unique_id or project, is DENY_IMPLICIT (fail closed). Empty for
+  // root and users. Never log it.
   string session_context = 9 [debug_redact = true];
 }
 
@@ -471,22 +473,26 @@ message GetFederationTokenRequest {
   // character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError); a
   // document that does not parse is INVALID_ARGUMENT / INVALID_SPEC
   // (MalformedPolicyDocument). Do not log it.
-  string policy = 5 [(google.api.field_behavior) = INPUT_ONLY];
+  string policy = 5 [
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
   // AWS PolicyArns.member.N.arn: at most 10, each 20-2048 characters, each a
   // managed policy of the caller's project. More than 10 or a wrong length is
   // INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
   // existing managed policy of the project is INVALID_ARGUMENT / INVALID_SPEC
-  // (MalformedPolicyDocument). policy and policy_arns packed over the
-  // 2048-character limit is INVALID_ARGUMENT / INVALID_SPEC
-  // (PackedPolicyTooLarge).
+  // (MalformedPolicyDocument). The plaintext of policy plus every
+  // policy_arns entry over 2048 characters in total is INVALID_ARGUMENT /
+  // INVALID_SPEC (PackedPolicyTooLarge). VWS seals the plaintext and has no
+  // separate packed binary limit.
   repeated string policy_arns = 6;
 }
 
 message GetFederationTokenResponse {
   Credentials credentials = 1;
   FederatedUser federated_user = 2;
-  // AWS PackedPolicySize: percentage (0-100) of the packed session policy
-  // limit that policy and policy_arns use.
+  // AWS PackedPolicySize: percentage (0-100) of the 2048-character session
+  // policy limit that the plaintext of policy and policy_arns uses.
   int32 packed_policy_size = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
