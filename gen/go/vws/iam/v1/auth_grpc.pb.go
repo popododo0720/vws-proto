@@ -328,6 +328,7 @@ const (
 	TokenService_AssumeRole_FullMethodName                 = "/vws.iam.v1.TokenService/AssumeRole"
 	TokenService_GetSessionToken_FullMethodName            = "/vws.iam.v1.TokenService/GetSessionToken"
 	TokenService_DecodeAuthorizationMessage_FullMethodName = "/vws.iam.v1.TokenService/DecodeAuthorizationMessage"
+	TokenService_GetAccessKeyInfo_FullMethodName           = "/vws.iam.v1.TokenService/GetAccessKeyInfo"
 )
 
 // TokenServiceClient is the client API for TokenService service.
@@ -363,6 +364,18 @@ type TokenServiceClient interface {
 	// (MissingAuthenticationToken). Read only and idempotent: a repeat
 	// returns the same JSON.
 	DecodeAuthorizationMessage(ctx context.Context, in *DecodeAuthorizationMessageRequest, opts ...grpc.CallOption) (*DecodeAuthorizationMessageResponse, error)
+	// GetAccessKeyInfo is AWS STS GetAccessKeyInfo: it returns the project
+	// (account) that owns an access key, which may be any project. The caller
+	// needs sts:GetAccessKeyInfo on "*", checked before the key is looked up,
+	// so a caller without it learns nothing about the key; otherwise
+	// PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). A SigV4 request signed
+	// for another action is AccessDenied, and a replayed one is refused as for
+	// AssumeRole. No authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+	// (MissingAuthenticationToken). An active or inactive key returns its
+	// project; a key that does not exist (never created, deleted or not yet
+	// active) is NOT_FOUND / RESOURCE_NOT_FOUND (InvalidClientTokenId). Read
+	// only and idempotent: a repeat returns the same account.
+	GetAccessKeyInfo(ctx context.Context, in *GetAccessKeyInfoRequest, opts ...grpc.CallOption) (*GetAccessKeyInfoResponse, error)
 }
 
 type tokenServiceClient struct {
@@ -403,6 +416,16 @@ func (c *tokenServiceClient) DecodeAuthorizationMessage(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *tokenServiceClient) GetAccessKeyInfo(ctx context.Context, in *GetAccessKeyInfoRequest, opts ...grpc.CallOption) (*GetAccessKeyInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAccessKeyInfoResponse)
+	err := c.cc.Invoke(ctx, TokenService_GetAccessKeyInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TokenServiceServer is the server API for TokenService service.
 // All implementations must embed UnimplementedTokenServiceServer
 // for forward compatibility.
@@ -436,6 +459,18 @@ type TokenServiceServer interface {
 	// (MissingAuthenticationToken). Read only and idempotent: a repeat
 	// returns the same JSON.
 	DecodeAuthorizationMessage(context.Context, *DecodeAuthorizationMessageRequest) (*DecodeAuthorizationMessageResponse, error)
+	// GetAccessKeyInfo is AWS STS GetAccessKeyInfo: it returns the project
+	// (account) that owns an access key, which may be any project. The caller
+	// needs sts:GetAccessKeyInfo on "*", checked before the key is looked up,
+	// so a caller without it learns nothing about the key; otherwise
+	// PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). A SigV4 request signed
+	// for another action is AccessDenied, and a replayed one is refused as for
+	// AssumeRole. No authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+	// (MissingAuthenticationToken). An active or inactive key returns its
+	// project; a key that does not exist (never created, deleted or not yet
+	// active) is NOT_FOUND / RESOURCE_NOT_FOUND (InvalidClientTokenId). Read
+	// only and idempotent: a repeat returns the same account.
+	GetAccessKeyInfo(context.Context, *GetAccessKeyInfoRequest) (*GetAccessKeyInfoResponse, error)
 	mustEmbedUnimplementedTokenServiceServer()
 }
 
@@ -454,6 +489,9 @@ func (UnimplementedTokenServiceServer) GetSessionToken(context.Context, *GetSess
 }
 func (UnimplementedTokenServiceServer) DecodeAuthorizationMessage(context.Context, *DecodeAuthorizationMessageRequest) (*DecodeAuthorizationMessageResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DecodeAuthorizationMessage not implemented")
+}
+func (UnimplementedTokenServiceServer) GetAccessKeyInfo(context.Context, *GetAccessKeyInfoRequest) (*GetAccessKeyInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAccessKeyInfo not implemented")
 }
 func (UnimplementedTokenServiceServer) mustEmbedUnimplementedTokenServiceServer() {}
 func (UnimplementedTokenServiceServer) testEmbeddedByValue()                      {}
@@ -530,6 +568,24 @@ func _TokenService_DecodeAuthorizationMessage_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TokenService_GetAccessKeyInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAccessKeyInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServiceServer).GetAccessKeyInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenService_GetAccessKeyInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServiceServer).GetAccessKeyInfo(ctx, req.(*GetAccessKeyInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TokenService_ServiceDesc is the grpc.ServiceDesc for TokenService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -548,6 +604,10 @@ var TokenService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DecodeAuthorizationMessage",
 			Handler:    _TokenService_DecodeAuthorizationMessage_Handler,
+		},
+		{
+			MethodName: "GetAccessKeyInfo",
+			Handler:    _TokenService_GetAccessKeyInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
