@@ -37,7 +37,6 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 
 ## Not in Phase 1
 
-- Renaming a user (`NewUserName` in AWS `UpdateUser`). The name is the resource id.
 - Tags on resources other than a managed policy and a virtual MFA device (`TagUser`, `TagRole` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice` and `ListMFADeviceTags` are in Phase 1).
 - Session policies (AssumeRole `Policy`/`PolicyArns`).
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
