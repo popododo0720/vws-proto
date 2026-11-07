@@ -329,6 +329,7 @@ const (
 	TokenService_GetSessionToken_FullMethodName            = "/vws.iam.v1.TokenService/GetSessionToken"
 	TokenService_DecodeAuthorizationMessage_FullMethodName = "/vws.iam.v1.TokenService/DecodeAuthorizationMessage"
 	TokenService_GetAccessKeyInfo_FullMethodName           = "/vws.iam.v1.TokenService/GetAccessKeyInfo"
+	TokenService_GetFederationToken_FullMethodName         = "/vws.iam.v1.TokenService/GetFederationToken"
 )
 
 // TokenServiceClient is the client API for TokenService service.
@@ -376,6 +377,20 @@ type TokenServiceClient interface {
 	// active) is NOT_FOUND / RESOURCE_NOT_FOUND (InvalidClientTokenId). Read
 	// only and idempotent: a repeat returns the same account.
 	GetAccessKeyInfo(ctx context.Context, in *GetAccessKeyInfoRequest, opts ...grpc.CallOption) (*GetAccessKeyInfoResponse, error)
+	// GetFederationToken is AWS STS GetFederationToken: temporary credentials
+	// for a federated user session named by the request. Only long-term
+	// credentials of an IAM user or the root user may call it; a console
+	// session, a session token, an assumed-role or a federated caller is
+	// PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The caller needs
+	// sts:GetFederationToken on the federated-user ARN. A SigV4 request signed
+	// for another action is AccessDenied, and a replayed one is refused as for
+	// AssumeRole. No authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+	// (MissingAuthenticationToken). Validation errors are on the request
+	// fields. The session's permissions are the intersection of the caller's
+	// policies and the session policies; no session policy means no
+	// permissions. A federated session cannot call IAM or STS except
+	// GetCallerIdentity. Nothing is stored: each call issues new credentials.
+	GetFederationToken(ctx context.Context, in *GetFederationTokenRequest, opts ...grpc.CallOption) (*GetFederationTokenResponse, error)
 }
 
 type tokenServiceClient struct {
@@ -420,6 +435,16 @@ func (c *tokenServiceClient) GetAccessKeyInfo(ctx context.Context, in *GetAccess
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAccessKeyInfoResponse)
 	err := c.cc.Invoke(ctx, TokenService_GetAccessKeyInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tokenServiceClient) GetFederationToken(ctx context.Context, in *GetFederationTokenRequest, opts ...grpc.CallOption) (*GetFederationTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFederationTokenResponse)
+	err := c.cc.Invoke(ctx, TokenService_GetFederationToken_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -471,6 +496,20 @@ type TokenServiceServer interface {
 	// active) is NOT_FOUND / RESOURCE_NOT_FOUND (InvalidClientTokenId). Read
 	// only and idempotent: a repeat returns the same account.
 	GetAccessKeyInfo(context.Context, *GetAccessKeyInfoRequest) (*GetAccessKeyInfoResponse, error)
+	// GetFederationToken is AWS STS GetFederationToken: temporary credentials
+	// for a federated user session named by the request. Only long-term
+	// credentials of an IAM user or the root user may call it; a console
+	// session, a session token, an assumed-role or a federated caller is
+	// PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The caller needs
+	// sts:GetFederationToken on the federated-user ARN. A SigV4 request signed
+	// for another action is AccessDenied, and a replayed one is refused as for
+	// AssumeRole. No authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+	// (MissingAuthenticationToken). Validation errors are on the request
+	// fields. The session's permissions are the intersection of the caller's
+	// policies and the session policies; no session policy means no
+	// permissions. A federated session cannot call IAM or STS except
+	// GetCallerIdentity. Nothing is stored: each call issues new credentials.
+	GetFederationToken(context.Context, *GetFederationTokenRequest) (*GetFederationTokenResponse, error)
 	mustEmbedUnimplementedTokenServiceServer()
 }
 
@@ -492,6 +531,9 @@ func (UnimplementedTokenServiceServer) DecodeAuthorizationMessage(context.Contex
 }
 func (UnimplementedTokenServiceServer) GetAccessKeyInfo(context.Context, *GetAccessKeyInfoRequest) (*GetAccessKeyInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAccessKeyInfo not implemented")
+}
+func (UnimplementedTokenServiceServer) GetFederationToken(context.Context, *GetFederationTokenRequest) (*GetFederationTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFederationToken not implemented")
 }
 func (UnimplementedTokenServiceServer) mustEmbedUnimplementedTokenServiceServer() {}
 func (UnimplementedTokenServiceServer) testEmbeddedByValue()                      {}
@@ -586,6 +628,24 @@ func _TokenService_GetAccessKeyInfo_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TokenService_GetFederationToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFederationTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServiceServer).GetFederationToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenService_GetFederationToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServiceServer).GetFederationToken(ctx, req.(*GetFederationTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TokenService_ServiceDesc is the grpc.ServiceDesc for TokenService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -608,6 +668,10 @@ var TokenService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccessKeyInfo",
 			Handler:    _TokenService_GetAccessKeyInfo_Handler,
+		},
+		{
+			MethodName: "GetFederationToken",
+			Handler:    _TokenService_GetFederationToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -30,6 +30,8 @@ const (
 	PrincipalType_PRINCIPAL_TYPE_ROOT         PrincipalType = 1
 	PrincipalType_PRINCIPAL_TYPE_USER         PrincipalType = 2
 	PrincipalType_PRINCIPAL_TYPE_ASSUMED_ROLE PrincipalType = 3
+	// A GetFederationToken session.
+	PrincipalType_PRINCIPAL_TYPE_FEDERATED_USER PrincipalType = 4
 )
 
 // Enum value maps for PrincipalType.
@@ -39,12 +41,14 @@ var (
 		1: "PRINCIPAL_TYPE_ROOT",
 		2: "PRINCIPAL_TYPE_USER",
 		3: "PRINCIPAL_TYPE_ASSUMED_ROLE",
+		4: "PRINCIPAL_TYPE_FEDERATED_USER",
 	}
 	PrincipalType_value = map[string]int32{
-		"PRINCIPAL_TYPE_UNSPECIFIED":  0,
-		"PRINCIPAL_TYPE_ROOT":         1,
-		"PRINCIPAL_TYPE_USER":         2,
-		"PRINCIPAL_TYPE_ASSUMED_ROLE": 3,
+		"PRINCIPAL_TYPE_UNSPECIFIED":    0,
+		"PRINCIPAL_TYPE_ROOT":           1,
+		"PRINCIPAL_TYPE_USER":           2,
+		"PRINCIPAL_TYPE_ASSUMED_ROLE":   3,
+		"PRINCIPAL_TYPE_FEDERATED_USER": 4,
 	}
 )
 
@@ -131,24 +135,38 @@ func (Decision) EnumDescriptor() ([]byte, []int) {
 type Principal struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Type  PrincipalType          `protobuf:"varint,1,opt,name=type,proto3,enum=vws.iam.v1.PrincipalType" json:"type,omitempty"`
-	// arn:vws:iam::{project}:root, arn:vws:iam::{project}:user{path}{user}, or
-	// arn:vws:sts::{project}:assumed-role/{role}/{session}.
+	// arn:vws:iam::{project}:root, arn:vws:iam::{project}:user{path}{user},
+	// arn:vws:sts::{project}:assumed-role/{role}/{session}, or
+	// arn:vws:sts::{project}:federated-user/{name}.
 	Arn string `protobuf:"bytes,2,opt,name=arn,proto3" json:"arn,omitempty"`
 	// Project (AWS account id equivalent).
 	Project string `protobuf:"bytes,3,opt,name=project,proto3" json:"project,omitempty"`
-	// AIDA... for a user, AROA...:{session} for an assumed role.
+	// AIDA... for a user, AROA...:{session} for an assumed role,
+	// {project}:{name} for a federated user.
 	UniqueId string `protobuf:"bytes,4,opt,name=unique_id,json=uniqueId,proto3" json:"unique_id,omitempty"`
 	// The user or role resource name, projects/{project}/users/{user} or
-	// projects/{project}/roles/{role}. Empty for root.
+	// projects/{project}/roles/{role}. Empty for root. For a federated user,
+	// the IAM user that called GetFederationToken (empty when root did).
 	Resource string `protobuf:"bytes,5,opt,name=resource,proto3" json:"resource,omitempty"`
 	// Session name of an assumed role.
 	SessionName string `protobuf:"bytes,6,opt,name=session_name,json=sessionName,proto3" json:"session_name,omitempty"`
 	// aws:MultiFactorAuthPresent.
 	MfaAuthenticated bool `protobuf:"varint,7,opt,name=mfa_authenticated,json=mfaAuthenticated,proto3" json:"mfa_authenticated,omitempty"`
 	// aws:MultiFactorAuthAge is computed from this.
-	AuthTime      *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=auth_time,json=authTime,proto3" json:"auth_time,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	AuthTime *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=auth_time,json=authTime,proto3" json:"auth_time,omitempty"`
+	// Opaque, sealed by vws-iam: the session policies of a temporary session
+	// (federated user, assumed role), bound to its arn, unique_id, project and
+	// expiry. Authenticate sets it when it resolves the session's credentials;
+	// the gateway passes the principal to Authorize unchanged and never builds
+	// or reads it. Authorize opens it and allows only what both the
+	// principal's policies and the session policies allow. A principal whose
+	// type is FEDERATED_USER or whose arn is a federated-user ARN, without it,
+	// or with one that does not open, has expired, or is bound to another
+	// arn, unique_id or project, is DENY_IMPLICIT (fail closed). Empty for
+	// root and users. Never log it.
+	SessionContext string `protobuf:"bytes,9,opt,name=session_context,json=sessionContext,proto3" json:"session_context,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Principal) Reset() {
@@ -235,6 +253,13 @@ func (x *Principal) GetAuthTime() *timestamppb.Timestamp {
 		return x.AuthTime
 	}
 	return nil
+}
+
+func (x *Principal) GetSessionContext() string {
+	if x != nil {
+		return x.SessionContext
+	}
+	return ""
 }
 
 // Credentials are temporary STS credentials.
@@ -520,7 +545,8 @@ type AuthorizeRequest struct {
 	// The caller, as Authenticate, ValidateSession, or an STS call
 	// returned it. vws-iam re-reads the policies of principal.resource; it does
 	// not trust any other field except mfa_authenticated and auth_time, which
-	// it checks against the session or key that produced them.
+	// it checks against the session or key that produced them, and
+	// session_context, which it opens and verifies itself.
 	Principal *Principal `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal,omitempty"`
 	// "<service>:<Action>", for example "ec2:RunInstances" or "s3:PutObject".
 	Action string `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
@@ -1748,12 +1774,268 @@ func (x *GetAccessKeyInfoResponse) GetAccount() string {
 	return ""
 }
 
+type GetFederationTokenRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// How the caller authenticated. vws-iam verifies it and derives the caller
+	// from it; required. Only a long-term key (sigv4) may call it: a console
+	// session is AccessDenied, as for GetSessionToken.
+	//
+	// Types that are valid to be assigned to Authentication:
+	//
+	//	*GetFederationTokenRequest_Sigv4
+	//	*GetFederationTokenRequest_ConsoleSessionToken
+	Authentication isGetFederationTokenRequest_Authentication `protobuf_oneof:"authentication"`
+	// AWS Name: 2-32 characters of [\w+=,.@-]. Otherwise INVALID_ARGUMENT /
+	// INVALID_SPEC (ValidationError).
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// 900 to 129600. Zero means 43200. A root caller's session is capped at
+	// 3600. Outside the range is INVALID_ARGUMENT / INVALID_SPEC
+	// (ValidationError).
+	DurationSeconds int32 `protobuf:"varint,4,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	// AWS Policy: inline session policy JSON, 1-2048 characters of
+	// [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. A wrong length or
+	// character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError); a
+	// document that does not parse is INVALID_ARGUMENT / INVALID_SPEC
+	// (MalformedPolicyDocument). Do not log it.
+	Policy string `protobuf:"bytes,5,opt,name=policy,proto3" json:"policy,omitempty"`
+	// AWS PolicyArns.member.N.arn: at most 10, each 20-2048 characters, each a
+	// managed policy of the caller's project. More than 10 or a wrong length is
+	// INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
+	// existing managed policy of the project is INVALID_ARGUMENT / INVALID_SPEC
+	// (MalformedPolicyDocument). The plaintext of policy plus every
+	// policy_arns entry over 2048 characters in total is INVALID_ARGUMENT /
+	// INVALID_SPEC (PackedPolicyTooLarge). VWS seals the plaintext and has no
+	// separate packed binary limit.
+	PolicyArns    []string `protobuf:"bytes,6,rep,name=policy_arns,json=policyArns,proto3" json:"policy_arns,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFederationTokenRequest) Reset() {
+	*x = GetFederationTokenRequest{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFederationTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFederationTokenRequest) ProtoMessage() {}
+
+func (x *GetFederationTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFederationTokenRequest.ProtoReflect.Descriptor instead.
+func (*GetFederationTokenRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetFederationTokenRequest) GetAuthentication() isGetFederationTokenRequest_Authentication {
+	if x != nil {
+		return x.Authentication
+	}
+	return nil
+}
+
+func (x *GetFederationTokenRequest) GetSigv4() *AuthenticateRequest {
+	if x != nil {
+		if x, ok := x.Authentication.(*GetFederationTokenRequest_Sigv4); ok {
+			return x.Sigv4
+		}
+	}
+	return nil
+}
+
+func (x *GetFederationTokenRequest) GetConsoleSessionToken() string {
+	if x != nil {
+		if x, ok := x.Authentication.(*GetFederationTokenRequest_ConsoleSessionToken); ok {
+			return x.ConsoleSessionToken
+		}
+	}
+	return ""
+}
+
+func (x *GetFederationTokenRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetFederationTokenRequest) GetDurationSeconds() int32 {
+	if x != nil {
+		return x.DurationSeconds
+	}
+	return 0
+}
+
+func (x *GetFederationTokenRequest) GetPolicy() string {
+	if x != nil {
+		return x.Policy
+	}
+	return ""
+}
+
+func (x *GetFederationTokenRequest) GetPolicyArns() []string {
+	if x != nil {
+		return x.PolicyArns
+	}
+	return nil
+}
+
+type isGetFederationTokenRequest_Authentication interface {
+	isGetFederationTokenRequest_Authentication()
+}
+
+type GetFederationTokenRequest_Sigv4 struct {
+	// The SigV4 request of the caller, signed for GetFederationToken. Its
+	// source_ip is aws:SourceIp.
+	Sigv4 *AuthenticateRequest `protobuf:"bytes,1,opt,name=sigv4,proto3,oneof"`
+}
+
+type GetFederationTokenRequest_ConsoleSessionToken struct {
+	// Console session token, as from Login. Refused. Secret: never log it.
+	ConsoleSessionToken string `protobuf:"bytes,2,opt,name=console_session_token,json=consoleSessionToken,proto3,oneof"`
+}
+
+func (*GetFederationTokenRequest_Sigv4) isGetFederationTokenRequest_Authentication() {}
+
+func (*GetFederationTokenRequest_ConsoleSessionToken) isGetFederationTokenRequest_Authentication() {}
+
+type GetFederationTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Credentials   *Credentials           `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	FederatedUser *FederatedUser         `protobuf:"bytes,2,opt,name=federated_user,json=federatedUser,proto3" json:"federated_user,omitempty"`
+	// AWS PackedPolicySize: percentage (0-100) of the 2048-character session
+	// policy limit that the plaintext of policy and policy_arns uses.
+	PackedPolicySize int32 `protobuf:"varint,3,opt,name=packed_policy_size,json=packedPolicySize,proto3" json:"packed_policy_size,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *GetFederationTokenResponse) Reset() {
+	*x = GetFederationTokenResponse{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFederationTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFederationTokenResponse) ProtoMessage() {}
+
+func (x *GetFederationTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFederationTokenResponse.ProtoReflect.Descriptor instead.
+func (*GetFederationTokenResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetFederationTokenResponse) GetCredentials() *Credentials {
+	if x != nil {
+		return x.Credentials
+	}
+	return nil
+}
+
+func (x *GetFederationTokenResponse) GetFederatedUser() *FederatedUser {
+	if x != nil {
+		return x.FederatedUser
+	}
+	return nil
+}
+
+func (x *GetFederationTokenResponse) GetPackedPolicySize() int32 {
+	if x != nil {
+		return x.PackedPolicySize
+	}
+	return 0
+}
+
+// FederatedUser is AWS FederatedUser.
+type FederatedUser struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// {project}:{name}.
+	FederatedUserId string `protobuf:"bytes,1,opt,name=federated_user_id,json=federatedUserId,proto3" json:"federated_user_id,omitempty"`
+	// arn:vws:sts::{project}:federated-user/{name}.
+	Arn           string `protobuf:"bytes,2,opt,name=arn,proto3" json:"arn,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FederatedUser) Reset() {
+	*x = FederatedUser{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FederatedUser) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FederatedUser) ProtoMessage() {}
+
+func (x *FederatedUser) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FederatedUser.ProtoReflect.Descriptor instead.
+func (*FederatedUser) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *FederatedUser) GetFederatedUserId() string {
+	if x != nil {
+		return x.FederatedUserId
+	}
+	return ""
+}
+
+func (x *FederatedUser) GetArn() string {
+	if x != nil {
+		return x.Arn
+	}
+	return ""
+}
+
 var File_vws_iam_v1_auth_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"\x15vws/iam/v1/auth.proto\x12\n" +
-	"vws.iam.v1\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb0\x02\n" +
+	"vws.iam.v1\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xde\x02\n" +
 	"\tPrincipal\x12-\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x19.vws.iam.v1.PrincipalTypeR\x04type\x12\x10\n" +
 	"\x03arn\x18\x02 \x01(\tR\x03arn\x12\x18\n" +
@@ -1763,7 +2045,8 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\x01*R\bresource\x12!\n" +
 	"\fsession_name\x18\x06 \x01(\tR\vsessionName\x12+\n" +
 	"\x11mfa_authenticated\x18\a \x01(\bR\x10mfaAuthenticated\x127\n" +
-	"\tauth_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\bauthTime\"\xcf\x01\n" +
+	"\tauth_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\bauthTime\x12,\n" +
+	"\x0fsession_context\x18\t \x01(\tB\x03\x80\x01\x01R\x0esessionContext\"\xcf\x01\n" +
 	"\vCredentials\x12\"\n" +
 	"\raccess_key_id\x18\x01 \x01(\tR\vaccessKeyId\x122\n" +
 	"\x11secret_access_key\x18\x02 \x01(\tB\x06\xe0A\x03\x80\x01\x01R\x0fsecretAccessKey\x12+\n" +
@@ -1867,12 +2150,29 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\tsource_ip\x18\x04 \x01(\tR\bsourceIpB\x10\n" +
 	"\x0eauthentication\"9\n" +
 	"\x18GetAccessKeyInfoResponse\x12\x1d\n" +
-	"\aaccount\x18\x01 \x01(\tB\x03\xe0A\x03R\aaccount*\x82\x01\n" +
+	"\aaccount\x18\x01 \x01(\tB\x03\xe0A\x03R\aaccount\"\xa6\x02\n" +
+	"\x19GetFederationTokenRequest\x127\n" +
+	"\x05sigv4\x18\x01 \x01(\v2\x1f.vws.iam.v1.AuthenticateRequestH\x00R\x05sigv4\x129\n" +
+	"\x15console_session_token\x18\x02 \x01(\tB\x03\x80\x01\x01H\x00R\x13consoleSessionToken\x12\x17\n" +
+	"\x04name\x18\x03 \x01(\tB\x03\xe0A\x02R\x04name\x12)\n" +
+	"\x10duration_seconds\x18\x04 \x01(\x05R\x0fdurationSeconds\x12\x1e\n" +
+	"\x06policy\x18\x05 \x01(\tB\x06\xe0A\x04\x80\x01\x01R\x06policy\x12\x1f\n" +
+	"\vpolicy_arns\x18\x06 \x03(\tR\n" +
+	"policyArnsB\x10\n" +
+	"\x0eauthentication\"\xcc\x01\n" +
+	"\x1aGetFederationTokenResponse\x129\n" +
+	"\vcredentials\x18\x01 \x01(\v2\x17.vws.iam.v1.CredentialsR\vcredentials\x12@\n" +
+	"\x0efederated_user\x18\x02 \x01(\v2\x19.vws.iam.v1.FederatedUserR\rfederatedUser\x121\n" +
+	"\x12packed_policy_size\x18\x03 \x01(\x05B\x03\xe0A\x03R\x10packedPolicySize\"M\n" +
+	"\rFederatedUser\x12*\n" +
+	"\x11federated_user_id\x18\x01 \x01(\tR\x0ffederatedUserId\x12\x10\n" +
+	"\x03arn\x18\x02 \x01(\tR\x03arn*\xa5\x01\n" +
 	"\rPrincipalType\x12\x1e\n" +
 	"\x1aPRINCIPAL_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13PRINCIPAL_TYPE_ROOT\x10\x01\x12\x17\n" +
 	"\x13PRINCIPAL_TYPE_USER\x10\x02\x12\x1f\n" +
-	"\x1bPRINCIPAL_TYPE_ASSUMED_ROLE\x10\x03*p\n" +
+	"\x1bPRINCIPAL_TYPE_ASSUMED_ROLE\x10\x03\x12!\n" +
+	"\x1dPRINCIPAL_TYPE_FEDERATED_USER\x10\x04*p\n" +
 	"\bDecision\x12\x18\n" +
 	"\x14DECISION_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eDECISION_ALLOW\x10\x01\x12\x1a\n" +
@@ -1883,13 +2183,14 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\tAuthorize\x12\x1c.vws.iam.v1.AuthorizeRequest\x1a\x1d.vws.iam.v1.AuthorizeResponse\x12<\n" +
 	"\x05Login\x12\x18.vws.iam.v1.LoginRequest\x1a\x19.vws.iam.v1.LoginResponse\x12Z\n" +
 	"\x0fValidateSession\x12\".vws.iam.v1.ValidateSessionRequest\x1a#.vws.iam.v1.ValidateSessionResponse\x12?\n" +
-	"\x06Logout\x12\x19.vws.iam.v1.LogoutRequest\x1a\x1a.vws.iam.v1.LogoutResponse2\x93\x03\n" +
+	"\x06Logout\x12\x19.vws.iam.v1.LogoutRequest\x1a\x1a.vws.iam.v1.LogoutResponse2\xf8\x03\n" +
 	"\fTokenService\x12K\n" +
 	"\n" +
 	"AssumeRole\x12\x1d.vws.iam.v1.AssumeRoleRequest\x1a\x1e.vws.iam.v1.AssumeRoleResponse\x12Z\n" +
 	"\x0fGetSessionToken\x12\".vws.iam.v1.GetSessionTokenRequest\x1a#.vws.iam.v1.GetSessionTokenResponse\x12{\n" +
 	"\x1aDecodeAuthorizationMessage\x12-.vws.iam.v1.DecodeAuthorizationMessageRequest\x1a..vws.iam.v1.DecodeAuthorizationMessageResponse\x12]\n" +
-	"\x10GetAccessKeyInfo\x12#.vws.iam.v1.GetAccessKeyInfoRequest\x1a$.vws.iam.v1.GetAccessKeyInfoResponseBX\n" +
+	"\x10GetAccessKeyInfo\x12#.vws.iam.v1.GetAccessKeyInfoRequest\x1a$.vws.iam.v1.GetAccessKeyInfoResponse\x12c\n" +
+	"\x12GetFederationToken\x12%.vws.iam.v1.GetFederationTokenRequest\x1a&.vws.iam.v1.GetFederationTokenResponseBX\n" +
 	"\x0edev.vws.iam.v1B\tAuthProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -1905,7 +2206,7 @@ func file_vws_iam_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_iam_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_vws_iam_v1_auth_proto_goTypes = []any{
 	(PrincipalType)(0),                         // 0: vws.iam.v1.PrincipalType
 	(Decision)(0),                              // 1: vws.iam.v1.Decision
@@ -1930,22 +2231,25 @@ var file_vws_iam_v1_auth_proto_goTypes = []any{
 	(*DecodeAuthorizationMessageResponse)(nil), // 20: vws.iam.v1.DecodeAuthorizationMessageResponse
 	(*GetAccessKeyInfoRequest)(nil),            // 21: vws.iam.v1.GetAccessKeyInfoRequest
 	(*GetAccessKeyInfoResponse)(nil),           // 22: vws.iam.v1.GetAccessKeyInfoResponse
-	nil,                                        // 23: vws.iam.v1.AuthorizeRequest.ContextEntry
-	(*timestamppb.Timestamp)(nil),              // 24: google.protobuf.Timestamp
+	(*GetFederationTokenRequest)(nil),          // 23: vws.iam.v1.GetFederationTokenRequest
+	(*GetFederationTokenResponse)(nil),         // 24: vws.iam.v1.GetFederationTokenResponse
+	(*FederatedUser)(nil),                      // 25: vws.iam.v1.FederatedUser
+	nil,                                        // 26: vws.iam.v1.AuthorizeRequest.ContextEntry
+	(*timestamppb.Timestamp)(nil),              // 27: google.protobuf.Timestamp
 }
 var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	0,  // 0: vws.iam.v1.Principal.type:type_name -> vws.iam.v1.PrincipalType
-	24, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
-	24, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
+	27, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
+	27, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 3: vws.iam.v1.AuthenticateResponse.principal:type_name -> vws.iam.v1.Principal
-	24, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
+	27, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 5: vws.iam.v1.AuthorizeRequest.principal:type_name -> vws.iam.v1.Principal
-	23, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
+	26, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
 	1,  // 7: vws.iam.v1.AuthorizeResponse.decision:type_name -> vws.iam.v1.Decision
-	24, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
+	27, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 9: vws.iam.v1.LoginResponse.principal:type_name -> vws.iam.v1.Principal
 	2,  // 10: vws.iam.v1.ValidateSessionResponse.principal:type_name -> vws.iam.v1.Principal
-	24, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
+	27, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 12: vws.iam.v1.AssumeRoleRequest.caller:type_name -> vws.iam.v1.Principal
 	4,  // 13: vws.iam.v1.AssumeRoleRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
 	3,  // 14: vws.iam.v1.AssumeRoleResponse.credentials:type_name -> vws.iam.v1.Credentials
@@ -1955,30 +2259,35 @@ var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	3,  // 18: vws.iam.v1.GetSessionTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
 	4,  // 19: vws.iam.v1.DecodeAuthorizationMessageRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
 	4,  // 20: vws.iam.v1.GetAccessKeyInfoRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
-	7,  // 21: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
-	4,  // 22: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
-	6,  // 23: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
-	9,  // 24: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
-	11, // 25: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
-	13, // 26: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
-	15, // 27: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
-	17, // 28: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
-	19, // 29: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
-	21, // 30: vws.iam.v1.TokenService.GetAccessKeyInfo:input_type -> vws.iam.v1.GetAccessKeyInfoRequest
-	5,  // 31: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
-	8,  // 32: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
-	10, // 33: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
-	12, // 34: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
-	14, // 35: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
-	16, // 36: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
-	18, // 37: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
-	20, // 38: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
-	22, // 39: vws.iam.v1.TokenService.GetAccessKeyInfo:output_type -> vws.iam.v1.GetAccessKeyInfoResponse
-	31, // [31:40] is the sub-list for method output_type
-	22, // [22:31] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	4,  // 21: vws.iam.v1.GetFederationTokenRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
+	3,  // 22: vws.iam.v1.GetFederationTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
+	25, // 23: vws.iam.v1.GetFederationTokenResponse.federated_user:type_name -> vws.iam.v1.FederatedUser
+	7,  // 24: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
+	4,  // 25: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
+	6,  // 26: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
+	9,  // 27: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
+	11, // 28: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
+	13, // 29: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
+	15, // 30: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
+	17, // 31: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
+	19, // 32: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
+	21, // 33: vws.iam.v1.TokenService.GetAccessKeyInfo:input_type -> vws.iam.v1.GetAccessKeyInfoRequest
+	23, // 34: vws.iam.v1.TokenService.GetFederationToken:input_type -> vws.iam.v1.GetFederationTokenRequest
+	5,  // 35: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
+	8,  // 36: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
+	10, // 37: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
+	12, // 38: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
+	14, // 39: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
+	16, // 40: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
+	18, // 41: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
+	20, // 42: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
+	22, // 43: vws.iam.v1.TokenService.GetAccessKeyInfo:output_type -> vws.iam.v1.GetAccessKeyInfoResponse
+	24, // 44: vws.iam.v1.TokenService.GetFederationToken:output_type -> vws.iam.v1.GetFederationTokenResponse
+	35, // [35:45] is the sub-list for method output_type
+	25, // [25:35] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_auth_proto_init() }
@@ -2002,13 +2311,17 @@ func file_vws_iam_v1_auth_proto_init() {
 		(*GetAccessKeyInfoRequest_Sigv4)(nil),
 		(*GetAccessKeyInfoRequest_ConsoleSessionToken)(nil),
 	}
+	file_vws_iam_v1_auth_proto_msgTypes[21].OneofWrappers = []any{
+		(*GetFederationTokenRequest_Sigv4)(nil),
+		(*GetFederationTokenRequest_ConsoleSessionToken)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_auth_proto_rawDesc), len(file_vws_iam_v1_auth_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   22,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

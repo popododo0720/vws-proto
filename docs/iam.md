@@ -22,6 +22,7 @@ There is no state for a node to reconcile, so the server stores the resource and
 | `AssumeRole`, `GetSessionToken` | console-api STS Query API | temporary credentials (`ASIA…`, secret, session token, expiry) |
 | `DecodeAuthorizationMessage` | console-api STS Query API | `encoded_message` -> the decoded JSON of the deny |
 | `GetAccessKeyInfo` | console-api STS Query API | `access_key_id` -> the `account` (project) that owns the key |
+| `GetFederationToken` | console-api STS Query API | `name`, session policies -> federated user credentials, `federated_user`, `packed_policy_size` |
 
 AuthService and TokenService are for in-cluster use only. The chart's NetworkPolicy admits only console-api (vws-deploy#243).
 
@@ -30,7 +31,7 @@ AuthService and TokenService are for in-cluster use only. The chart's NetworkPol
 - Explicit Deny > Allow > implicit deny. Identity policies (user, groups, role) and role trust policies.
 - `Action`/`NotAction`, `Resource`/`NotResource`, `*` and `?` wildcards.
 - Conditions: `StringEquals`, `StringNotEquals`, `StringLike`, `StringNotLike`, `ArnLike`, `ArnEquals`, `Bool` (`aws:MultiFactorAuthPresent`, `aws:SecureTransport`), `IpAddress`/`NotIpAddress` (`aws:SourceIp`), `DateLessThan`/`DateGreaterThan` (`aws:CurrentTime`), `NumericLessThan` (`aws:MultiFactorAuthAge`), `aws:RequestedRegion`. `...IfExists` and `ForAnyValue:`/`ForAllValues:` are not in Phase 1.
-- Not included: resource policies other than role trust policies (S3 bucket policies come later), SCPs, permission boundaries, session policies.
+- Not included: resource policies other than role trust policies (S3 bucket policies come later), SCPs, permission boundaries. Session policies apply only to federated user sessions (see "Get federation token (#86)").
 - `aws:MultiFactorAuthPresent`, `aws:PrincipalArn` and `aws:username` are filled by the server; request values are ignored.
 
 ## Errors
@@ -40,7 +41,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 ## Not in Phase 1
 
 - Tags on resources other than a managed policy and a virtual MFA device (`TagUser`, `TagRole` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice` and `ListMFADeviceTags` are in Phase 1).
-- Session policies (AssumeRole `Policy`/`PolicyArns`).
+- AssumeRole session policies (`Policy`/`PolicyArns`), and session tags on any STS call.
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
 - `SimulatePrincipalPolicy`, `SimulateCustomPolicy`.
 - Reverse lookup lists (`ListAttachedUserPolicies`, `ListGroupsForUser`, `ListEntitiesForPolicy` and so on). console-api builds them from spec and status (`User.status.groups`).
@@ -115,3 +116,13 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - `source_ip` is set by console-api from the connection it observed, never from a client value. On the `console_session_token` path vws-iam uses it as `aws:SourceIp`; empty means unknown and the key is absent. On the `sigv4` path `sigv4.source_ip` is used.
 - Errors: no authentication is `UNAUTHENTICATED / INVALID_CREDENTIALS` (`MissingAuthenticationToken`). Missing permission, or a SigV4 request signed for another action, is `PERMISSION_DENIED / ACCESS_DENIED` (`AccessDenied`); a replayed SigV4 request is refused as for AssumeRole. An `access_key_id` shorter than 16, longer than 128, or with a character outside `[\w]` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A key that does not exist (never created, deleted, or not yet active) is `NOT_FOUND / RESOURCE_NOT_FOUND` (`InvalidClientTokenId`).
 - The key's state does not change the answer: an active or inactive key returns its project. It is not an operation: read only, and a repeat returns the same account.
+
+## Get federation token (#86)
+
+- `TokenService.GetFederationToken` is AWS STS `GetFederationToken`. It issues credentials for the federated user `arn:vws:sts::{project}:federated-user/{name}` (`federated_user_id` `{project}:{name}`). vws-iam seals the session into the token and stores nothing.
+- The caller comes only from the `authentication` oneof. Only a long-term key of an IAM user or the root user may call it. A console session, a session token, an assumed-role or a federated caller is `PERMISSION_DENIED / ACCESS_DENIED` (`AccessDenied`). The caller needs `sts:GetFederationToken` on the federated-user ARN.
+- `duration_seconds` is 900-129600, zero means 43200, and a root caller's session is capped at 3600.
+- The session's permissions are the intersection of the caller's policies and the session policies (`policy`, `policy_arns`). No session policy means no permissions. A federated session cannot call IAM or STS, except `GetCallerIdentity`. Session tags are not supported.
+- `GetFederationToken` returns credentials, not a `Principal`. When a later request is signed with them, `Authenticate` resolves them to a `PRINCIPAL_TYPE_FEDERATED_USER` principal whose `session_context` carries the session policies, sealed by vws-iam and bound to the session's `arn`, `unique_id`, project and expiry. console-api passes that principal to `Authorize` unchanged, as it does for every principal. A principal with type `FEDERATED_USER` or a federated-user ARN whose `session_context` is missing, does not open, has expired or is bound to another session is `DENY_IMPLICIT`, so the gateway never authorizes a federated session as its IAM user.
+- Errors: no authentication is `UNAUTHENTICATED / INVALID_CREDENTIALS` (`MissingAuthenticationToken`). Missing permission, or a SigV4 request signed for another action, is `PERMISSION_DENIED / ACCESS_DENIED` (`AccessDenied`); a replayed SigV4 request is refused as for AssumeRole. A bad `name`, `duration_seconds`, `policy` length or character, or more than 10 `policy_arns` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A policy that does not parse, or a `policy_arns` entry that is not a managed policy of the project, is `INVALID_ARGUMENT / INVALID_SPEC` (`MalformedPolicyDocument`). The plaintext of `policy` plus `policy_arns` over 2048 characters in total is `INVALID_ARGUMENT / INVALID_SPEC` (`PackedPolicyTooLarge`); VWS has no separate packed binary limit, and `packed_policy_size` is the percentage of that 2048-character limit. AWS `RegionDisabled` does not occur.
+- It is not an operation and stores nothing. A repeat issues new credentials, as in AWS. `policy` and `session_context` are never logged.
