@@ -56,7 +56,9 @@ service AuthService {
 // and verifies that credential itself. A request without one is
 // UNAUTHENTICATED / INVALID_CREDENTIALS. The deprecated caller field is
 // ignored: trusting it would let any client that reaches this service act as
-// any principal (impersonation).
+// any principal (impersonation). AssumeRoleWithSAML is the one exception: it
+// takes no caller credential, and the signed SAML response is the
+// authentication.
 service TokenService {
   // AssumeRole needs the role's trust policy to allow the caller and the
   // caller's identity policies to allow sts:AssumeRole on the role ARN;
@@ -107,6 +109,29 @@ service TokenService {
   // permissions. A federated session cannot call IAM or STS except
   // GetCallerIdentity. Nothing is stored: each call issues new credentials.
   rpc GetFederationToken(GetFederationTokenRequest) returns (GetFederationTokenResponse);
+
+  // AssumeRoleWithSAML is AWS STS AssumeRoleWithSAML: temporary credentials
+  // for role_arn from a SAML 2.0 response of the identity provider
+  // principal_arn. No caller credential: vws-iam verifies the response
+  // signature against the provider's certificates. Validation errors are on
+  // the request fields. A response that is not base64 or XML, is unsigned,
+  // is signed by a certificate the provider does not list, holds more than
+  // one assertion, is addressed to another audience, recipient or
+  // destination, comes from another issuer, lacks the Role or
+  // RoleSessionName attribute, or names an unknown SAML provider is
+  // INVALID_ARGUMENT / INVALID_SPEC (InvalidIdentityToken). An expired
+  // assertion (Conditions or SubjectConfirmationData NotOnOrAfter, or
+  // SessionNotOnOrAfter) is UNAUTHENTICATED / TOKEN_EXPIRED (ExpiredToken).
+  // A response whose status is not Success is PERMISSION_DENIED /
+  // ACCESS_DENIED (IDPRejectedClaim). A Role attribute that does not grant
+  // the (role_arn, principal_arn) pair, an unknown role, or a trust policy
+  // that does not allow sts:AssumeRoleWithSAML for the Federated provider is
+  // PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The session's
+  // permissions are the role's policies, intersected with the session
+  // policies when any are given. Nothing is stored: each call issues new
+  // credentials, and a repeat with the same unexpired response issues
+  // another session, as in AWS.
+  rpc AssumeRoleWithSAML(AssumeRoleWithSAMLRequest) returns (AssumeRoleWithSAMLResponse);
 }
 
 // Principal is the authenticated caller, as resolved by vws-iam.
@@ -501,5 +526,82 @@ message FederatedUser {
   // {project}:{name}.
   string federated_user_id = 1;
   // arn:vws:sts::{project}:federated-user/{name}.
+  string arn = 2;
+}
+
+message AssumeRoleWithSAMLRequest {
+  // AWS RoleArn, arn:vws:iam::{project}:role{path}{role}, 20-2048
+  // characters. A wrong length is INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError).
+  string role_arn = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS PrincipalArn, the SAML provider
+  // arn:vws:iam::{project}:saml-provider/{name}, 20-2048 characters. A wrong
+  // length is INVALID_ARGUMENT / INVALID_SPEC (ValidationError).
+  string principal_arn = 2 [(google.api.field_behavior) = REQUIRED];
+  // AWS SAMLAssertion: the base64-encoded SAML response, 4-100000
+  // characters. A wrong length is INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError). A bearer credential: never log it.
+  string saml_assertion = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
+  // 900 to 43200, and not above the role's max_session_duration_seconds.
+  // Zero means 3600. Otherwise INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError).
+  int32 duration_seconds = 4;
+  // AWS Policy: inline session policy JSON, 1-2048 characters of
+  // [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. A wrong length or
+  // character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError); a
+  // document that does not parse is INVALID_ARGUMENT / INVALID_SPEC
+  // (MalformedPolicyDocument). Do not log it.
+  string policy = 5 [
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
+  // AWS PolicyArns.member.N.arn: at most 10, each 20-2048 characters, each a
+  // managed policy of the role's project. More than 10 or a wrong length is
+  // INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
+  // existing managed policy of the project is INVALID_ARGUMENT /
+  // INVALID_SPEC (MalformedPolicyDocument). The plaintext of policy plus
+  // every policy_arns entry over 2048 characters in total is
+  // INVALID_ARGUMENT / INVALID_SPEC (PackedPolicyTooLarge).
+  repeated string policy_arns = 6;
+  // Client IP of the current request, set by the gateway (console-api) from
+  // the connection it observed, never from a client-supplied value. Kept for
+  // aws:SourceIp in the trust policy. Empty means unknown: the key is absent.
+  string source_ip = 7;
+}
+
+message AssumeRoleWithSAMLResponse {
+  Credentials credentials = 1;
+  AssumedRoleUser assumed_role_user = 2;
+  // AWS PackedPolicySize: percentage (0-100) of the 2048-character session
+  // policy limit that the plaintext of policy and policy_arns uses.
+  int32 packed_policy_size = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS Audience: the Recipient of the assertion's SubjectConfirmationData.
+  string audience = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS Issuer: the Issuer of the response.
+  string issuer = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS Subject: the NameID of the assertion's Subject.
+  string subject = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS SubjectType: the NameID Format with the
+  // "urn:oasis:names:tc:SAML:2.0:nameid-format:" prefix removed, for
+  // example "transient" or "persistent". Any other format is returned
+  // whole.
+  string subject_type = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS NameQualifier: BASE64(SHA1(issuer + project + "/" + provider
+  // name)).
+  string name_qualifier = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS SourceIdentity, from the assertion's SourceIdentity attribute. Empty
+  // when the assertion has none.
+  string source_identity = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// AssumedRoleUser is AWS AssumedRoleUser.
+message AssumedRoleUser {
+  // {role id}:{session}, for example AROA...:{session}.
+  string assumed_role_id = 1;
+  // arn:vws:sts::{project}:assumed-role/{role}/{session}.
   string arn = 2;
 }

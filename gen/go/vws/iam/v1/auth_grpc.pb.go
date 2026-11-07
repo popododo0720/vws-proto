@@ -330,6 +330,7 @@ const (
 	TokenService_DecodeAuthorizationMessage_FullMethodName = "/vws.iam.v1.TokenService/DecodeAuthorizationMessage"
 	TokenService_GetAccessKeyInfo_FullMethodName           = "/vws.iam.v1.TokenService/GetAccessKeyInfo"
 	TokenService_GetFederationToken_FullMethodName         = "/vws.iam.v1.TokenService/GetFederationToken"
+	TokenService_AssumeRoleWithSAML_FullMethodName         = "/vws.iam.v1.TokenService/AssumeRoleWithSAML"
 )
 
 // TokenServiceClient is the client API for TokenService service.
@@ -344,7 +345,9 @@ const (
 // and verifies that credential itself. A request without one is
 // UNAUTHENTICATED / INVALID_CREDENTIALS. The deprecated caller field is
 // ignored: trusting it would let any client that reaches this service act as
-// any principal (impersonation).
+// any principal (impersonation). AssumeRoleWithSAML is the one exception: it
+// takes no caller credential, and the signed SAML response is the
+// authentication.
 type TokenServiceClient interface {
 	// AssumeRole needs the role's trust policy to allow the caller and the
 	// caller's identity policies to allow sts:AssumeRole on the role ARN;
@@ -391,6 +394,28 @@ type TokenServiceClient interface {
 	// permissions. A federated session cannot call IAM or STS except
 	// GetCallerIdentity. Nothing is stored: each call issues new credentials.
 	GetFederationToken(ctx context.Context, in *GetFederationTokenRequest, opts ...grpc.CallOption) (*GetFederationTokenResponse, error)
+	// AssumeRoleWithSAML is AWS STS AssumeRoleWithSAML: temporary credentials
+	// for role_arn from a SAML 2.0 response of the identity provider
+	// principal_arn. No caller credential: vws-iam verifies the response
+	// signature against the provider's certificates. Validation errors are on
+	// the request fields. A response that is not base64 or XML, is unsigned,
+	// is signed by a certificate the provider does not list, holds more than
+	// one assertion, is addressed to another audience, recipient or
+	// destination, comes from another issuer, lacks the Role or
+	// RoleSessionName attribute, or names an unknown SAML provider is
+	// INVALID_ARGUMENT / INVALID_SPEC (InvalidIdentityToken). An expired
+	// assertion (Conditions or SubjectConfirmationData NotOnOrAfter, or
+	// SessionNotOnOrAfter) is UNAUTHENTICATED / TOKEN_EXPIRED (ExpiredToken).
+	// A response whose status is not Success is PERMISSION_DENIED /
+	// ACCESS_DENIED (IDPRejectedClaim). A Role attribute that does not grant
+	// the (role_arn, principal_arn) pair, an unknown role, or a trust policy
+	// that does not allow sts:AssumeRoleWithSAML for the Federated provider is
+	// PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The session's
+	// permissions are the role's policies, intersected with the session
+	// policies when any are given. Nothing is stored: each call issues new
+	// credentials, and a repeat with the same unexpired response issues
+	// another session, as in AWS.
+	AssumeRoleWithSAML(ctx context.Context, in *AssumeRoleWithSAMLRequest, opts ...grpc.CallOption) (*AssumeRoleWithSAMLResponse, error)
 }
 
 type tokenServiceClient struct {
@@ -451,6 +476,16 @@ func (c *tokenServiceClient) GetFederationToken(ctx context.Context, in *GetFede
 	return out, nil
 }
 
+func (c *tokenServiceClient) AssumeRoleWithSAML(ctx context.Context, in *AssumeRoleWithSAMLRequest, opts ...grpc.CallOption) (*AssumeRoleWithSAMLResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssumeRoleWithSAMLResponse)
+	err := c.cc.Invoke(ctx, TokenService_AssumeRoleWithSAML_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TokenServiceServer is the server API for TokenService service.
 // All implementations must embed UnimplementedTokenServiceServer
 // for forward compatibility.
@@ -463,7 +498,9 @@ func (c *tokenServiceClient) GetFederationToken(ctx context.Context, in *GetFede
 // and verifies that credential itself. A request without one is
 // UNAUTHENTICATED / INVALID_CREDENTIALS. The deprecated caller field is
 // ignored: trusting it would let any client that reaches this service act as
-// any principal (impersonation).
+// any principal (impersonation). AssumeRoleWithSAML is the one exception: it
+// takes no caller credential, and the signed SAML response is the
+// authentication.
 type TokenServiceServer interface {
 	// AssumeRole needs the role's trust policy to allow the caller and the
 	// caller's identity policies to allow sts:AssumeRole on the role ARN;
@@ -510,6 +547,28 @@ type TokenServiceServer interface {
 	// permissions. A federated session cannot call IAM or STS except
 	// GetCallerIdentity. Nothing is stored: each call issues new credentials.
 	GetFederationToken(context.Context, *GetFederationTokenRequest) (*GetFederationTokenResponse, error)
+	// AssumeRoleWithSAML is AWS STS AssumeRoleWithSAML: temporary credentials
+	// for role_arn from a SAML 2.0 response of the identity provider
+	// principal_arn. No caller credential: vws-iam verifies the response
+	// signature against the provider's certificates. Validation errors are on
+	// the request fields. A response that is not base64 or XML, is unsigned,
+	// is signed by a certificate the provider does not list, holds more than
+	// one assertion, is addressed to another audience, recipient or
+	// destination, comes from another issuer, lacks the Role or
+	// RoleSessionName attribute, or names an unknown SAML provider is
+	// INVALID_ARGUMENT / INVALID_SPEC (InvalidIdentityToken). An expired
+	// assertion (Conditions or SubjectConfirmationData NotOnOrAfter, or
+	// SessionNotOnOrAfter) is UNAUTHENTICATED / TOKEN_EXPIRED (ExpiredToken).
+	// A response whose status is not Success is PERMISSION_DENIED /
+	// ACCESS_DENIED (IDPRejectedClaim). A Role attribute that does not grant
+	// the (role_arn, principal_arn) pair, an unknown role, or a trust policy
+	// that does not allow sts:AssumeRoleWithSAML for the Federated provider is
+	// PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The session's
+	// permissions are the role's policies, intersected with the session
+	// policies when any are given. Nothing is stored: each call issues new
+	// credentials, and a repeat with the same unexpired response issues
+	// another session, as in AWS.
+	AssumeRoleWithSAML(context.Context, *AssumeRoleWithSAMLRequest) (*AssumeRoleWithSAMLResponse, error)
 	mustEmbedUnimplementedTokenServiceServer()
 }
 
@@ -534,6 +593,9 @@ func (UnimplementedTokenServiceServer) GetAccessKeyInfo(context.Context, *GetAcc
 }
 func (UnimplementedTokenServiceServer) GetFederationToken(context.Context, *GetFederationTokenRequest) (*GetFederationTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFederationToken not implemented")
+}
+func (UnimplementedTokenServiceServer) AssumeRoleWithSAML(context.Context, *AssumeRoleWithSAMLRequest) (*AssumeRoleWithSAMLResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssumeRoleWithSAML not implemented")
 }
 func (UnimplementedTokenServiceServer) mustEmbedUnimplementedTokenServiceServer() {}
 func (UnimplementedTokenServiceServer) testEmbeddedByValue()                      {}
@@ -646,6 +708,24 @@ func _TokenService_GetFederationToken_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TokenService_AssumeRoleWithSAML_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssumeRoleWithSAMLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServiceServer).AssumeRoleWithSAML(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenService_AssumeRoleWithSAML_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServiceServer).AssumeRoleWithSAML(ctx, req.(*AssumeRoleWithSAMLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TokenService_ServiceDesc is the grpc.ServiceDesc for TokenService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -672,6 +752,10 @@ var TokenService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFederationToken",
 			Handler:    _TokenService_GetFederationToken_Handler,
+		},
+		{
+			MethodName: "AssumeRoleWithSAML",
+			Handler:    _TokenService_AssumeRoleWithSAML_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

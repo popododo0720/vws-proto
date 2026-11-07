@@ -2030,6 +2030,301 @@ func (x *FederatedUser) GetArn() string {
 	return ""
 }
 
+type AssumeRoleWithSAMLRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// AWS RoleArn, arn:vws:iam::{project}:role{path}{role}, 20-2048
+	// characters. A wrong length is INVALID_ARGUMENT / INVALID_SPEC
+	// (ValidationError).
+	RoleArn string `protobuf:"bytes,1,opt,name=role_arn,json=roleArn,proto3" json:"role_arn,omitempty"`
+	// AWS PrincipalArn, the SAML provider
+	// arn:vws:iam::{project}:saml-provider/{name}, 20-2048 characters. A wrong
+	// length is INVALID_ARGUMENT / INVALID_SPEC (ValidationError).
+	PrincipalArn string `protobuf:"bytes,2,opt,name=principal_arn,json=principalArn,proto3" json:"principal_arn,omitempty"`
+	// AWS SAMLAssertion: the base64-encoded SAML response, 4-100000
+	// characters. A wrong length is INVALID_ARGUMENT / INVALID_SPEC
+	// (ValidationError). A bearer credential: never log it.
+	SamlAssertion string `protobuf:"bytes,3,opt,name=saml_assertion,json=samlAssertion,proto3" json:"saml_assertion,omitempty"`
+	// 900 to 43200, and not above the role's max_session_duration_seconds.
+	// Zero means 3600. Otherwise INVALID_ARGUMENT / INVALID_SPEC
+	// (ValidationError).
+	DurationSeconds int32 `protobuf:"varint,4,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	// AWS Policy: inline session policy JSON, 1-2048 characters of
+	// [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. A wrong length or
+	// character is INVALID_ARGUMENT / INVALID_SPEC (ValidationError); a
+	// document that does not parse is INVALID_ARGUMENT / INVALID_SPEC
+	// (MalformedPolicyDocument). Do not log it.
+	Policy string `protobuf:"bytes,5,opt,name=policy,proto3" json:"policy,omitempty"`
+	// AWS PolicyArns.member.N.arn: at most 10, each 20-2048 characters, each a
+	// managed policy of the role's project. More than 10 or a wrong length is
+	// INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
+	// existing managed policy of the project is INVALID_ARGUMENT /
+	// INVALID_SPEC (MalformedPolicyDocument). The plaintext of policy plus
+	// every policy_arns entry over 2048 characters in total is
+	// INVALID_ARGUMENT / INVALID_SPEC (PackedPolicyTooLarge).
+	PolicyArns []string `protobuf:"bytes,6,rep,name=policy_arns,json=policyArns,proto3" json:"policy_arns,omitempty"`
+	// Client IP of the current request, set by the gateway (console-api) from
+	// the connection it observed, never from a client-supplied value. Kept for
+	// aws:SourceIp in the trust policy. Empty means unknown: the key is absent.
+	SourceIp      string `protobuf:"bytes,7,opt,name=source_ip,json=sourceIp,proto3" json:"source_ip,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssumeRoleWithSAMLRequest) Reset() {
+	*x = AssumeRoleWithSAMLRequest{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssumeRoleWithSAMLRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssumeRoleWithSAMLRequest) ProtoMessage() {}
+
+func (x *AssumeRoleWithSAMLRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssumeRoleWithSAMLRequest.ProtoReflect.Descriptor instead.
+func (*AssumeRoleWithSAMLRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *AssumeRoleWithSAMLRequest) GetRoleArn() string {
+	if x != nil {
+		return x.RoleArn
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLRequest) GetPrincipalArn() string {
+	if x != nil {
+		return x.PrincipalArn
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLRequest) GetSamlAssertion() string {
+	if x != nil {
+		return x.SamlAssertion
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLRequest) GetDurationSeconds() int32 {
+	if x != nil {
+		return x.DurationSeconds
+	}
+	return 0
+}
+
+func (x *AssumeRoleWithSAMLRequest) GetPolicy() string {
+	if x != nil {
+		return x.Policy
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLRequest) GetPolicyArns() []string {
+	if x != nil {
+		return x.PolicyArns
+	}
+	return nil
+}
+
+func (x *AssumeRoleWithSAMLRequest) GetSourceIp() string {
+	if x != nil {
+		return x.SourceIp
+	}
+	return ""
+}
+
+type AssumeRoleWithSAMLResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Credentials     *Credentials           `protobuf:"bytes,1,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	AssumedRoleUser *AssumedRoleUser       `protobuf:"bytes,2,opt,name=assumed_role_user,json=assumedRoleUser,proto3" json:"assumed_role_user,omitempty"`
+	// AWS PackedPolicySize: percentage (0-100) of the 2048-character session
+	// policy limit that the plaintext of policy and policy_arns uses.
+	PackedPolicySize int32 `protobuf:"varint,3,opt,name=packed_policy_size,json=packedPolicySize,proto3" json:"packed_policy_size,omitempty"`
+	// AWS Audience: the Recipient of the assertion's SubjectConfirmationData.
+	Audience string `protobuf:"bytes,4,opt,name=audience,proto3" json:"audience,omitempty"`
+	// AWS Issuer: the Issuer of the response.
+	Issuer string `protobuf:"bytes,5,opt,name=issuer,proto3" json:"issuer,omitempty"`
+	// AWS Subject: the NameID of the assertion's Subject.
+	Subject string `protobuf:"bytes,6,opt,name=subject,proto3" json:"subject,omitempty"`
+	// AWS SubjectType: the NameID Format with the
+	// "urn:oasis:names:tc:SAML:2.0:nameid-format:" prefix removed, for
+	// example "transient" or "persistent". Any other format is returned
+	// whole.
+	SubjectType string `protobuf:"bytes,7,opt,name=subject_type,json=subjectType,proto3" json:"subject_type,omitempty"`
+	// AWS NameQualifier: BASE64(SHA1(issuer + project + "/" + provider
+	// name)).
+	NameQualifier string `protobuf:"bytes,8,opt,name=name_qualifier,json=nameQualifier,proto3" json:"name_qualifier,omitempty"`
+	// AWS SourceIdentity, from the assertion's SourceIdentity attribute. Empty
+	// when the assertion has none.
+	SourceIdentity string `protobuf:"bytes,9,opt,name=source_identity,json=sourceIdentity,proto3" json:"source_identity,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *AssumeRoleWithSAMLResponse) Reset() {
+	*x = AssumeRoleWithSAMLResponse{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssumeRoleWithSAMLResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssumeRoleWithSAMLResponse) ProtoMessage() {}
+
+func (x *AssumeRoleWithSAMLResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssumeRoleWithSAMLResponse.ProtoReflect.Descriptor instead.
+func (*AssumeRoleWithSAMLResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetCredentials() *Credentials {
+	if x != nil {
+		return x.Credentials
+	}
+	return nil
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetAssumedRoleUser() *AssumedRoleUser {
+	if x != nil {
+		return x.AssumedRoleUser
+	}
+	return nil
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetPackedPolicySize() int32 {
+	if x != nil {
+		return x.PackedPolicySize
+	}
+	return 0
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetAudience() string {
+	if x != nil {
+		return x.Audience
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetIssuer() string {
+	if x != nil {
+		return x.Issuer
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetSubject() string {
+	if x != nil {
+		return x.Subject
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetSubjectType() string {
+	if x != nil {
+		return x.SubjectType
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetNameQualifier() string {
+	if x != nil {
+		return x.NameQualifier
+	}
+	return ""
+}
+
+func (x *AssumeRoleWithSAMLResponse) GetSourceIdentity() string {
+	if x != nil {
+		return x.SourceIdentity
+	}
+	return ""
+}
+
+// AssumedRoleUser is AWS AssumedRoleUser.
+type AssumedRoleUser struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// {role id}:{session}, for example AROA...:{session}.
+	AssumedRoleId string `protobuf:"bytes,1,opt,name=assumed_role_id,json=assumedRoleId,proto3" json:"assumed_role_id,omitempty"`
+	// arn:vws:sts::{project}:assumed-role/{role}/{session}.
+	Arn           string `protobuf:"bytes,2,opt,name=arn,proto3" json:"arn,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssumedRoleUser) Reset() {
+	*x = AssumedRoleUser{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssumedRoleUser) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssumedRoleUser) ProtoMessage() {}
+
+func (x *AssumedRoleUser) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssumedRoleUser.ProtoReflect.Descriptor instead.
+func (*AssumedRoleUser) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *AssumedRoleUser) GetAssumedRoleId() string {
+	if x != nil {
+		return x.AssumedRoleId
+	}
+	return ""
+}
+
+func (x *AssumedRoleUser) GetArn() string {
+	if x != nil {
+		return x.Arn
+	}
+	return ""
+}
+
 var File_vws_iam_v1_auth_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_auth_proto_rawDesc = "" +
@@ -2166,6 +2461,28 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\x12packed_policy_size\x18\x03 \x01(\x05B\x03\xe0A\x03R\x10packedPolicySize\"M\n" +
 	"\rFederatedUser\x12*\n" +
 	"\x11federated_user_id\x18\x01 \x01(\tR\x0ffederatedUserId\x12\x10\n" +
+	"\x03arn\x18\x02 \x01(\tR\x03arn\"\xa0\x02\n" +
+	"\x19AssumeRoleWithSAMLRequest\x12\x1e\n" +
+	"\brole_arn\x18\x01 \x01(\tB\x03\xe0A\x02R\aroleArn\x12(\n" +
+	"\rprincipal_arn\x18\x02 \x01(\tB\x03\xe0A\x02R\fprincipalArn\x120\n" +
+	"\x0esaml_assertion\x18\x03 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\rsamlAssertion\x12)\n" +
+	"\x10duration_seconds\x18\x04 \x01(\x05R\x0fdurationSeconds\x12\x1e\n" +
+	"\x06policy\x18\x05 \x01(\tB\x06\xe0A\x04\x80\x01\x01R\x06policy\x12\x1f\n" +
+	"\vpolicy_arns\x18\x06 \x03(\tR\n" +
+	"policyArns\x12\x1b\n" +
+	"\tsource_ip\x18\a \x01(\tR\bsourceIp\"\xb2\x03\n" +
+	"\x1aAssumeRoleWithSAMLResponse\x129\n" +
+	"\vcredentials\x18\x01 \x01(\v2\x17.vws.iam.v1.CredentialsR\vcredentials\x12G\n" +
+	"\x11assumed_role_user\x18\x02 \x01(\v2\x1b.vws.iam.v1.AssumedRoleUserR\x0fassumedRoleUser\x121\n" +
+	"\x12packed_policy_size\x18\x03 \x01(\x05B\x03\xe0A\x03R\x10packedPolicySize\x12\x1f\n" +
+	"\baudience\x18\x04 \x01(\tB\x03\xe0A\x03R\baudience\x12\x1b\n" +
+	"\x06issuer\x18\x05 \x01(\tB\x03\xe0A\x03R\x06issuer\x12\x1d\n" +
+	"\asubject\x18\x06 \x01(\tB\x03\xe0A\x03R\asubject\x12&\n" +
+	"\fsubject_type\x18\a \x01(\tB\x03\xe0A\x03R\vsubjectType\x12*\n" +
+	"\x0ename_qualifier\x18\b \x01(\tB\x03\xe0A\x03R\rnameQualifier\x12,\n" +
+	"\x0fsource_identity\x18\t \x01(\tB\x03\xe0A\x03R\x0esourceIdentity\"K\n" +
+	"\x0fAssumedRoleUser\x12&\n" +
+	"\x0fassumed_role_id\x18\x01 \x01(\tR\rassumedRoleId\x12\x10\n" +
 	"\x03arn\x18\x02 \x01(\tR\x03arn*\xa5\x01\n" +
 	"\rPrincipalType\x12\x1e\n" +
 	"\x1aPRINCIPAL_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
@@ -2183,14 +2500,15 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\tAuthorize\x12\x1c.vws.iam.v1.AuthorizeRequest\x1a\x1d.vws.iam.v1.AuthorizeResponse\x12<\n" +
 	"\x05Login\x12\x18.vws.iam.v1.LoginRequest\x1a\x19.vws.iam.v1.LoginResponse\x12Z\n" +
 	"\x0fValidateSession\x12\".vws.iam.v1.ValidateSessionRequest\x1a#.vws.iam.v1.ValidateSessionResponse\x12?\n" +
-	"\x06Logout\x12\x19.vws.iam.v1.LogoutRequest\x1a\x1a.vws.iam.v1.LogoutResponse2\xf8\x03\n" +
+	"\x06Logout\x12\x19.vws.iam.v1.LogoutRequest\x1a\x1a.vws.iam.v1.LogoutResponse2\xdd\x04\n" +
 	"\fTokenService\x12K\n" +
 	"\n" +
 	"AssumeRole\x12\x1d.vws.iam.v1.AssumeRoleRequest\x1a\x1e.vws.iam.v1.AssumeRoleResponse\x12Z\n" +
 	"\x0fGetSessionToken\x12\".vws.iam.v1.GetSessionTokenRequest\x1a#.vws.iam.v1.GetSessionTokenResponse\x12{\n" +
 	"\x1aDecodeAuthorizationMessage\x12-.vws.iam.v1.DecodeAuthorizationMessageRequest\x1a..vws.iam.v1.DecodeAuthorizationMessageResponse\x12]\n" +
 	"\x10GetAccessKeyInfo\x12#.vws.iam.v1.GetAccessKeyInfoRequest\x1a$.vws.iam.v1.GetAccessKeyInfoResponse\x12c\n" +
-	"\x12GetFederationToken\x12%.vws.iam.v1.GetFederationTokenRequest\x1a&.vws.iam.v1.GetFederationTokenResponseBX\n" +
+	"\x12GetFederationToken\x12%.vws.iam.v1.GetFederationTokenRequest\x1a&.vws.iam.v1.GetFederationTokenResponse\x12c\n" +
+	"\x12AssumeRoleWithSAML\x12%.vws.iam.v1.AssumeRoleWithSAMLRequest\x1a&.vws.iam.v1.AssumeRoleWithSAMLResponseBX\n" +
 	"\x0edev.vws.iam.v1B\tAuthProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -2206,7 +2524,7 @@ func file_vws_iam_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_iam_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_vws_iam_v1_auth_proto_goTypes = []any{
 	(PrincipalType)(0),                         // 0: vws.iam.v1.PrincipalType
 	(Decision)(0),                              // 1: vws.iam.v1.Decision
@@ -2234,22 +2552,25 @@ var file_vws_iam_v1_auth_proto_goTypes = []any{
 	(*GetFederationTokenRequest)(nil),          // 23: vws.iam.v1.GetFederationTokenRequest
 	(*GetFederationTokenResponse)(nil),         // 24: vws.iam.v1.GetFederationTokenResponse
 	(*FederatedUser)(nil),                      // 25: vws.iam.v1.FederatedUser
-	nil,                                        // 26: vws.iam.v1.AuthorizeRequest.ContextEntry
-	(*timestamppb.Timestamp)(nil),              // 27: google.protobuf.Timestamp
+	(*AssumeRoleWithSAMLRequest)(nil),          // 26: vws.iam.v1.AssumeRoleWithSAMLRequest
+	(*AssumeRoleWithSAMLResponse)(nil),         // 27: vws.iam.v1.AssumeRoleWithSAMLResponse
+	(*AssumedRoleUser)(nil),                    // 28: vws.iam.v1.AssumedRoleUser
+	nil,                                        // 29: vws.iam.v1.AuthorizeRequest.ContextEntry
+	(*timestamppb.Timestamp)(nil),              // 30: google.protobuf.Timestamp
 }
 var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	0,  // 0: vws.iam.v1.Principal.type:type_name -> vws.iam.v1.PrincipalType
-	27, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
-	27, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
+	30, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
+	30, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 3: vws.iam.v1.AuthenticateResponse.principal:type_name -> vws.iam.v1.Principal
-	27, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
+	30, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 5: vws.iam.v1.AuthorizeRequest.principal:type_name -> vws.iam.v1.Principal
-	26, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
+	29, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
 	1,  // 7: vws.iam.v1.AuthorizeResponse.decision:type_name -> vws.iam.v1.Decision
-	27, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
+	30, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 9: vws.iam.v1.LoginResponse.principal:type_name -> vws.iam.v1.Principal
 	2,  // 10: vws.iam.v1.ValidateSessionResponse.principal:type_name -> vws.iam.v1.Principal
-	27, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
+	30, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 12: vws.iam.v1.AssumeRoleRequest.caller:type_name -> vws.iam.v1.Principal
 	4,  // 13: vws.iam.v1.AssumeRoleRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
 	3,  // 14: vws.iam.v1.AssumeRoleResponse.credentials:type_name -> vws.iam.v1.Credentials
@@ -2262,32 +2583,36 @@ var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	4,  // 21: vws.iam.v1.GetFederationTokenRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
 	3,  // 22: vws.iam.v1.GetFederationTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
 	25, // 23: vws.iam.v1.GetFederationTokenResponse.federated_user:type_name -> vws.iam.v1.FederatedUser
-	7,  // 24: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
-	4,  // 25: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
-	6,  // 26: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
-	9,  // 27: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
-	11, // 28: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
-	13, // 29: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
-	15, // 30: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
-	17, // 31: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
-	19, // 32: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
-	21, // 33: vws.iam.v1.TokenService.GetAccessKeyInfo:input_type -> vws.iam.v1.GetAccessKeyInfoRequest
-	23, // 34: vws.iam.v1.TokenService.GetFederationToken:input_type -> vws.iam.v1.GetFederationTokenRequest
-	5,  // 35: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
-	8,  // 36: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
-	10, // 37: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
-	12, // 38: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
-	14, // 39: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
-	16, // 40: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
-	18, // 41: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
-	20, // 42: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
-	22, // 43: vws.iam.v1.TokenService.GetAccessKeyInfo:output_type -> vws.iam.v1.GetAccessKeyInfoResponse
-	24, // 44: vws.iam.v1.TokenService.GetFederationToken:output_type -> vws.iam.v1.GetFederationTokenResponse
-	35, // [35:45] is the sub-list for method output_type
-	25, // [25:35] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	3,  // 24: vws.iam.v1.AssumeRoleWithSAMLResponse.credentials:type_name -> vws.iam.v1.Credentials
+	28, // 25: vws.iam.v1.AssumeRoleWithSAMLResponse.assumed_role_user:type_name -> vws.iam.v1.AssumedRoleUser
+	7,  // 26: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
+	4,  // 27: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
+	6,  // 28: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
+	9,  // 29: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
+	11, // 30: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
+	13, // 31: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
+	15, // 32: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
+	17, // 33: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
+	19, // 34: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
+	21, // 35: vws.iam.v1.TokenService.GetAccessKeyInfo:input_type -> vws.iam.v1.GetAccessKeyInfoRequest
+	23, // 36: vws.iam.v1.TokenService.GetFederationToken:input_type -> vws.iam.v1.GetFederationTokenRequest
+	26, // 37: vws.iam.v1.TokenService.AssumeRoleWithSAML:input_type -> vws.iam.v1.AssumeRoleWithSAMLRequest
+	5,  // 38: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
+	8,  // 39: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
+	10, // 40: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
+	12, // 41: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
+	14, // 42: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
+	16, // 43: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
+	18, // 44: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
+	20, // 45: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
+	22, // 46: vws.iam.v1.TokenService.GetAccessKeyInfo:output_type -> vws.iam.v1.GetAccessKeyInfoResponse
+	24, // 47: vws.iam.v1.TokenService.GetFederationToken:output_type -> vws.iam.v1.GetFederationTokenResponse
+	27, // 48: vws.iam.v1.TokenService.AssumeRoleWithSAML:output_type -> vws.iam.v1.AssumeRoleWithSAMLResponse
+	38, // [38:49] is the sub-list for method output_type
+	27, // [27:38] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_auth_proto_init() }
@@ -2321,7 +2646,7 @@ func file_vws_iam_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_auth_proto_rawDesc), len(file_vws_iam_v1_auth_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   25,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
