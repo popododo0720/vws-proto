@@ -622,12 +622,25 @@ type UpdateUserRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	User  *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	// Paths are relative to User. status and output-only fields are rejected.
-	// Omitted mask is treated as "spec,labels".
-	// The user id is the name; AWS UpdateUser NewUserName is not supported in Phase 1.
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	ValidateOnly  bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
-	AllowMissing  bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// Omitted mask is treated as "spec,labels", unless new_user_name is set.
+	UpdateMask   *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	RequestId    string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	AllowMissing bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// Optional new user id, AWS UpdateUser NewUserName. Must match IamName
+	// (docs/validation.md): [A-Za-z0-9+=,.@_-], 1 to 64 characters. Empty means
+	// no rename. When set, an empty update_mask is a rename only, and the mask
+	// may name only "spec.path" and "labels" (AWS NewPath with the new name);
+	// any other path is INVALID_ARGUMENT / INVALID_SPEC. The rename keeps the
+	// unique id and every reference to the user and changes the etag. A name
+	// already taken in the project, ignoring case, is ALREADY_EXISTS /
+	// ALREADY_EXISTS (AWS EntityAlreadyExists) and nothing changes. A stale etag
+	// is ABORTED / ETAG_MISMATCH (ConcurrentModification) and a repeated
+	// request_id returns the first result, as for any update. The operation
+	// response is the renamed User, whose name is the new resource name.
+	// allow_missing does not apply to a rename: a missing user is NOT_FOUND /
+	// RESOURCE_NOT_FOUND (AWS NoSuchEntity).
+	NewUserName   string `protobuf:"bytes,6,opt,name=new_user_name,json=newUserName,proto3" json:"new_user_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -695,6 +708,13 @@ func (x *UpdateUserRequest) GetAllowMissing() bool {
 		return x.AllowMissing
 	}
 	return false
+}
+
+func (x *UpdateUserRequest) GetNewUserName() string {
+	if x != nil {
+		return x.NewUserName
+	}
+	return ""
 }
 
 type DeleteUserRequest struct {
@@ -1232,7 +1252,7 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\x04user\x18\x03 \x01(\v2\x10.vws.iam.v1.UserB\x03\xe0A\x02R\x04user\x12*\n" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
-	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\xfb\x01\n" +
+	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\xa4\x02\n" +
 	"\x11UpdateUserRequest\x12)\n" +
 	"\x04user\x18\x01 \x01(\v2\x10.vws.iam.v1.UserB\x03\xe0A\x02R\x04user\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
@@ -1240,7 +1260,8 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x12(\n" +
-	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\"\xac\x01\n" +
+	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12'\n" +
+	"\rnew_user_name\x18\x06 \x01(\tB\x03\xe0A\x01R\vnewUserName\"\xac\x01\n" +
 	"\x11DeleteUserRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\x12*\n" +

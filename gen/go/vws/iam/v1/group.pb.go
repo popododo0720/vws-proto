@@ -517,11 +517,25 @@ type UpdateGroupRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Group *Group                 `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
 	// Paths are relative to Group. status and output-only fields are rejected.
-	// Omitted mask is treated as "spec,labels".
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	ValidateOnly  bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
-	AllowMissing  bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// Omitted mask is treated as "spec,labels", unless new_group_name is set.
+	UpdateMask   *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	RequestId    string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	AllowMissing bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// Optional new group id, AWS UpdateGroup NewGroupName. Must match IamName
+	// (docs/validation.md): [A-Za-z0-9+=,.@_-], 1 to 128 characters. Empty means
+	// no rename. When set, an empty update_mask is a rename only, and the mask
+	// may name only "spec.path" and "labels" (AWS NewPath with the new name);
+	// any other path is INVALID_ARGUMENT / INVALID_SPEC. The rename keeps the
+	// unique id and every reference to the group and changes the etag. A name
+	// already taken in the project, ignoring case, is ALREADY_EXISTS /
+	// ALREADY_EXISTS (AWS EntityAlreadyExists) and nothing changes. A stale etag
+	// is ABORTED / ETAG_MISMATCH (ConcurrentModification) and a repeated
+	// request_id returns the first result, as for any update. The operation
+	// response is the renamed Group, whose name is the new resource name.
+	// allow_missing does not apply to a rename: a missing group is NOT_FOUND /
+	// RESOURCE_NOT_FOUND (AWS NoSuchEntity).
+	NewGroupName  string `protobuf:"bytes,6,opt,name=new_group_name,json=newGroupName,proto3" json:"new_group_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -589,6 +603,13 @@ func (x *UpdateGroupRequest) GetAllowMissing() bool {
 		return x.AllowMissing
 	}
 	return false
+}
+
+func (x *UpdateGroupRequest) GetNewGroupName() string {
+	if x != nil {
+		return x.NewGroupName
+	}
+	return ""
 }
 
 type DeleteGroupRequest struct {
@@ -715,7 +736,7 @@ const file_vws_iam_v1_group_proto_rawDesc = "" +
 	"\x05group\x18\x03 \x01(\v2\x11.vws.iam.v1.GroupB\x03\xe0A\x02R\x05group\x12*\n" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
-	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\xff\x01\n" +
+	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\xaa\x02\n" +
 	"\x12UpdateGroupRequest\x12,\n" +
 	"\x05group\x18\x01 \x01(\v2\x11.vws.iam.v1.GroupB\x03\xe0A\x02R\x05group\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
@@ -723,7 +744,8 @@ const file_vws_iam_v1_group_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x12(\n" +
-	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\"\xae\x01\n" +
+	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12)\n" +
+	"\x0enew_group_name\x18\x06 \x01(\tB\x03\xe0A\x01R\fnewGroupName\"\xae\x01\n" +
 	"\x12DeleteGroupRequest\x12)\n" +
 	"\x04name\x18\x01 \x01(\tB\x15\xe0A\x02\xfaA\x0f\n" +
 	"\rvws.iam/GroupR\x04name\x12*\n" +
