@@ -647,9 +647,14 @@ type AuthorizeResponse struct {
 	MatchedPolicy    string `protobuf:"bytes,2,opt,name=matched_policy,json=matchedPolicy,proto3" json:"matched_policy,omitempty"`
 	MatchedStatement string `protobuf:"bytes,3,opt,name=matched_statement,json=matchedStatement,proto3" json:"matched_statement,omitempty"`
 	// Short human-readable reason, safe to show in an AccessDenied message.
-	Reason        string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Reason string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	// Opaque, encrypted details of a DENY_* decision, for
+	// TokenService.DecodeAuthorizationMessage. console-api returns it the way
+	// AWS does, for example as the EC2 UnauthorizedOperation "Encoded
+	// authorization failure message". Empty on ALLOW. Never log it.
+	EncodedMessage string `protobuf:"bytes,5,opt,name=encoded_message,json=encodedMessage,proto3" json:"encoded_message,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *AuthorizeResponse) Reset() {
@@ -706,6 +711,13 @@ func (x *AuthorizeResponse) GetMatchedStatement() string {
 func (x *AuthorizeResponse) GetReason() string {
 	if x != nil {
 		return x.Reason
+	}
+	return ""
+}
+
+func (x *AuthorizeResponse) GetEncodedMessage() string {
+	if x != nil {
+		return x.EncodedMessage
 	}
 	return ""
 }
@@ -1417,6 +1429,170 @@ func (x *GetSessionTokenResponse) GetCredentials() *Credentials {
 	return nil
 }
 
+type DecodeAuthorizationMessageRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// How the caller authenticated. vws-iam verifies it and derives the caller
+	// from it; required.
+	//
+	// Types that are valid to be assigned to Authentication:
+	//
+	//	*DecodeAuthorizationMessageRequest_Sigv4
+	//	*DecodeAuthorizationMessageRequest_ConsoleSessionToken
+	Authentication isDecodeAuthorizationMessageRequest_Authentication `protobuf_oneof:"authentication"`
+	// AWS EncodedMessage, 1-10240 characters. Empty or longer is
+	// INVALID_ARGUMENT / INVALID_SPEC (ValidationError). A malformed,
+	// tampered, expired, other-project or unknown-key message is
+	// INVALID_ARGUMENT / INVALID_SPEC (InvalidAuthorizationMessageException,
+	// HTTP 400). Never log it.
+	EncodedMessage string `protobuf:"bytes,3,opt,name=encoded_message,json=encodedMessage,proto3" json:"encoded_message,omitempty"`
+	// Client IP of the current request, set by the gateway (console-api) from
+	// the connection it observed, never from a client-supplied value. On the
+	// console_session_token path vws-iam uses it as aws:SourceIp, not the IP
+	// stored at Login. Empty means unknown: the key is absent.
+	SourceIp      string `protobuf:"bytes,4,opt,name=source_ip,json=sourceIp,proto3" json:"source_ip,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DecodeAuthorizationMessageRequest) Reset() {
+	*x = DecodeAuthorizationMessageRequest{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DecodeAuthorizationMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DecodeAuthorizationMessageRequest) ProtoMessage() {}
+
+func (x *DecodeAuthorizationMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DecodeAuthorizationMessageRequest.ProtoReflect.Descriptor instead.
+func (*DecodeAuthorizationMessageRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *DecodeAuthorizationMessageRequest) GetAuthentication() isDecodeAuthorizationMessageRequest_Authentication {
+	if x != nil {
+		return x.Authentication
+	}
+	return nil
+}
+
+func (x *DecodeAuthorizationMessageRequest) GetSigv4() *AuthenticateRequest {
+	if x != nil {
+		if x, ok := x.Authentication.(*DecodeAuthorizationMessageRequest_Sigv4); ok {
+			return x.Sigv4
+		}
+	}
+	return nil
+}
+
+func (x *DecodeAuthorizationMessageRequest) GetConsoleSessionToken() string {
+	if x != nil {
+		if x, ok := x.Authentication.(*DecodeAuthorizationMessageRequest_ConsoleSessionToken); ok {
+			return x.ConsoleSessionToken
+		}
+	}
+	return ""
+}
+
+func (x *DecodeAuthorizationMessageRequest) GetEncodedMessage() string {
+	if x != nil {
+		return x.EncodedMessage
+	}
+	return ""
+}
+
+func (x *DecodeAuthorizationMessageRequest) GetSourceIp() string {
+	if x != nil {
+		return x.SourceIp
+	}
+	return ""
+}
+
+type isDecodeAuthorizationMessageRequest_Authentication interface {
+	isDecodeAuthorizationMessageRequest_Authentication()
+}
+
+type DecodeAuthorizationMessageRequest_Sigv4 struct {
+	// The SigV4 request of the caller, signed for
+	// DecodeAuthorizationMessage. Its source_ip is aws:SourceIp.
+	Sigv4 *AuthenticateRequest `protobuf:"bytes,1,opt,name=sigv4,proto3,oneof"`
+}
+
+type DecodeAuthorizationMessageRequest_ConsoleSessionToken struct {
+	// Console session token, as from Login. Secret: never log it.
+	ConsoleSessionToken string `protobuf:"bytes,2,opt,name=console_session_token,json=consoleSessionToken,proto3,oneof"`
+}
+
+func (*DecodeAuthorizationMessageRequest_Sigv4) isDecodeAuthorizationMessageRequest_Authentication() {
+}
+
+func (*DecodeAuthorizationMessageRequest_ConsoleSessionToken) isDecodeAuthorizationMessageRequest_Authentication() {
+}
+
+type DecodeAuthorizationMessageResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// AWS DecodedMessage: the JSON document {"allowed", "explicitDeny",
+	// "matchedStatements": {"items": [...]}, "failures": {"items": [...]},
+	// "context": {"principal": {"id", "name", "arn"}, "action", "resource",
+	// "conditions": {"items": [{"key", "values": {"items": [{"value"}]}}]}}}.
+	// Never log it.
+	DecodedMessage string `protobuf:"bytes,1,opt,name=decoded_message,json=decodedMessage,proto3" json:"decoded_message,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DecodeAuthorizationMessageResponse) Reset() {
+	*x = DecodeAuthorizationMessageResponse{}
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DecodeAuthorizationMessageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DecodeAuthorizationMessageResponse) ProtoMessage() {}
+
+func (x *DecodeAuthorizationMessageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_auth_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DecodeAuthorizationMessageResponse.ProtoReflect.Descriptor instead.
+func (*DecodeAuthorizationMessageResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *DecodeAuthorizationMessageResponse) GetDecodedMessage() string {
+	if x != nil {
+		return x.DecodedMessage
+	}
+	return ""
+}
+
 var File_vws_iam_v1_auth_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_auth_proto_rawDesc = "" +
@@ -1465,12 +1641,13 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
 	"\x05value\x18\x02 \x01(\v2\x19.vws.iam.v1.ContextValuesR\x05value:\x028\x01\"'\n" +
 	"\rContextValues\x12\x16\n" +
-	"\x06values\x18\x01 \x03(\tR\x06values\"\xb1\x01\n" +
+	"\x06values\x18\x01 \x03(\tR\x06values\"\xe2\x01\n" +
 	"\x11AuthorizeResponse\x120\n" +
 	"\bdecision\x18\x01 \x01(\x0e2\x14.vws.iam.v1.DecisionR\bdecision\x12%\n" +
 	"\x0ematched_policy\x18\x02 \x01(\tR\rmatchedPolicy\x12+\n" +
 	"\x11matched_statement\x18\x03 \x01(\tR\x10matchedStatement\x12\x16\n" +
-	"\x06reason\x18\x04 \x01(\tR\x06reason\"\xb8\x01\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\x12/\n" +
+	"\x0fencoded_message\x18\x05 \x01(\tB\x06\xe0A\x03\x80\x01\x01R\x0eencodedMessage\"\xb8\x01\n" +
 	"\fLoginRequest\x12\x1d\n" +
 	"\aproject\x18\x01 \x01(\tB\x03\xe0A\x02R\aproject\x12 \n" +
 	"\tuser_name\x18\x02 \x01(\tB\x03\xe0A\x02R\buserName\x12%\n" +
@@ -1519,7 +1696,15 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\x15console_session_token\x18\x06 \x01(\tB\x03\x80\x01\x01H\x00R\x13consoleSessionTokenB\x10\n" +
 	"\x0eauthentication\"T\n" +
 	"\x17GetSessionTokenResponse\x129\n" +
-	"\vcredentials\x18\x01 \x01(\v2\x17.vws.iam.v1.CredentialsR\vcredentials*\x82\x01\n" +
+	"\vcredentials\x18\x01 \x01(\v2\x17.vws.iam.v1.CredentialsR\vcredentials\"\xfa\x01\n" +
+	"!DecodeAuthorizationMessageRequest\x127\n" +
+	"\x05sigv4\x18\x01 \x01(\v2\x1f.vws.iam.v1.AuthenticateRequestH\x00R\x05sigv4\x129\n" +
+	"\x15console_session_token\x18\x02 \x01(\tB\x03\x80\x01\x01H\x00R\x13consoleSessionToken\x122\n" +
+	"\x0fencoded_message\x18\x03 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\x0eencodedMessage\x12\x1b\n" +
+	"\tsource_ip\x18\x04 \x01(\tR\bsourceIpB\x10\n" +
+	"\x0eauthentication\"U\n" +
+	"\"DecodeAuthorizationMessageResponse\x12/\n" +
+	"\x0fdecoded_message\x18\x01 \x01(\tB\x06\xe0A\x03\x80\x01\x01R\x0edecodedMessage*\x82\x01\n" +
 	"\rPrincipalType\x12\x1e\n" +
 	"\x1aPRINCIPAL_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13PRINCIPAL_TYPE_ROOT\x10\x01\x12\x17\n" +
@@ -1535,11 +1720,12 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\tAuthorize\x12\x1c.vws.iam.v1.AuthorizeRequest\x1a\x1d.vws.iam.v1.AuthorizeResponse\x12<\n" +
 	"\x05Login\x12\x18.vws.iam.v1.LoginRequest\x1a\x19.vws.iam.v1.LoginResponse\x12Z\n" +
 	"\x0fValidateSession\x12\".vws.iam.v1.ValidateSessionRequest\x1a#.vws.iam.v1.ValidateSessionResponse\x12?\n" +
-	"\x06Logout\x12\x19.vws.iam.v1.LogoutRequest\x1a\x1a.vws.iam.v1.LogoutResponse2\xb7\x01\n" +
+	"\x06Logout\x12\x19.vws.iam.v1.LogoutRequest\x1a\x1a.vws.iam.v1.LogoutResponse2\xb4\x02\n" +
 	"\fTokenService\x12K\n" +
 	"\n" +
 	"AssumeRole\x12\x1d.vws.iam.v1.AssumeRoleRequest\x1a\x1e.vws.iam.v1.AssumeRoleResponse\x12Z\n" +
-	"\x0fGetSessionToken\x12\".vws.iam.v1.GetSessionTokenRequest\x1a#.vws.iam.v1.GetSessionTokenResponseBX\n" +
+	"\x0fGetSessionToken\x12\".vws.iam.v1.GetSessionTokenRequest\x1a#.vws.iam.v1.GetSessionTokenResponse\x12{\n" +
+	"\x1aDecodeAuthorizationMessage\x12-.vws.iam.v1.DecodeAuthorizationMessageRequest\x1a..vws.iam.v1.DecodeAuthorizationMessageResponseBX\n" +
 	"\x0edev.vws.iam.v1B\tAuthProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -1555,43 +1741,45 @@ func file_vws_iam_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_iam_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_vws_iam_v1_auth_proto_goTypes = []any{
-	(PrincipalType)(0),              // 0: vws.iam.v1.PrincipalType
-	(Decision)(0),                   // 1: vws.iam.v1.Decision
-	(*Principal)(nil),               // 2: vws.iam.v1.Principal
-	(*Credentials)(nil),             // 3: vws.iam.v1.Credentials
-	(*AuthenticateRequest)(nil),     // 4: vws.iam.v1.AuthenticateRequest
-	(*AuthenticateResponse)(nil),    // 5: vws.iam.v1.AuthenticateResponse
-	(*AuthorizeRequest)(nil),        // 6: vws.iam.v1.AuthorizeRequest
-	(*ContextValues)(nil),           // 7: vws.iam.v1.ContextValues
-	(*AuthorizeResponse)(nil),       // 8: vws.iam.v1.AuthorizeResponse
-	(*LoginRequest)(nil),            // 9: vws.iam.v1.LoginRequest
-	(*LoginResponse)(nil),           // 10: vws.iam.v1.LoginResponse
-	(*ValidateSessionRequest)(nil),  // 11: vws.iam.v1.ValidateSessionRequest
-	(*ValidateSessionResponse)(nil), // 12: vws.iam.v1.ValidateSessionResponse
-	(*LogoutRequest)(nil),           // 13: vws.iam.v1.LogoutRequest
-	(*LogoutResponse)(nil),          // 14: vws.iam.v1.LogoutResponse
-	(*AssumeRoleRequest)(nil),       // 15: vws.iam.v1.AssumeRoleRequest
-	(*AssumeRoleResponse)(nil),      // 16: vws.iam.v1.AssumeRoleResponse
-	(*GetSessionTokenRequest)(nil),  // 17: vws.iam.v1.GetSessionTokenRequest
-	(*GetSessionTokenResponse)(nil), // 18: vws.iam.v1.GetSessionTokenResponse
-	nil,                             // 19: vws.iam.v1.AuthorizeRequest.ContextEntry
-	(*timestamppb.Timestamp)(nil),   // 20: google.protobuf.Timestamp
+	(PrincipalType)(0),                         // 0: vws.iam.v1.PrincipalType
+	(Decision)(0),                              // 1: vws.iam.v1.Decision
+	(*Principal)(nil),                          // 2: vws.iam.v1.Principal
+	(*Credentials)(nil),                        // 3: vws.iam.v1.Credentials
+	(*AuthenticateRequest)(nil),                // 4: vws.iam.v1.AuthenticateRequest
+	(*AuthenticateResponse)(nil),               // 5: vws.iam.v1.AuthenticateResponse
+	(*AuthorizeRequest)(nil),                   // 6: vws.iam.v1.AuthorizeRequest
+	(*ContextValues)(nil),                      // 7: vws.iam.v1.ContextValues
+	(*AuthorizeResponse)(nil),                  // 8: vws.iam.v1.AuthorizeResponse
+	(*LoginRequest)(nil),                       // 9: vws.iam.v1.LoginRequest
+	(*LoginResponse)(nil),                      // 10: vws.iam.v1.LoginResponse
+	(*ValidateSessionRequest)(nil),             // 11: vws.iam.v1.ValidateSessionRequest
+	(*ValidateSessionResponse)(nil),            // 12: vws.iam.v1.ValidateSessionResponse
+	(*LogoutRequest)(nil),                      // 13: vws.iam.v1.LogoutRequest
+	(*LogoutResponse)(nil),                     // 14: vws.iam.v1.LogoutResponse
+	(*AssumeRoleRequest)(nil),                  // 15: vws.iam.v1.AssumeRoleRequest
+	(*AssumeRoleResponse)(nil),                 // 16: vws.iam.v1.AssumeRoleResponse
+	(*GetSessionTokenRequest)(nil),             // 17: vws.iam.v1.GetSessionTokenRequest
+	(*GetSessionTokenResponse)(nil),            // 18: vws.iam.v1.GetSessionTokenResponse
+	(*DecodeAuthorizationMessageRequest)(nil),  // 19: vws.iam.v1.DecodeAuthorizationMessageRequest
+	(*DecodeAuthorizationMessageResponse)(nil), // 20: vws.iam.v1.DecodeAuthorizationMessageResponse
+	nil,                           // 21: vws.iam.v1.AuthorizeRequest.ContextEntry
+	(*timestamppb.Timestamp)(nil), // 22: google.protobuf.Timestamp
 }
 var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	0,  // 0: vws.iam.v1.Principal.type:type_name -> vws.iam.v1.PrincipalType
-	20, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
-	20, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
+	22, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
+	22, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 3: vws.iam.v1.AuthenticateResponse.principal:type_name -> vws.iam.v1.Principal
-	20, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
+	22, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 5: vws.iam.v1.AuthorizeRequest.principal:type_name -> vws.iam.v1.Principal
-	19, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
+	21, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
 	1,  // 7: vws.iam.v1.AuthorizeResponse.decision:type_name -> vws.iam.v1.Decision
-	20, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
+	22, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 9: vws.iam.v1.LoginResponse.principal:type_name -> vws.iam.v1.Principal
 	2,  // 10: vws.iam.v1.ValidateSessionResponse.principal:type_name -> vws.iam.v1.Principal
-	20, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
+	22, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
 	2,  // 12: vws.iam.v1.AssumeRoleRequest.caller:type_name -> vws.iam.v1.Principal
 	4,  // 13: vws.iam.v1.AssumeRoleRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
 	3,  // 14: vws.iam.v1.AssumeRoleResponse.credentials:type_name -> vws.iam.v1.Credentials
@@ -1599,26 +1787,29 @@ var file_vws_iam_v1_auth_proto_depIdxs = []int32{
 	2,  // 16: vws.iam.v1.GetSessionTokenRequest.caller:type_name -> vws.iam.v1.Principal
 	4,  // 17: vws.iam.v1.GetSessionTokenRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
 	3,  // 18: vws.iam.v1.GetSessionTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
-	7,  // 19: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
-	4,  // 20: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
-	6,  // 21: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
-	9,  // 22: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
-	11, // 23: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
-	13, // 24: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
-	15, // 25: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
-	17, // 26: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
-	5,  // 27: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
-	8,  // 28: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
-	10, // 29: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
-	12, // 30: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
-	14, // 31: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
-	16, // 32: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
-	18, // 33: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
-	27, // [27:34] is the sub-list for method output_type
-	20, // [20:27] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	4,  // 19: vws.iam.v1.DecodeAuthorizationMessageRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
+	7,  // 20: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
+	4,  // 21: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
+	6,  // 22: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
+	9,  // 23: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
+	11, // 24: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
+	13, // 25: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
+	15, // 26: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
+	17, // 27: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
+	19, // 28: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
+	5,  // 29: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
+	8,  // 30: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
+	10, // 31: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
+	12, // 32: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
+	14, // 33: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
+	16, // 34: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
+	18, // 35: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
+	20, // 36: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
+	29, // [29:37] is the sub-list for method output_type
+	21, // [21:29] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_auth_proto_init() }
@@ -1634,13 +1825,17 @@ func file_vws_iam_v1_auth_proto_init() {
 		(*GetSessionTokenRequest_Sigv4)(nil),
 		(*GetSessionTokenRequest_ConsoleSessionToken)(nil),
 	}
+	file_vws_iam_v1_auth_proto_msgTypes[17].OneofWrappers = []any{
+		(*DecodeAuthorizationMessageRequest_Sigv4)(nil),
+		(*DecodeAuthorizationMessageRequest_ConsoleSessionToken)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_auth_proto_rawDesc), len(file_vws_iam_v1_auth_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   18,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

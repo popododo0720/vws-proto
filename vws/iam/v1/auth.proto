@@ -68,6 +68,17 @@ service TokenService {
   // when serial_number and token_code verify. Only a long-term key or the
   // root user may call it.
   rpc GetSessionToken(GetSessionTokenRequest) returns (GetSessionTokenResponse);
+
+  // DecodeAuthorizationMessage is AWS STS DecodeAuthorizationMessage: it
+  // opens an AuthorizeResponse.encoded_message for an authorized caller.
+  // The caller needs sts:DecodeAuthorizationMessage on "*", checked before
+  // the message is opened; otherwise PERMISSION_DENIED / ACCESS_DENIED
+  // (AccessDenied). A SigV4 request signed for another action is
+  // AccessDenied, and a replayed one is refused as for AssumeRole. No
+  // authentication is UNAUTHENTICATED / INVALID_CREDENTIALS
+  // (MissingAuthenticationToken). Read only and idempotent: a repeat
+  // returns the same JSON.
+  rpc DecodeAuthorizationMessage(DecodeAuthorizationMessageRequest) returns (DecodeAuthorizationMessageResponse);
 }
 
 // Principal is the authenticated caller, as resolved by vws-iam.
@@ -191,6 +202,14 @@ message AuthorizeResponse {
   string matched_statement = 3;
   // Short human-readable reason, safe to show in an AccessDenied message.
   string reason = 4;
+  // Opaque, encrypted details of a DENY_* decision, for
+  // TokenService.DecodeAuthorizationMessage. console-api returns it the way
+  // AWS does, for example as the EC2 UnauthorizedOperation "Encoded
+  // authorization failure message". Empty on ALLOW. Never log it.
+  string encoded_message = 5 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    debug_redact = true
+  ];
 }
 
 enum Decision {
@@ -320,4 +339,43 @@ message GetSessionTokenRequest {
 
 message GetSessionTokenResponse {
   Credentials credentials = 1;
+}
+
+message DecodeAuthorizationMessageRequest {
+  // How the caller authenticated. vws-iam verifies it and derives the caller
+  // from it; required.
+  oneof authentication {
+    // The SigV4 request of the caller, signed for
+    // DecodeAuthorizationMessage. Its source_ip is aws:SourceIp.
+    AuthenticateRequest sigv4 = 1;
+    // Console session token, as from Login. Secret: never log it.
+    string console_session_token = 2 [debug_redact = true];
+  }
+  // AWS EncodedMessage, 1-10240 characters. Empty or longer is
+  // INVALID_ARGUMENT / INVALID_SPEC (ValidationError). A malformed,
+  // tampered, expired, other-project or unknown-key message is
+  // INVALID_ARGUMENT / INVALID_SPEC (InvalidAuthorizationMessageException,
+  // HTTP 400). Never log it.
+  string encoded_message = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
+  // Client IP of the current request, set by the gateway (console-api) from
+  // the connection it observed, never from a client-supplied value. On the
+  // console_session_token path vws-iam uses it as aws:SourceIp, not the IP
+  // stored at Login. Empty means unknown: the key is absent.
+  string source_ip = 4;
+}
+
+message DecodeAuthorizationMessageResponse {
+  // AWS DecodedMessage: the JSON document {"allowed", "explicitDeny",
+  // "matchedStatements": {"items": [...]}, "failures": {"items": [...]},
+  // "context": {"principal": {"id", "name", "arn"}, "action", "resource",
+  // "conditions": {"items": [{"key", "values": {"items": [{"value"}]}}]}}}.
+  // Never log it.
+  string decoded_message = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    debug_redact = true
+  ];
 }
