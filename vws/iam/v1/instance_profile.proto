@@ -4,6 +4,11 @@ package vws.iam.v1;
 
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+import "vws/common/v1/resource.proto";
+import "vws/iam/v1/role.proto";
 
 option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
 option java_multiple_files = true;
@@ -54,6 +59,93 @@ service InstanceProfileService {
       body: "*"
     };
   }
+
+  // ListInstanceProfilesForRole is AWS ListInstanceProfilesForRole. It lists
+  // the instance profiles of the parent project that hold the role, in pages
+  // ordered by case-folded name. It only reads.
+  // A role_name, page_size or page_token length or pattern fault is
+  // INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). A well-formed
+  // page_token this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+  // (InvalidInput). An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND
+  // (NoSuchEntity). A role in no instance profile is an empty, complete page.
+  // Authorization (iam:ListInstanceProfilesForRole) is console-api's.
+  rpc ListInstanceProfilesForRole(ListInstanceProfilesForRoleRequest) returns (ListInstanceProfilesForRoleResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}/roles/{role_name}/instanceProfiles"};
+  }
+}
+
+// InstanceProfile is an IAM instance profile, AWS's container for the one
+// role an instance runs as.
+// Fields 1-10 are the shared resource envelope.
+message InstanceProfile {
+  option (google.api.resource) = {
+    type: "vws.iam/InstanceProfile"
+    pattern: "projects/{project}/instanceProfiles/{instance_profile}"
+    plural: "instanceProfiles"
+    singular: "instanceProfile"
+  };
+
+  // The instance profile id is AWS InstanceProfileName, 1-128 characters of
+  // [\w+=,.@-], unique per project ignoring case.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = UUID4
+  ];
+  int64 generation = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string etag = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  map<string, string> labels = 5;
+  InstanceProfileSpec spec = 6 [(google.api.field_behavior) = REQUIRED];
+  InstanceProfileStatus status = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp delete_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message InstanceProfileSpec {
+  // AWS Path, "/" when empty.
+  string path = 1;
+  // The roles the profile holds, full resource names
+  // projects/{project}/roles/{role} of the same project, at most one.
+  // Changed only by AddRoleToInstanceProfile and
+  // RemoveRoleFromInstanceProfile.
+  repeated string roles = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message InstanceProfileStatus {
+  vws.common.v1.ObservedState observed = 1;
+  // arn:vws:iam::{project}:instance-profile{path}{instance_profile}
+  string arn = 2;
+  // "AIPA" followed by 17 uppercase letters and digits.
+  string unique_id = 3;
+  // The Role of each spec.roles entry, read with the profile, as AWS
+  // InstanceProfile.Roles carries.
+  repeated Role roles = 4;
+}
+
+message ListInstanceProfilesForRoleRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/InstanceProfile"
+  ];
+  // AWS RoleName, 1-64 characters of [\w+=,.@-]: a role of the parent
+  // project.
+  string role_name = 2 [(google.api.field_behavior) = REQUIRED];
+  // AWS MaxItems, 1-1000. 0 means not set: the server default is 100, as in
+  // AWS. console-api answers an explicit MaxItems=0 as ValidationError
+  // itself, since 0 cannot be told apart from unset here.
+  int32 page_size = 3;
+  // AWS Marker, 1-320 characters of [\u0020-\u00FF]. Only a
+  // next_page_token this RPC returned.
+  string page_token = 4;
+}
+
+message ListInstanceProfilesForRoleResponse {
+  // Ordered by case-folded name. Every profile that holds the role for the
+  // whole listing is returned once.
+  repeated InstanceProfile instance_profiles = 1;
+  // AWS Marker. Set exactly when the result is truncated (AWS IsTruncated).
+  string next_page_token = 2;
 }
 
 message AddRoleToInstanceProfileRequest {

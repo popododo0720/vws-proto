@@ -119,8 +119,9 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Retry: a user with no boundary succeeds without a write, so a retry after a lost response succeeds.
 - Authorization (`iam:DeleteUserPermissionsBoundary`) is console-api's.
 
-## Instance profiles (#118, #119)
+## Instance profiles (#118, #119, #120)
 
+- `InstanceProfile` is the resource `projects/{project}/instanceProfiles/{instance_profile}`; the id is AWS `InstanceProfileName`. `spec.path` is AWS `Path`. `spec.roles` holds the full resource names of its roles (at most one) and is output only: only `AddRoleToInstanceProfile` and `RemoveRoleFromInstanceProfile` change it. `status.arn` is `arn:vws:iam::{project}:instance-profile{path}{instance_profile}`, `status.unique_id` is AWS `InstanceProfileId` (`AIPA...`), and `status.roles` is the `Role` of each `spec.roles` entry, as AWS `InstanceProfile.Roles` carries.
 - `InstanceProfileService.AddRoleToInstanceProfile` is AWS `AddRoleToInstanceProfile`. `name` is `projects/{project}/instanceProfiles/{instance_profile}` and `role_name` is the AWS `RoleName` of a role in the same project. It adds the role to the profile. It is not an operation, and the response is empty, as AWS returns only a request id.
 - Errors: an instance profile name or role name length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). An unknown instance profile or role is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A profile that already holds a role, the same role included, is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED` (`LimitExceeded`; one role per instance profile, a fixed AWS quota). A service-linked role is `FAILED_PRECONDITION / UNMODIFIABLE_ENTITY` (`UnmodifiableEntity`). A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`).
 - Retry: a repeat after success is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED` (`LimitExceeded`), as in AWS. The store is unchanged by the repeat.
@@ -128,8 +129,12 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - `InstanceProfileService.RemoveRoleFromInstanceProfile` is AWS `RemoveRoleFromInstanceProfile`. `name` is `projects/{project}/instanceProfiles/{instance_profile}` and `role_name` is the AWS `RoleName` of a role in the same project. It removes the role from the profile; the role and the profile stay. It is not an operation, and the response is empty, as AWS returns only a request id.
 - Errors: an instance profile name or role name length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). An unknown instance profile, an unknown role, or a role that is not in the profile is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A service-linked role is `FAILED_PRECONDITION / UNMODIFIABLE_ENTITY` (`UnmodifiableEntity`). A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`).
 - Retry: a repeat after success is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`), as in AWS. The store is unchanged by the repeat.
-- The other instance profile actions (#120, #121, #122, #124, #126) join this service.
 - Authorization (`iam:RemoveRoleFromInstanceProfile`) is console-api's.
+- `InstanceProfileService.ListInstanceProfilesForRole` (#120) is AWS `ListInstanceProfilesForRole`. `parent` is `projects/{project}` and `role_name` is the AWS `RoleName` of a role in that project. It returns the profiles that hold the role, ordered by case-folded name. `page_size` is AWS `MaxItems` (1-1000; 0 is unset, server default 100) and `page_token` and `next_page_token` are AWS `Marker`; `next_page_token` is set exactly when AWS `IsTruncated` is true. It is a read RPC, not an operation.
+- Errors: a `role_name`, `page_size` or `page_token` length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A well-formed `page_token` the server did not issue is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). An unknown role is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A role in no profile is an empty, complete page. console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
+- Pages: deterministic in case-folded name order. A profile that exists and holds the role for the whole listing is returned once. The call only reads, so a retry is safe.
+- Authorization (`iam:ListInstanceProfilesForRole`) is console-api's.
+- The other instance profile actions (#121, #122, #124, #126) join this service.
 
 ## Decode authorization message (#84)
 

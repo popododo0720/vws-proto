@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	InstanceProfileService_AddRoleToInstanceProfile_FullMethodName      = "/vws.iam.v1.InstanceProfileService/AddRoleToInstanceProfile"
 	InstanceProfileService_RemoveRoleFromInstanceProfile_FullMethodName = "/vws.iam.v1.InstanceProfileService/RemoveRoleFromInstanceProfile"
+	InstanceProfileService_ListInstanceProfilesForRole_FullMethodName   = "/vws.iam.v1.InstanceProfileService/ListInstanceProfilesForRole"
 )
 
 // InstanceProfileServiceClient is the client API for InstanceProfileService service.
@@ -60,6 +61,16 @@ type InstanceProfileServiceClient interface {
 	// A repeat after success is NOT_FOUND (NoSuchEntity), as in AWS.
 	// Authorization (iam:RemoveRoleFromInstanceProfile) is console-api's.
 	RemoveRoleFromInstanceProfile(ctx context.Context, in *RemoveRoleFromInstanceProfileRequest, opts ...grpc.CallOption) (*RemoveRoleFromInstanceProfileResponse, error)
+	// ListInstanceProfilesForRole is AWS ListInstanceProfilesForRole. It lists
+	// the instance profiles of the parent project that hold the role, in pages
+	// ordered by case-folded name. It only reads.
+	// A role_name, page_size or page_token length or pattern fault is
+	// INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). A well-formed
+	// page_token this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND
+	// (NoSuchEntity). A role in no instance profile is an empty, complete page.
+	// Authorization (iam:ListInstanceProfilesForRole) is console-api's.
+	ListInstanceProfilesForRole(ctx context.Context, in *ListInstanceProfilesForRoleRequest, opts ...grpc.CallOption) (*ListInstanceProfilesForRoleResponse, error)
 }
 
 type instanceProfileServiceClient struct {
@@ -84,6 +95,16 @@ func (c *instanceProfileServiceClient) RemoveRoleFromInstanceProfile(ctx context
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveRoleFromInstanceProfileResponse)
 	err := c.cc.Invoke(ctx, InstanceProfileService_RemoveRoleFromInstanceProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceProfileServiceClient) ListInstanceProfilesForRole(ctx context.Context, in *ListInstanceProfilesForRoleRequest, opts ...grpc.CallOption) (*ListInstanceProfilesForRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInstanceProfilesForRoleResponse)
+	err := c.cc.Invoke(ctx, InstanceProfileService_ListInstanceProfilesForRole_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -127,6 +148,16 @@ type InstanceProfileServiceServer interface {
 	// A repeat after success is NOT_FOUND (NoSuchEntity), as in AWS.
 	// Authorization (iam:RemoveRoleFromInstanceProfile) is console-api's.
 	RemoveRoleFromInstanceProfile(context.Context, *RemoveRoleFromInstanceProfileRequest) (*RemoveRoleFromInstanceProfileResponse, error)
+	// ListInstanceProfilesForRole is AWS ListInstanceProfilesForRole. It lists
+	// the instance profiles of the parent project that hold the role, in pages
+	// ordered by case-folded name. It only reads.
+	// A role_name, page_size or page_token length or pattern fault is
+	// INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). A well-formed
+	// page_token this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND
+	// (NoSuchEntity). A role in no instance profile is an empty, complete page.
+	// Authorization (iam:ListInstanceProfilesForRole) is console-api's.
+	ListInstanceProfilesForRole(context.Context, *ListInstanceProfilesForRoleRequest) (*ListInstanceProfilesForRoleResponse, error)
 	mustEmbedUnimplementedInstanceProfileServiceServer()
 }
 
@@ -142,6 +173,9 @@ func (UnimplementedInstanceProfileServiceServer) AddRoleToInstanceProfile(contex
 }
 func (UnimplementedInstanceProfileServiceServer) RemoveRoleFromInstanceProfile(context.Context, *RemoveRoleFromInstanceProfileRequest) (*RemoveRoleFromInstanceProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveRoleFromInstanceProfile not implemented")
+}
+func (UnimplementedInstanceProfileServiceServer) ListInstanceProfilesForRole(context.Context, *ListInstanceProfilesForRoleRequest) (*ListInstanceProfilesForRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInstanceProfilesForRole not implemented")
 }
 func (UnimplementedInstanceProfileServiceServer) mustEmbedUnimplementedInstanceProfileServiceServer() {
 }
@@ -201,6 +235,24 @@ func _InstanceProfileService_RemoveRoleFromInstanceProfile_Handler(srv interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InstanceProfileService_ListInstanceProfilesForRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInstanceProfilesForRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceProfileServiceServer).ListInstanceProfilesForRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceProfileService_ListInstanceProfilesForRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceProfileServiceServer).ListInstanceProfilesForRole(ctx, req.(*ListInstanceProfilesForRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InstanceProfileService_ServiceDesc is the grpc.ServiceDesc for InstanceProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -215,6 +267,10 @@ var InstanceProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveRoleFromInstanceProfile",
 			Handler:    _InstanceProfileService_RemoveRoleFromInstanceProfile_Handler,
+		},
+		{
+			MethodName: "ListInstanceProfilesForRole",
+			Handler:    _InstanceProfileService_ListInstanceProfilesForRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
