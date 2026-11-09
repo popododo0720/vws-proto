@@ -10,7 +10,7 @@ The contract of the vws-iam service. The design is vws-iam#1, and this API is vw
 
 ## Operations
 
-There is no state for a node to reconcile, so the server stores the resource and its status (`observed` READY, same generation) at once and returns a finished operation. Decisions (vws-proto#24 review): AWS name grammar, no operation for secret RPCs, IAM operations READY at once, project = account ARN. `CreateAccessKey` and `CreateVirtualMfaDevice`, whose responses carry a secret, and `SetLoginProfile`, `ChangePassword` and `ResyncMfaDevice`, which take a password or TOTP codes, are not operations (so no secret stays in an operation record). `PutRolePermissionsBoundary` and `DeleteRolePermissionsBoundary` are not operations either, because the AWS calls are synchronous and the server stores or clears the boundary in one conditional write. `CreateServiceLinkedRole` is not an operation, because the AWS call returns the role and the server stores it in one write. `DeleteServiceLinkedRole` is not an operation, because the AWS call returns the deletion task id and the role is deleted from the store when it returns. These are the exceptions to this repo's AIP-151 rule.
+There is no state for a node to reconcile, so the server stores the resource and its status (`observed` READY, same generation) at once and returns a finished operation. Decisions (vws-proto#24 review): AWS name grammar, no operation for secret RPCs, IAM operations READY at once, project = account ARN. `CreateAccessKey` and `CreateVirtualMfaDevice`, whose responses carry a secret, and `SetLoginProfile`, `ChangePassword` and `ResyncMfaDevice`, which take a password or TOTP codes, are not operations (so no secret stays in an operation record). `PutRolePermissionsBoundary`, `DeleteRolePermissionsBoundary` and `DeleteUserPermissionsBoundary` are not operations either, because the AWS calls are synchronous and the server stores or clears the boundary in one conditional write. `CreateServiceLinkedRole` is not an operation, because the AWS call returns the role and the server stores it in one write. `DeleteServiceLinkedRole` is not an operation, because the AWS call returns the deletion task id and the role is deleted from the store when it returns. These are the exceptions to this repo's AIP-151 rule.
 
 ## Authentication and authorization (AuthService, TokenService)
 
@@ -106,6 +106,14 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: a role name length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). An unknown role is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A service-linked role is `FAILED_PRECONDITION / UNMODIFIABLE_ENTITY` (`UnmodifiableEntity`). A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`).
 - Retry: a role with no boundary succeeds without a write, so a retry after a lost response succeeds.
 - Authorization (`iam:DeleteRolePermissionsBoundary`) is console-api's.
+
+## User permissions boundary (#116)
+
+- `UserService.DeleteUserPermissionsBoundary` is AWS `DeleteUserPermissionsBoundary`. It clears `UserSpec.permissions_boundary_arn`; the attached and inline policies stay. It is not an operation, and the response is empty, as AWS returns only a request id.
+- `UserSpec.permissions_boundary_arn` is output only. `GetUser` returns it; AWS `PermissionsBoundaryType` is always `PermissionsBoundaryPolicy`. `CreateUser` and `UpdateUser` do not change it. The boundary is stored only; `Authorize` does not apply it.
+- Errors: a user name length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). An unknown user is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A user being renamed, or a write that keeps losing to concurrent writes, is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`).
+- Retry: a user with no boundary succeeds without a write, so a retry after a lost response succeeds.
+- Authorization (`iam:DeleteUserPermissionsBoundary`) is console-api's.
 
 ## Decode authorization message (#84)
 
