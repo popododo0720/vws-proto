@@ -28,6 +28,7 @@ const (
 	RoleService_RevokeRoleSessions_FullMethodName         = "/vws.iam.v1.RoleService/RevokeRoleSessions"
 	RoleService_PutRolePermissionsBoundary_FullMethodName = "/vws.iam.v1.RoleService/PutRolePermissionsBoundary"
 	RoleService_DeleteServiceLinkedRole_FullMethodName    = "/vws.iam.v1.RoleService/DeleteServiceLinkedRole"
+	RoleService_CreateServiceLinkedRole_FullMethodName    = "/vws.iam.v1.RoleService/CreateServiceLinkedRole"
 )
 
 // RoleServiceClient is the client API for RoleService service.
@@ -96,6 +97,21 @@ type RoleServiceClient interface {
 	// Authorization (iam:DeleteServiceLinkedRole on the role ARN) is
 	// console-api's.
 	DeleteServiceLinkedRole(ctx context.Context, in *DeleteServiceLinkedRoleRequest, opts ...grpc.CallOption) (*DeleteServiceLinkedRoleResponse, error)
+	// CreateServiceLinkedRole is AWS CreateServiceLinkedRole. It creates the
+	// role a VWS service uses, with path /aws-service-role/{aws_service_name}/,
+	// name AWSServiceRoleFor{service role name}[_{custom_suffix}] and a trust
+	// policy for the service principal. It is synchronous and not an
+	// operation, as the AWS call is: one store write, returned once stored.
+	// A length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC (AWS
+	// ValidationError). An unknown service principal, a custom_suffix the
+	// service does not allow, a resulting role name over 64 characters, or a
+	// role name already taken in the project (case folded) is
+	// INVALID_ARGUMENT / INVALID_SPEC (InvalidInput), not ALREADY_EXISTS.
+	// A repeat after a success is therefore InvalidInput, as in AWS. The role
+	// exists and ListRoles finds it.
+	// Authorization (iam:CreateServiceLinkedRole, condition key
+	// iam:AWSServiceName) is console-api's.
+	CreateServiceLinkedRole(ctx context.Context, in *CreateServiceLinkedRoleRequest, opts ...grpc.CallOption) (*CreateServiceLinkedRoleResponse, error)
 }
 
 type roleServiceClient struct {
@@ -186,6 +202,16 @@ func (c *roleServiceClient) DeleteServiceLinkedRole(ctx context.Context, in *Del
 	return out, nil
 }
 
+func (c *roleServiceClient) CreateServiceLinkedRole(ctx context.Context, in *CreateServiceLinkedRoleRequest, opts ...grpc.CallOption) (*CreateServiceLinkedRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateServiceLinkedRoleResponse)
+	err := c.cc.Invoke(ctx, RoleService_CreateServiceLinkedRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoleServiceServer is the server API for RoleService service.
 // All implementations must embed UnimplementedRoleServiceServer
 // for forward compatibility.
@@ -252,6 +278,21 @@ type RoleServiceServer interface {
 	// Authorization (iam:DeleteServiceLinkedRole on the role ARN) is
 	// console-api's.
 	DeleteServiceLinkedRole(context.Context, *DeleteServiceLinkedRoleRequest) (*DeleteServiceLinkedRoleResponse, error)
+	// CreateServiceLinkedRole is AWS CreateServiceLinkedRole. It creates the
+	// role a VWS service uses, with path /aws-service-role/{aws_service_name}/,
+	// name AWSServiceRoleFor{service role name}[_{custom_suffix}] and a trust
+	// policy for the service principal. It is synchronous and not an
+	// operation, as the AWS call is: one store write, returned once stored.
+	// A length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC (AWS
+	// ValidationError). An unknown service principal, a custom_suffix the
+	// service does not allow, a resulting role name over 64 characters, or a
+	// role name already taken in the project (case folded) is
+	// INVALID_ARGUMENT / INVALID_SPEC (InvalidInput), not ALREADY_EXISTS.
+	// A repeat after a success is therefore InvalidInput, as in AWS. The role
+	// exists and ListRoles finds it.
+	// Authorization (iam:CreateServiceLinkedRole, condition key
+	// iam:AWSServiceName) is console-api's.
+	CreateServiceLinkedRole(context.Context, *CreateServiceLinkedRoleRequest) (*CreateServiceLinkedRoleResponse, error)
 	mustEmbedUnimplementedRoleServiceServer()
 }
 
@@ -285,6 +326,9 @@ func (UnimplementedRoleServiceServer) PutRolePermissionsBoundary(context.Context
 }
 func (UnimplementedRoleServiceServer) DeleteServiceLinkedRole(context.Context, *DeleteServiceLinkedRoleRequest) (*DeleteServiceLinkedRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteServiceLinkedRole not implemented")
+}
+func (UnimplementedRoleServiceServer) CreateServiceLinkedRole(context.Context, *CreateServiceLinkedRoleRequest) (*CreateServiceLinkedRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateServiceLinkedRole not implemented")
 }
 func (UnimplementedRoleServiceServer) mustEmbedUnimplementedRoleServiceServer() {}
 func (UnimplementedRoleServiceServer) testEmbeddedByValue()                     {}
@@ -451,6 +495,24 @@ func _RoleService_DeleteServiceLinkedRole_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoleService_CreateServiceLinkedRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceLinkedRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleServiceServer).CreateServiceLinkedRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleService_CreateServiceLinkedRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleServiceServer).CreateServiceLinkedRole(ctx, req.(*CreateServiceLinkedRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoleService_ServiceDesc is the grpc.ServiceDesc for RoleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -489,6 +551,10 @@ var RoleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteServiceLinkedRole",
 			Handler:    _RoleService_DeleteServiceLinkedRole_Handler,
+		},
+		{
+			MethodName: "CreateServiceLinkedRole",
+			Handler:    _RoleService_CreateServiceLinkedRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

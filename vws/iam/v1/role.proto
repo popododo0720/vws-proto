@@ -131,6 +131,26 @@ service RoleService {
       body: "*"
     };
   }
+  // CreateServiceLinkedRole is AWS CreateServiceLinkedRole. It creates the
+  // role a VWS service uses, with path /aws-service-role/{aws_service_name}/,
+  // name AWSServiceRoleFor{service role name}[_{custom_suffix}] and a trust
+  // policy for the service principal. It is synchronous and not an
+  // operation, as the AWS call is: one store write, returned once stored.
+  // A length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC (AWS
+  // ValidationError). An unknown service principal, a custom_suffix the
+  // service does not allow, a resulting role name over 64 characters, or a
+  // role name already taken in the project (case folded) is
+  // INVALID_ARGUMENT / INVALID_SPEC (InvalidInput), not ALREADY_EXISTS.
+  // A repeat after a success is therefore InvalidInput, as in AWS. The role
+  // exists and ListRoles finds it.
+  // Authorization (iam:CreateServiceLinkedRole, condition key
+  // iam:AWSServiceName) is console-api's.
+  rpc CreateServiceLinkedRole(CreateServiceLinkedRoleRequest) returns (CreateServiceLinkedRoleResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}/roles:createServiceLinkedRole"
+      body: "*"
+    };
+  }
 }
 
 // Role is an IAM role.
@@ -292,4 +312,25 @@ message DeleteServiceLinkedRoleResponse {
   // task/aws-service-role/{service-principal}/{role-name}/{uuid}, at most
   // 1000 characters. Derived from the role's uid.
   string deletion_task_id = 1;
+}
+
+message CreateServiceLinkedRoleRequest {
+  // projects/{project}.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/Role"
+  ];
+  // AWS AWSServiceName, the service principal, 1-128 characters of
+  // [\w+=,.@-], case-sensitive.
+  string aws_service_name = 2 [(google.api.field_behavior) = REQUIRED];
+  // AWS CustomSuffix, 1-64 characters of [\w+=,.@-]. Empty means absent.
+  string custom_suffix = 3 [(google.api.field_behavior) = OPTIONAL];
+  // AWS Description, at most 1000 characters of
+  // [\u0009\u000A\u000D\u0020-\u007E\u00A1-\u00FF].
+  string description = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message CreateServiceLinkedRoleResponse {
+  // The created role, as AWS CreateServiceLinkedRoleResult.Role.
+  Role role = 1;
 }
