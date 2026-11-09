@@ -22,6 +22,7 @@ const (
 	InstanceProfileService_AddRoleToInstanceProfile_FullMethodName      = "/vws.iam.v1.InstanceProfileService/AddRoleToInstanceProfile"
 	InstanceProfileService_RemoveRoleFromInstanceProfile_FullMethodName = "/vws.iam.v1.InstanceProfileService/RemoveRoleFromInstanceProfile"
 	InstanceProfileService_ListInstanceProfilesForRole_FullMethodName   = "/vws.iam.v1.InstanceProfileService/ListInstanceProfilesForRole"
+	InstanceProfileService_ListInstanceProfiles_FullMethodName          = "/vws.iam.v1.InstanceProfileService/ListInstanceProfiles"
 )
 
 // InstanceProfileServiceClient is the client API for InstanceProfileService service.
@@ -71,6 +72,15 @@ type InstanceProfileServiceClient interface {
 	// (NoSuchEntity). A role in no instance profile is an empty, complete page.
 	// Authorization (iam:ListInstanceProfilesForRole) is console-api's.
 	ListInstanceProfilesForRole(ctx context.Context, in *ListInstanceProfilesForRoleRequest, opts ...grpc.CallOption) (*ListInstanceProfilesForRoleResponse, error)
+	// ListInstanceProfiles is AWS ListInstanceProfiles. It lists the instance
+	// profiles of the parent project whose path starts with path_prefix, in
+	// pages ordered by case-folded name. It only reads.
+	// A path_prefix, page_size or page_token length or pattern fault is
+	// INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). A well-formed
+	// page_token this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). No matching profile is an empty, complete page.
+	// Authorization (iam:ListInstanceProfiles) is console-api's.
+	ListInstanceProfiles(ctx context.Context, in *ListInstanceProfilesRequest, opts ...grpc.CallOption) (*ListInstanceProfilesResponse, error)
 }
 
 type instanceProfileServiceClient struct {
@@ -105,6 +115,16 @@ func (c *instanceProfileServiceClient) ListInstanceProfilesForRole(ctx context.C
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListInstanceProfilesForRoleResponse)
 	err := c.cc.Invoke(ctx, InstanceProfileService_ListInstanceProfilesForRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceProfileServiceClient) ListInstanceProfiles(ctx context.Context, in *ListInstanceProfilesRequest, opts ...grpc.CallOption) (*ListInstanceProfilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInstanceProfilesResponse)
+	err := c.cc.Invoke(ctx, InstanceProfileService_ListInstanceProfiles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -158,6 +178,15 @@ type InstanceProfileServiceServer interface {
 	// (NoSuchEntity). A role in no instance profile is an empty, complete page.
 	// Authorization (iam:ListInstanceProfilesForRole) is console-api's.
 	ListInstanceProfilesForRole(context.Context, *ListInstanceProfilesForRoleRequest) (*ListInstanceProfilesForRoleResponse, error)
+	// ListInstanceProfiles is AWS ListInstanceProfiles. It lists the instance
+	// profiles of the parent project whose path starts with path_prefix, in
+	// pages ordered by case-folded name. It only reads.
+	// A path_prefix, page_size or page_token length or pattern fault is
+	// INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). A well-formed
+	// page_token this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). No matching profile is an empty, complete page.
+	// Authorization (iam:ListInstanceProfiles) is console-api's.
+	ListInstanceProfiles(context.Context, *ListInstanceProfilesRequest) (*ListInstanceProfilesResponse, error)
 	mustEmbedUnimplementedInstanceProfileServiceServer()
 }
 
@@ -176,6 +205,9 @@ func (UnimplementedInstanceProfileServiceServer) RemoveRoleFromInstanceProfile(c
 }
 func (UnimplementedInstanceProfileServiceServer) ListInstanceProfilesForRole(context.Context, *ListInstanceProfilesForRoleRequest) (*ListInstanceProfilesForRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListInstanceProfilesForRole not implemented")
+}
+func (UnimplementedInstanceProfileServiceServer) ListInstanceProfiles(context.Context, *ListInstanceProfilesRequest) (*ListInstanceProfilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInstanceProfiles not implemented")
 }
 func (UnimplementedInstanceProfileServiceServer) mustEmbedUnimplementedInstanceProfileServiceServer() {
 }
@@ -253,6 +285,24 @@ func _InstanceProfileService_ListInstanceProfilesForRole_Handler(srv interface{}
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InstanceProfileService_ListInstanceProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInstanceProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceProfileServiceServer).ListInstanceProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceProfileService_ListInstanceProfiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceProfileServiceServer).ListInstanceProfiles(ctx, req.(*ListInstanceProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InstanceProfileService_ServiceDesc is the grpc.ServiceDesc for InstanceProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -271,6 +321,10 @@ var InstanceProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListInstanceProfilesForRole",
 			Handler:    _InstanceProfileService_ListInstanceProfilesForRole_Handler,
+		},
+		{
+			MethodName: "ListInstanceProfiles",
+			Handler:    _InstanceProfileService_ListInstanceProfiles_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
