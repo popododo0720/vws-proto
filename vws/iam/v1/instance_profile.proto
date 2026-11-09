@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package vws.iam.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
+option java_multiple_files = true;
+option java_outer_classname = "InstanceProfileProto";
+option java_package = "dev.vws.iam.v1";
+
+// InstanceProfileService manages IAM instance profiles, AWS's container for
+// the one role an instance runs as.
+service InstanceProfileService {
+  // RemoveRoleFromInstanceProfile is AWS RemoveRoleFromInstanceProfile. It
+  // removes the role from the instance profile; the role and the profile
+  // stay. It is synchronous and not an operation, as the AWS call is: one
+  // conditional store write, returned once stored.
+  // An instance profile name or RoleName length or pattern fault is
+  // INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). An unknown
+  // instance profile, an unknown role, or a role that is not in the profile
+  // is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A service-linked role
+  // is FAILED_PRECONDITION / UNMODIFIABLE_ENTITY (UnmodifiableEntity). A
+  // write that keeps losing to concurrent writes is ABORTED /
+  // GENERATION_CONFLICT (ConcurrentModification).
+  // A repeat after success is NOT_FOUND (NoSuchEntity), as in AWS.
+  // Authorization (iam:RemoveRoleFromInstanceProfile) is console-api's.
+  rpc RemoveRoleFromInstanceProfile(RemoveRoleFromInstanceProfileRequest) returns (RemoveRoleFromInstanceProfileResponse) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/instanceProfiles/*}:removeRole"
+      body: "*"
+    };
+  }
+}
+
+message RemoveRoleFromInstanceProfileRequest {
+  // projects/{project}/instanceProfiles/{instance_profile}. The instance
+  // profile id is AWS InstanceProfileName, 1-128 characters of [\w+=,.@-].
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS RoleName, 1-64 characters of [\w+=,.@-]: a role of the instance
+  // profile's project.
+  string role_name = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RemoveRoleFromInstanceProfileResponse is empty, as AWS returns only a
+// request id.
+message RemoveRoleFromInstanceProfileResponse {}
