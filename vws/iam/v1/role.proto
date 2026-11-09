@@ -111,6 +111,26 @@ service RoleService {
       body: "*"
     };
   }
+
+  // DeleteServiceLinkedRole is AWS DeleteServiceLinkedRole. It deletes a
+  // service-linked role and returns its deletion task id. It is synchronous
+  // and not an operation: the role is deleted from the store when the call
+  // returns. GetServiceLinkedRoleDeletionStatus is a separate request.
+  // A malformed name or role id is INVALID_ARGUMENT / INVALID_SPEC (AWS
+  // ValidationError). A role that does not exist, or one that is not
+  // service-linked (created with CreateRole), is NOT_FOUND /
+  // RESOURCE_NOT_FOUND (NoSuchEntity).
+  // The task id is derived from the role's uid, so concurrent or repeated
+  // requests return the same id while the role exists. Once it is deleted a
+  // repeat is NOT_FOUND.
+  // Authorization (iam:DeleteServiceLinkedRole on the role ARN) is
+  // console-api's.
+  rpc DeleteServiceLinkedRole(DeleteServiceLinkedRoleRequest) returns (DeleteServiceLinkedRoleResponse) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/roles/*}:deleteServiceLinkedRole"
+      body: "*"
+    };
+  }
 }
 
 // Role is an IAM role.
@@ -257,3 +277,19 @@ message PutRolePermissionsBoundaryRequest {
 // PutRolePermissionsBoundaryResponse is empty, as AWS returns only a request
 // id. GetRole reads the boundary back.
 message PutRolePermissionsBoundaryResponse {}
+
+message DeleteServiceLinkedRoleRequest {
+  // projects/{project}/roles/{role}. The role id is AWS RoleName, 1-64
+  // characters of [\w+=,.@-].
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/Role"
+  ];
+}
+
+message DeleteServiceLinkedRoleResponse {
+  // AWS DeletionTaskId,
+  // task/aws-service-role/{service-principal}/{role-name}/{uuid}, at most
+  // 1000 characters. Derived from the role's uid.
+  string deletion_task_id = 1;
+}
