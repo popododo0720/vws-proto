@@ -331,6 +331,7 @@ const (
 	TokenService_GetAccessKeyInfo_FullMethodName           = "/vws.iam.v1.TokenService/GetAccessKeyInfo"
 	TokenService_GetFederationToken_FullMethodName         = "/vws.iam.v1.TokenService/GetFederationToken"
 	TokenService_AssumeRoleWithSAML_FullMethodName         = "/vws.iam.v1.TokenService/AssumeRoleWithSAML"
+	TokenService_AssumeRoleWithWebIdentity_FullMethodName  = "/vws.iam.v1.TokenService/AssumeRoleWithWebIdentity"
 )
 
 // TokenServiceClient is the client API for TokenService service.
@@ -345,8 +346,9 @@ const (
 // and verifies that credential itself. A request without one is
 // UNAUTHENTICATED / INVALID_CREDENTIALS. The deprecated caller field is
 // ignored: trusting it would let any client that reaches this service act as
-// any principal (impersonation). AssumeRoleWithSAML is the one exception: it
-// takes no caller credential, and the signed SAML response is the
+// any principal (impersonation). AssumeRoleWithSAML and
+// AssumeRoleWithWebIdentity are the exceptions: they take no caller
+// credential, and the signed SAML response or OIDC ID token is the
 // authentication.
 type TokenServiceClient interface {
 	// AssumeRole needs the role's trust policy to allow the caller and the
@@ -416,6 +418,27 @@ type TokenServiceClient interface {
 	// credentials, and a repeat with the same unexpired response issues
 	// another session, as in AWS.
 	AssumeRoleWithSAML(ctx context.Context, in *AssumeRoleWithSAMLRequest, opts ...grpc.CallOption) (*AssumeRoleWithSAMLResponse, error)
+	// AssumeRoleWithWebIdentity is AWS STS AssumeRoleWithWebIdentity:
+	// temporary credentials for role_arn from an OIDC ID token (a JWT). No
+	// caller credential: vws-iam verifies the token signature against the
+	// JWKS of the OIDC provider for the token's issuer in the role's project.
+	// Validation errors are on the request fields. A token that is not a
+	// compact JWS, uses an algorithm other than RS256, RS384, RS512, ES256,
+	// ES384 or ES512, has a bad signature, comes from an issuer with no OIDC
+	// provider in the project, has no audience in the provider's client id
+	// list, has a non-integer exp, nbf or iat, or an nbf or iat in the future,
+	// or a request with provider_id, is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidIdentityToken). An expired token (exp) is UNAUTHENTICATED /
+	// TOKEN_EXPIRED (ExpiredToken). A provider whose JWKS cannot be fetched is
+	// UNAVAILABLE / RECONCILIATION_FAILED with retryable=true
+	// (IDPCommunicationError). An unknown role, or a trust policy that does
+	// not allow sts:AssumeRoleWithWebIdentity for the Federated provider, is
+	// PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The session's
+	// permissions are the role's policies, intersected with the session
+	// policies when any are given. Nothing is stored: each call issues new
+	// credentials, and a repeat with the same unexpired token issues another
+	// session, as in AWS.
+	AssumeRoleWithWebIdentity(ctx context.Context, in *AssumeRoleWithWebIdentityRequest, opts ...grpc.CallOption) (*AssumeRoleWithWebIdentityResponse, error)
 }
 
 type tokenServiceClient struct {
@@ -486,6 +509,16 @@ func (c *tokenServiceClient) AssumeRoleWithSAML(ctx context.Context, in *AssumeR
 	return out, nil
 }
 
+func (c *tokenServiceClient) AssumeRoleWithWebIdentity(ctx context.Context, in *AssumeRoleWithWebIdentityRequest, opts ...grpc.CallOption) (*AssumeRoleWithWebIdentityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssumeRoleWithWebIdentityResponse)
+	err := c.cc.Invoke(ctx, TokenService_AssumeRoleWithWebIdentity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TokenServiceServer is the server API for TokenService service.
 // All implementations must embed UnimplementedTokenServiceServer
 // for forward compatibility.
@@ -498,8 +531,9 @@ func (c *tokenServiceClient) AssumeRoleWithSAML(ctx context.Context, in *AssumeR
 // and verifies that credential itself. A request without one is
 // UNAUTHENTICATED / INVALID_CREDENTIALS. The deprecated caller field is
 // ignored: trusting it would let any client that reaches this service act as
-// any principal (impersonation). AssumeRoleWithSAML is the one exception: it
-// takes no caller credential, and the signed SAML response is the
+// any principal (impersonation). AssumeRoleWithSAML and
+// AssumeRoleWithWebIdentity are the exceptions: they take no caller
+// credential, and the signed SAML response or OIDC ID token is the
 // authentication.
 type TokenServiceServer interface {
 	// AssumeRole needs the role's trust policy to allow the caller and the
@@ -569,6 +603,27 @@ type TokenServiceServer interface {
 	// credentials, and a repeat with the same unexpired response issues
 	// another session, as in AWS.
 	AssumeRoleWithSAML(context.Context, *AssumeRoleWithSAMLRequest) (*AssumeRoleWithSAMLResponse, error)
+	// AssumeRoleWithWebIdentity is AWS STS AssumeRoleWithWebIdentity:
+	// temporary credentials for role_arn from an OIDC ID token (a JWT). No
+	// caller credential: vws-iam verifies the token signature against the
+	// JWKS of the OIDC provider for the token's issuer in the role's project.
+	// Validation errors are on the request fields. A token that is not a
+	// compact JWS, uses an algorithm other than RS256, RS384, RS512, ES256,
+	// ES384 or ES512, has a bad signature, comes from an issuer with no OIDC
+	// provider in the project, has no audience in the provider's client id
+	// list, has a non-integer exp, nbf or iat, or an nbf or iat in the future,
+	// or a request with provider_id, is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidIdentityToken). An expired token (exp) is UNAUTHENTICATED /
+	// TOKEN_EXPIRED (ExpiredToken). A provider whose JWKS cannot be fetched is
+	// UNAVAILABLE / RECONCILIATION_FAILED with retryable=true
+	// (IDPCommunicationError). An unknown role, or a trust policy that does
+	// not allow sts:AssumeRoleWithWebIdentity for the Federated provider, is
+	// PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The session's
+	// permissions are the role's policies, intersected with the session
+	// policies when any are given. Nothing is stored: each call issues new
+	// credentials, and a repeat with the same unexpired token issues another
+	// session, as in AWS.
+	AssumeRoleWithWebIdentity(context.Context, *AssumeRoleWithWebIdentityRequest) (*AssumeRoleWithWebIdentityResponse, error)
 	mustEmbedUnimplementedTokenServiceServer()
 }
 
@@ -596,6 +651,9 @@ func (UnimplementedTokenServiceServer) GetFederationToken(context.Context, *GetF
 }
 func (UnimplementedTokenServiceServer) AssumeRoleWithSAML(context.Context, *AssumeRoleWithSAMLRequest) (*AssumeRoleWithSAMLResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AssumeRoleWithSAML not implemented")
+}
+func (UnimplementedTokenServiceServer) AssumeRoleWithWebIdentity(context.Context, *AssumeRoleWithWebIdentityRequest) (*AssumeRoleWithWebIdentityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssumeRoleWithWebIdentity not implemented")
 }
 func (UnimplementedTokenServiceServer) mustEmbedUnimplementedTokenServiceServer() {}
 func (UnimplementedTokenServiceServer) testEmbeddedByValue()                      {}
@@ -726,6 +784,24 @@ func _TokenService_AssumeRoleWithSAML_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TokenService_AssumeRoleWithWebIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssumeRoleWithWebIdentityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServiceServer).AssumeRoleWithWebIdentity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenService_AssumeRoleWithWebIdentity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServiceServer).AssumeRoleWithWebIdentity(ctx, req.(*AssumeRoleWithWebIdentityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TokenService_ServiceDesc is the grpc.ServiceDesc for TokenService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -756,6 +832,10 @@ var TokenService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AssumeRoleWithSAML",
 			Handler:    _TokenService_AssumeRoleWithSAML_Handler,
+		},
+		{
+			MethodName: "AssumeRoleWithWebIdentity",
+			Handler:    _TokenService_AssumeRoleWithWebIdentity_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
