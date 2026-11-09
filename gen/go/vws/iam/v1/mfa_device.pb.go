@@ -190,7 +190,9 @@ func (x *MfaDeviceSpec) GetPath() string {
 type MfaDeviceStatus struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Observed *v1.ObservedState      `protobuf:"bytes,1,opt,name=observed,proto3" json:"observed,omitempty"`
-	// Serial number: arn:vws:iam::{project}:mfa{path}{mfa_device}
+	// Serial number: arn:vws:iam::{project}:mfa{path}{mfa_device}, at most 256
+	// characters (AWS SerialNumber). A create whose serial would be longer is
+	// INVALID_ARGUMENT / INVALID_SPEC.
 	SerialNumber string `protobuf:"bytes,2,opt,name=serial_number,json=serialNumber,proto3" json:"serial_number,omitempty"`
 	// The user it is enabled for, full resource name. Empty when not enabled.
 	User       string                 `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
@@ -504,7 +506,10 @@ func (x *DeleteMfaDeviceRequest) GetEtag() string {
 type CreateVirtualMfaDeviceRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
-	// Final path segment. Must match IamName.
+	// Final path segment. Must match IamName, 1 to 175 characters: AWS
+	// VirtualMFADeviceName has no maximum, and 175 is the longest name whose
+	// serial number fits the AWS SerialNumber limit of 256 characters in every
+	// project (docs/validation.md).
 	MfaDeviceId   string     `protobuf:"bytes,2,opt,name=mfa_device_id,json=mfaDeviceId,proto3" json:"mfa_device_id,omitempty"`
 	MfaDevice     *MfaDevice `protobuf:"bytes,3,opt,name=mfa_device,json=mfaDevice,proto3" json:"mfa_device,omitempty"`
 	unknownFields protoimpl.UnknownFields

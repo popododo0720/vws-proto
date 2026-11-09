@@ -155,7 +155,9 @@ message MfaDeviceSpec {
 
 message MfaDeviceStatus {
   vws.common.v1.ObservedState observed = 1;
-  // Serial number: arn:vws:iam::{project}:mfa{path}{mfa_device}
+  // Serial number: arn:vws:iam::{project}:mfa{path}{mfa_device}, at most 256
+  // characters (AWS SerialNumber). A create whose serial would be longer is
+  // INVALID_ARGUMENT / INVALID_SPEC.
   string serial_number = 2;
   // The user it is enabled for, full resource name. Empty when not enabled.
   string user = 3;
@@ -207,7 +209,10 @@ message CreateVirtualMfaDeviceRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).child_type = "vws.iam/MfaDevice"
   ];
-  // Final path segment. Must match IamName.
+  // Final path segment. Must match IamName, 1 to 175 characters: AWS
+  // VirtualMFADeviceName has no maximum, and 175 is the longest name whose
+  // serial number fits the AWS SerialNumber limit of 256 characters in every
+  // project (docs/validation.md).
   string mfa_device_id = 2 [(google.api.field_behavior) = REQUIRED];
   MfaDevice mfa_device = 3 [(google.api.field_behavior) = REQUIRED];
 }
