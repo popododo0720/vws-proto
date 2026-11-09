@@ -111,6 +111,25 @@ service RoleService {
       body: "*"
     };
   }
+  // DeleteRolePermissionsBoundary is AWS DeleteRolePermissionsBoundary. It
+  // clears spec.permissions_boundary_arn. The trust and permission policies
+  // stay. It is synchronous and not an operation, as the AWS call is: one
+  // conditional store write, returned once stored.
+  // A RoleName length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC
+  // (AWS ValidationError). An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND
+  // (NoSuchEntity). A service-linked role is FAILED_PRECONDITION /
+  // UNMODIFIABLE_ENTITY (UnmodifiableEntity). A write that keeps losing to
+  // concurrent writes is ABORTED / GENERATION_CONFLICT
+  // (ConcurrentModification).
+  // A role with no boundary succeeds without a write, so a retry after a
+  // lost response succeeds.
+  // Authorization (iam:DeleteRolePermissionsBoundary) is console-api's.
+  rpc DeleteRolePermissionsBoundary(DeleteRolePermissionsBoundaryRequest) returns (DeleteRolePermissionsBoundaryResponse) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/roles/*}:deletePermissionsBoundary"
+      body: "*"
+    };
+  }
 
   // DeleteServiceLinkedRole is AWS DeleteServiceLinkedRole. It deletes a
   // service-linked role and returns its deletion task id. It is synchronous
@@ -193,7 +212,8 @@ message RoleSpec {
   // AWS PermissionsBoundary.PermissionsBoundaryArn, a managed policy ARN
   // arn:vws:iam::{project}:policy{path}{policy}. Empty means no boundary.
   // PermissionsBoundaryType is always PermissionsBoundaryPolicy. Set only by
-  // PutRolePermissionsBoundary. CreateRole and UpdateRole do not change it.
+  // PutRolePermissionsBoundary and cleared only by
+  // DeleteRolePermissionsBoundary. CreateRole and UpdateRole do not change it.
   string permissions_boundary_arn = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
@@ -297,6 +317,19 @@ message PutRolePermissionsBoundaryRequest {
 // PutRolePermissionsBoundaryResponse is empty, as AWS returns only a request
 // id. GetRole reads the boundary back.
 message PutRolePermissionsBoundaryResponse {}
+
+message DeleteRolePermissionsBoundaryRequest {
+  // projects/{project}/roles/{role}. The role id is AWS RoleName, 1-64
+  // characters of [\w+=,.@-].
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/Role"
+  ];
+}
+
+// DeleteRolePermissionsBoundaryResponse is empty, as AWS returns only a
+// request id. GetRole reads the role back.
+message DeleteRolePermissionsBoundaryResponse {}
 
 message DeleteServiceLinkedRoleRequest {
   // projects/{project}/roles/{role}. The role id is AWS RoleName, 1-64
