@@ -20,15 +20,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RoleService_GetRole_FullMethodName                    = "/vws.iam.v1.RoleService/GetRole"
-	RoleService_ListRoles_FullMethodName                  = "/vws.iam.v1.RoleService/ListRoles"
-	RoleService_CreateRole_FullMethodName                 = "/vws.iam.v1.RoleService/CreateRole"
-	RoleService_UpdateRole_FullMethodName                 = "/vws.iam.v1.RoleService/UpdateRole"
-	RoleService_DeleteRole_FullMethodName                 = "/vws.iam.v1.RoleService/DeleteRole"
-	RoleService_RevokeRoleSessions_FullMethodName         = "/vws.iam.v1.RoleService/RevokeRoleSessions"
-	RoleService_PutRolePermissionsBoundary_FullMethodName = "/vws.iam.v1.RoleService/PutRolePermissionsBoundary"
-	RoleService_DeleteServiceLinkedRole_FullMethodName    = "/vws.iam.v1.RoleService/DeleteServiceLinkedRole"
-	RoleService_CreateServiceLinkedRole_FullMethodName    = "/vws.iam.v1.RoleService/CreateServiceLinkedRole"
+	RoleService_GetRole_FullMethodName                       = "/vws.iam.v1.RoleService/GetRole"
+	RoleService_ListRoles_FullMethodName                     = "/vws.iam.v1.RoleService/ListRoles"
+	RoleService_CreateRole_FullMethodName                    = "/vws.iam.v1.RoleService/CreateRole"
+	RoleService_UpdateRole_FullMethodName                    = "/vws.iam.v1.RoleService/UpdateRole"
+	RoleService_DeleteRole_FullMethodName                    = "/vws.iam.v1.RoleService/DeleteRole"
+	RoleService_RevokeRoleSessions_FullMethodName            = "/vws.iam.v1.RoleService/RevokeRoleSessions"
+	RoleService_PutRolePermissionsBoundary_FullMethodName    = "/vws.iam.v1.RoleService/PutRolePermissionsBoundary"
+	RoleService_DeleteRolePermissionsBoundary_FullMethodName = "/vws.iam.v1.RoleService/DeleteRolePermissionsBoundary"
+	RoleService_DeleteServiceLinkedRole_FullMethodName       = "/vws.iam.v1.RoleService/DeleteServiceLinkedRole"
+	RoleService_CreateServiceLinkedRole_FullMethodName       = "/vws.iam.v1.RoleService/CreateServiceLinkedRole"
 )
 
 // RoleServiceClient is the client API for RoleService service.
@@ -83,6 +84,20 @@ type RoleServiceClient interface {
 	// retry after a lost response succeeds.
 	// Authorization (iam:PutRolePermissionsBoundary) is console-api's.
 	PutRolePermissionsBoundary(ctx context.Context, in *PutRolePermissionsBoundaryRequest, opts ...grpc.CallOption) (*PutRolePermissionsBoundaryResponse, error)
+	// DeleteRolePermissionsBoundary is AWS DeleteRolePermissionsBoundary. It
+	// clears spec.permissions_boundary_arn. The trust and permission policies
+	// stay. It is synchronous and not an operation, as the AWS call is: one
+	// conditional store write, returned once stored.
+	// A RoleName length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError). An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND
+	// (NoSuchEntity). A service-linked role is FAILED_PRECONDITION /
+	// UNMODIFIABLE_ENTITY (UnmodifiableEntity). A write that keeps losing to
+	// concurrent writes is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// A role with no boundary succeeds without a write, so a retry after a
+	// lost response succeeds.
+	// Authorization (iam:DeleteRolePermissionsBoundary) is console-api's.
+	DeleteRolePermissionsBoundary(ctx context.Context, in *DeleteRolePermissionsBoundaryRequest, opts ...grpc.CallOption) (*DeleteRolePermissionsBoundaryResponse, error)
 	// DeleteServiceLinkedRole is AWS DeleteServiceLinkedRole. It deletes a
 	// service-linked role and returns its deletion task id. It is synchronous
 	// and not an operation: the role is deleted from the store when the call
@@ -192,6 +207,16 @@ func (c *roleServiceClient) PutRolePermissionsBoundary(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *roleServiceClient) DeleteRolePermissionsBoundary(ctx context.Context, in *DeleteRolePermissionsBoundaryRequest, opts ...grpc.CallOption) (*DeleteRolePermissionsBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteRolePermissionsBoundaryResponse)
+	err := c.cc.Invoke(ctx, RoleService_DeleteRolePermissionsBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *roleServiceClient) DeleteServiceLinkedRole(ctx context.Context, in *DeleteServiceLinkedRoleRequest, opts ...grpc.CallOption) (*DeleteServiceLinkedRoleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteServiceLinkedRoleResponse)
@@ -264,6 +289,20 @@ type RoleServiceServer interface {
 	// retry after a lost response succeeds.
 	// Authorization (iam:PutRolePermissionsBoundary) is console-api's.
 	PutRolePermissionsBoundary(context.Context, *PutRolePermissionsBoundaryRequest) (*PutRolePermissionsBoundaryResponse, error)
+	// DeleteRolePermissionsBoundary is AWS DeleteRolePermissionsBoundary. It
+	// clears spec.permissions_boundary_arn. The trust and permission policies
+	// stay. It is synchronous and not an operation, as the AWS call is: one
+	// conditional store write, returned once stored.
+	// A RoleName length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError). An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND
+	// (NoSuchEntity). A service-linked role is FAILED_PRECONDITION /
+	// UNMODIFIABLE_ENTITY (UnmodifiableEntity). A write that keeps losing to
+	// concurrent writes is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// A role with no boundary succeeds without a write, so a retry after a
+	// lost response succeeds.
+	// Authorization (iam:DeleteRolePermissionsBoundary) is console-api's.
+	DeleteRolePermissionsBoundary(context.Context, *DeleteRolePermissionsBoundaryRequest) (*DeleteRolePermissionsBoundaryResponse, error)
 	// DeleteServiceLinkedRole is AWS DeleteServiceLinkedRole. It deletes a
 	// service-linked role and returns its deletion task id. It is synchronous
 	// and not an operation: the role is deleted from the store when the call
@@ -323,6 +362,9 @@ func (UnimplementedRoleServiceServer) RevokeRoleSessions(context.Context, *Revok
 }
 func (UnimplementedRoleServiceServer) PutRolePermissionsBoundary(context.Context, *PutRolePermissionsBoundaryRequest) (*PutRolePermissionsBoundaryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PutRolePermissionsBoundary not implemented")
+}
+func (UnimplementedRoleServiceServer) DeleteRolePermissionsBoundary(context.Context, *DeleteRolePermissionsBoundaryRequest) (*DeleteRolePermissionsBoundaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteRolePermissionsBoundary not implemented")
 }
 func (UnimplementedRoleServiceServer) DeleteServiceLinkedRole(context.Context, *DeleteServiceLinkedRoleRequest) (*DeleteServiceLinkedRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteServiceLinkedRole not implemented")
@@ -477,6 +519,24 @@ func _RoleService_PutRolePermissionsBoundary_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoleService_DeleteRolePermissionsBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRolePermissionsBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleServiceServer).DeleteRolePermissionsBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleService_DeleteRolePermissionsBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleServiceServer).DeleteRolePermissionsBoundary(ctx, req.(*DeleteRolePermissionsBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _RoleService_DeleteServiceLinkedRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteServiceLinkedRoleRequest)
 	if err := dec(in); err != nil {
@@ -547,6 +607,10 @@ var RoleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PutRolePermissionsBoundary",
 			Handler:    _RoleService_PutRolePermissionsBoundary_Handler,
+		},
+		{
+			MethodName: "DeleteRolePermissionsBoundary",
+			Handler:    _RoleService_DeleteRolePermissionsBoundary_Handler,
 		},
 		{
 			MethodName: "DeleteServiceLinkedRole",

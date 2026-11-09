@@ -160,7 +160,8 @@ type RoleSpec struct {
 	// AWS PermissionsBoundary.PermissionsBoundaryArn, a managed policy ARN
 	// arn:vws:iam::{project}:policy{path}{policy}. Empty means no boundary.
 	// PermissionsBoundaryType is always PermissionsBoundaryPolicy. Set only by
-	// PutRolePermissionsBoundary. CreateRole and UpdateRole do not change it.
+	// PutRolePermissionsBoundary and cleared only by
+	// DeleteRolePermissionsBoundary. CreateRole and UpdateRole do not change it.
 	PermissionsBoundaryArn string `protobuf:"bytes,7,opt,name=permissions_boundary_arn,json=permissionsBoundaryArn,proto3" json:"permissions_boundary_arn,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
@@ -843,6 +844,90 @@ func (*PutRolePermissionsBoundaryResponse) Descriptor() ([]byte, []int) {
 	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{11}
 }
 
+type DeleteRolePermissionsBoundaryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}/roles/{role}. The role id is AWS RoleName, 1-64
+	// characters of [\w+=,.@-].
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRolePermissionsBoundaryRequest) Reset() {
+	*x = DeleteRolePermissionsBoundaryRequest{}
+	mi := &file_vws_iam_v1_role_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRolePermissionsBoundaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRolePermissionsBoundaryRequest) ProtoMessage() {}
+
+func (x *DeleteRolePermissionsBoundaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_role_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRolePermissionsBoundaryRequest.ProtoReflect.Descriptor instead.
+func (*DeleteRolePermissionsBoundaryRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteRolePermissionsBoundaryRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// DeleteRolePermissionsBoundaryResponse is empty, as AWS returns only a
+// request id. GetRole reads the role back.
+type DeleteRolePermissionsBoundaryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRolePermissionsBoundaryResponse) Reset() {
+	*x = DeleteRolePermissionsBoundaryResponse{}
+	mi := &file_vws_iam_v1_role_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRolePermissionsBoundaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRolePermissionsBoundaryResponse) ProtoMessage() {}
+
+func (x *DeleteRolePermissionsBoundaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_role_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRolePermissionsBoundaryResponse.ProtoReflect.Descriptor instead.
+func (*DeleteRolePermissionsBoundaryResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{13}
+}
+
 type DeleteServiceLinkedRoleRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// projects/{project}/roles/{role}. The role id is AWS RoleName, 1-64
@@ -854,7 +939,7 @@ type DeleteServiceLinkedRoleRequest struct {
 
 func (x *DeleteServiceLinkedRoleRequest) Reset() {
 	*x = DeleteServiceLinkedRoleRequest{}
-	mi := &file_vws_iam_v1_role_proto_msgTypes[12]
+	mi := &file_vws_iam_v1_role_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -866,7 +951,7 @@ func (x *DeleteServiceLinkedRoleRequest) String() string {
 func (*DeleteServiceLinkedRoleRequest) ProtoMessage() {}
 
 func (x *DeleteServiceLinkedRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_role_proto_msgTypes[12]
+	mi := &file_vws_iam_v1_role_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +964,7 @@ func (x *DeleteServiceLinkedRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteServiceLinkedRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteServiceLinkedRoleRequest) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{12}
+	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DeleteServiceLinkedRoleRequest) GetName() string {
@@ -901,7 +986,7 @@ type DeleteServiceLinkedRoleResponse struct {
 
 func (x *DeleteServiceLinkedRoleResponse) Reset() {
 	*x = DeleteServiceLinkedRoleResponse{}
-	mi := &file_vws_iam_v1_role_proto_msgTypes[13]
+	mi := &file_vws_iam_v1_role_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -913,7 +998,7 @@ func (x *DeleteServiceLinkedRoleResponse) String() string {
 func (*DeleteServiceLinkedRoleResponse) ProtoMessage() {}
 
 func (x *DeleteServiceLinkedRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_role_proto_msgTypes[13]
+	mi := &file_vws_iam_v1_role_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -926,7 +1011,7 @@ func (x *DeleteServiceLinkedRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteServiceLinkedRoleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteServiceLinkedRoleResponse) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{13}
+	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DeleteServiceLinkedRoleResponse) GetDeletionTaskId() string {
@@ -954,7 +1039,7 @@ type CreateServiceLinkedRoleRequest struct {
 
 func (x *CreateServiceLinkedRoleRequest) Reset() {
 	*x = CreateServiceLinkedRoleRequest{}
-	mi := &file_vws_iam_v1_role_proto_msgTypes[14]
+	mi := &file_vws_iam_v1_role_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -966,7 +1051,7 @@ func (x *CreateServiceLinkedRoleRequest) String() string {
 func (*CreateServiceLinkedRoleRequest) ProtoMessage() {}
 
 func (x *CreateServiceLinkedRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_role_proto_msgTypes[14]
+	mi := &file_vws_iam_v1_role_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -979,7 +1064,7 @@ func (x *CreateServiceLinkedRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateServiceLinkedRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateServiceLinkedRoleRequest) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{14}
+	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateServiceLinkedRoleRequest) GetParent() string {
@@ -1020,7 +1105,7 @@ type CreateServiceLinkedRoleResponse struct {
 
 func (x *CreateServiceLinkedRoleResponse) Reset() {
 	*x = CreateServiceLinkedRoleResponse{}
-	mi := &file_vws_iam_v1_role_proto_msgTypes[15]
+	mi := &file_vws_iam_v1_role_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1032,7 +1117,7 @@ func (x *CreateServiceLinkedRoleResponse) String() string {
 func (*CreateServiceLinkedRoleResponse) ProtoMessage() {}
 
 func (x *CreateServiceLinkedRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_role_proto_msgTypes[15]
+	mi := &file_vws_iam_v1_role_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1045,7 +1130,7 @@ func (x *CreateServiceLinkedRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateServiceLinkedRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateServiceLinkedRoleResponse) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{15}
+	return file_vws_iam_v1_role_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CreateServiceLinkedRoleResponse) GetRole() *Role {
@@ -1141,7 +1226,11 @@ const file_vws_iam_v1_role_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/RoleR\x04name\x126\n" +
 	"\x14permissions_boundary\x18\x02 \x01(\tB\x03\xe0A\x02R\x13permissionsBoundary\"$\n" +
-	"\"PutRolePermissionsBoundaryResponse\"J\n" +
+	"\"PutRolePermissionsBoundaryResponse\"P\n" +
+	"$DeleteRolePermissionsBoundaryRequest\x12(\n" +
+	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
+	"\fvws.iam/RoleR\x04name\"'\n" +
+	"%DeleteRolePermissionsBoundaryResponse\"J\n" +
 	"\x1eDeleteServiceLinkedRoleRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/RoleR\x04name\"K\n" +
@@ -1153,7 +1242,7 @@ const file_vws_iam_v1_role_proto_rawDesc = "" +
 	"\rcustom_suffix\x18\x03 \x01(\tB\x03\xe0A\x01R\fcustomSuffix\x12%\n" +
 	"\vdescription\x18\x04 \x01(\tB\x03\xe0A\x01R\vdescription\"G\n" +
 	"\x1fCreateServiceLinkedRoleResponse\x12$\n" +
-	"\x04role\x18\x01 \x01(\v2\x10.vws.iam.v1.RoleR\x04role2\xe2\v\n" +
+	"\x04role\x18\x01 \x01(\v2\x10.vws.iam.v1.RoleR\x04role2\xad\r\n" +
 	"\vRoleService\x12^\n" +
 	"\aGetRole\x12\x1a.vws.iam.v1.GetRoleRequest\x1a\x10.vws.iam.v1.Role\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{name=projects/*/roles/*}\x12o\n" +
 	"\tListRoles\x12\x1c.vws.iam.v1.ListRolesRequest\x1a\x1d.vws.iam.v1.ListRolesResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{parent=projects/*}/roles\x12\xac\x01\n" +
@@ -1168,7 +1257,8 @@ const file_vws_iam_v1_role_proto_rawDesc = "" +
 	"\x0fvws.iam.v1.Role\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02\x1f*\x1d/v1/{name=projects/*/roles/*}\x12\xc8\x01\n" +
 	"\x12RevokeRoleSessions\x12%.vws.iam.v1.RevokeRoleSessionsRequest\x1a\x1d.google.longrunning.Operation\"l\xcaA2\n" +
 	"\x0fvws.iam.v1.Role\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/roles/*}:revokeSessions\x12\xbc\x01\n" +
-	"\x1aPutRolePermissionsBoundary\x12-.vws.iam.v1.PutRolePermissionsBoundaryRequest\x1a..vws.iam.v1.PutRolePermissionsBoundaryResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{name=projects/*/roles/*}:putPermissionsBoundary\x12\xb4\x01\n" +
+	"\x1aPutRolePermissionsBoundary\x12-.vws.iam.v1.PutRolePermissionsBoundaryRequest\x1a..vws.iam.v1.PutRolePermissionsBoundaryResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{name=projects/*/roles/*}:putPermissionsBoundary\x12\xc8\x01\n" +
+	"\x1dDeleteRolePermissionsBoundary\x120.vws.iam.v1.DeleteRolePermissionsBoundaryRequest\x1a1.vws.iam.v1.DeleteRolePermissionsBoundaryResponse\"B\x82\xd3\xe4\x93\x02<:\x01*\"7/v1/{name=projects/*/roles/*}:deletePermissionsBoundary\x12\xb4\x01\n" +
 	"\x17DeleteServiceLinkedRole\x12*.vws.iam.v1.DeleteServiceLinkedRoleRequest\x1a+.vws.iam.v1.DeleteServiceLinkedRoleResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/v1/{name=projects/*/roles/*}:deleteServiceLinkedRole\x12\xb4\x01\n" +
 	"\x17CreateServiceLinkedRole\x12*.vws.iam.v1.CreateServiceLinkedRoleRequest\x1a+.vws.iam.v1.CreateServiceLinkedRoleResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/v1/{parent=projects/*}/roles:createServiceLinkedRoleBX\n" +
 	"\x0edev.vws.iam.v1B\tRoleProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
@@ -1185,45 +1275,47 @@ func file_vws_iam_v1_role_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_role_proto_rawDescData
 }
 
-var file_vws_iam_v1_role_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_vws_iam_v1_role_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_vws_iam_v1_role_proto_goTypes = []any{
-	(*Role)(nil),                               // 0: vws.iam.v1.Role
-	(*RoleSpec)(nil),                           // 1: vws.iam.v1.RoleSpec
-	(*RoleStatus)(nil),                         // 2: vws.iam.v1.RoleStatus
-	(*GetRoleRequest)(nil),                     // 3: vws.iam.v1.GetRoleRequest
-	(*ListRolesRequest)(nil),                   // 4: vws.iam.v1.ListRolesRequest
-	(*ListRolesResponse)(nil),                  // 5: vws.iam.v1.ListRolesResponse
-	(*CreateRoleRequest)(nil),                  // 6: vws.iam.v1.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),                  // 7: vws.iam.v1.UpdateRoleRequest
-	(*DeleteRoleRequest)(nil),                  // 8: vws.iam.v1.DeleteRoleRequest
-	(*RevokeRoleSessionsRequest)(nil),          // 9: vws.iam.v1.RevokeRoleSessionsRequest
-	(*PutRolePermissionsBoundaryRequest)(nil),  // 10: vws.iam.v1.PutRolePermissionsBoundaryRequest
-	(*PutRolePermissionsBoundaryResponse)(nil), // 11: vws.iam.v1.PutRolePermissionsBoundaryResponse
-	(*DeleteServiceLinkedRoleRequest)(nil),     // 12: vws.iam.v1.DeleteServiceLinkedRoleRequest
-	(*DeleteServiceLinkedRoleResponse)(nil),    // 13: vws.iam.v1.DeleteServiceLinkedRoleResponse
-	(*CreateServiceLinkedRoleRequest)(nil),     // 14: vws.iam.v1.CreateServiceLinkedRoleRequest
-	(*CreateServiceLinkedRoleResponse)(nil),    // 15: vws.iam.v1.CreateServiceLinkedRoleResponse
-	nil,                                        // 16: vws.iam.v1.Role.LabelsEntry
-	nil,                                        // 17: vws.iam.v1.RoleSpec.InlinePoliciesEntry
-	(*timestamppb.Timestamp)(nil),              // 18: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),                   // 19: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),              // 20: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),            // 21: google.longrunning.Operation
+	(*Role)(nil),                                  // 0: vws.iam.v1.Role
+	(*RoleSpec)(nil),                              // 1: vws.iam.v1.RoleSpec
+	(*RoleStatus)(nil),                            // 2: vws.iam.v1.RoleStatus
+	(*GetRoleRequest)(nil),                        // 3: vws.iam.v1.GetRoleRequest
+	(*ListRolesRequest)(nil),                      // 4: vws.iam.v1.ListRolesRequest
+	(*ListRolesResponse)(nil),                     // 5: vws.iam.v1.ListRolesResponse
+	(*CreateRoleRequest)(nil),                     // 6: vws.iam.v1.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),                     // 7: vws.iam.v1.UpdateRoleRequest
+	(*DeleteRoleRequest)(nil),                     // 8: vws.iam.v1.DeleteRoleRequest
+	(*RevokeRoleSessionsRequest)(nil),             // 9: vws.iam.v1.RevokeRoleSessionsRequest
+	(*PutRolePermissionsBoundaryRequest)(nil),     // 10: vws.iam.v1.PutRolePermissionsBoundaryRequest
+	(*PutRolePermissionsBoundaryResponse)(nil),    // 11: vws.iam.v1.PutRolePermissionsBoundaryResponse
+	(*DeleteRolePermissionsBoundaryRequest)(nil),  // 12: vws.iam.v1.DeleteRolePermissionsBoundaryRequest
+	(*DeleteRolePermissionsBoundaryResponse)(nil), // 13: vws.iam.v1.DeleteRolePermissionsBoundaryResponse
+	(*DeleteServiceLinkedRoleRequest)(nil),        // 14: vws.iam.v1.DeleteServiceLinkedRoleRequest
+	(*DeleteServiceLinkedRoleResponse)(nil),       // 15: vws.iam.v1.DeleteServiceLinkedRoleResponse
+	(*CreateServiceLinkedRoleRequest)(nil),        // 16: vws.iam.v1.CreateServiceLinkedRoleRequest
+	(*CreateServiceLinkedRoleResponse)(nil),       // 17: vws.iam.v1.CreateServiceLinkedRoleResponse
+	nil,                                           // 18: vws.iam.v1.Role.LabelsEntry
+	nil,                                           // 19: vws.iam.v1.RoleSpec.InlinePoliciesEntry
+	(*timestamppb.Timestamp)(nil),                 // 20: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),                      // 21: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),                 // 22: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil),               // 23: google.longrunning.Operation
 }
 var file_vws_iam_v1_role_proto_depIdxs = []int32{
-	16, // 0: vws.iam.v1.Role.labels:type_name -> vws.iam.v1.Role.LabelsEntry
+	18, // 0: vws.iam.v1.Role.labels:type_name -> vws.iam.v1.Role.LabelsEntry
 	1,  // 1: vws.iam.v1.Role.spec:type_name -> vws.iam.v1.RoleSpec
 	2,  // 2: vws.iam.v1.Role.status:type_name -> vws.iam.v1.RoleStatus
-	18, // 3: vws.iam.v1.Role.create_time:type_name -> google.protobuf.Timestamp
-	18, // 4: vws.iam.v1.Role.update_time:type_name -> google.protobuf.Timestamp
-	18, // 5: vws.iam.v1.Role.delete_time:type_name -> google.protobuf.Timestamp
-	17, // 6: vws.iam.v1.RoleSpec.inline_policies:type_name -> vws.iam.v1.RoleSpec.InlinePoliciesEntry
-	19, // 7: vws.iam.v1.RoleStatus.observed:type_name -> vws.common.v1.ObservedState
-	18, // 8: vws.iam.v1.RoleStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
+	20, // 3: vws.iam.v1.Role.create_time:type_name -> google.protobuf.Timestamp
+	20, // 4: vws.iam.v1.Role.update_time:type_name -> google.protobuf.Timestamp
+	20, // 5: vws.iam.v1.Role.delete_time:type_name -> google.protobuf.Timestamp
+	19, // 6: vws.iam.v1.RoleSpec.inline_policies:type_name -> vws.iam.v1.RoleSpec.InlinePoliciesEntry
+	21, // 7: vws.iam.v1.RoleStatus.observed:type_name -> vws.common.v1.ObservedState
+	20, // 8: vws.iam.v1.RoleStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
 	0,  // 9: vws.iam.v1.ListRolesResponse.roles:type_name -> vws.iam.v1.Role
 	0,  // 10: vws.iam.v1.CreateRoleRequest.role:type_name -> vws.iam.v1.Role
 	0,  // 11: vws.iam.v1.UpdateRoleRequest.role:type_name -> vws.iam.v1.Role
-	20, // 12: vws.iam.v1.UpdateRoleRequest.update_mask:type_name -> google.protobuf.FieldMask
+	22, // 12: vws.iam.v1.UpdateRoleRequest.update_mask:type_name -> google.protobuf.FieldMask
 	0,  // 13: vws.iam.v1.CreateServiceLinkedRoleResponse.role:type_name -> vws.iam.v1.Role
 	3,  // 14: vws.iam.v1.RoleService.GetRole:input_type -> vws.iam.v1.GetRoleRequest
 	4,  // 15: vws.iam.v1.RoleService.ListRoles:input_type -> vws.iam.v1.ListRolesRequest
@@ -1232,19 +1324,21 @@ var file_vws_iam_v1_role_proto_depIdxs = []int32{
 	8,  // 18: vws.iam.v1.RoleService.DeleteRole:input_type -> vws.iam.v1.DeleteRoleRequest
 	9,  // 19: vws.iam.v1.RoleService.RevokeRoleSessions:input_type -> vws.iam.v1.RevokeRoleSessionsRequest
 	10, // 20: vws.iam.v1.RoleService.PutRolePermissionsBoundary:input_type -> vws.iam.v1.PutRolePermissionsBoundaryRequest
-	12, // 21: vws.iam.v1.RoleService.DeleteServiceLinkedRole:input_type -> vws.iam.v1.DeleteServiceLinkedRoleRequest
-	14, // 22: vws.iam.v1.RoleService.CreateServiceLinkedRole:input_type -> vws.iam.v1.CreateServiceLinkedRoleRequest
-	0,  // 23: vws.iam.v1.RoleService.GetRole:output_type -> vws.iam.v1.Role
-	5,  // 24: vws.iam.v1.RoleService.ListRoles:output_type -> vws.iam.v1.ListRolesResponse
-	21, // 25: vws.iam.v1.RoleService.CreateRole:output_type -> google.longrunning.Operation
-	21, // 26: vws.iam.v1.RoleService.UpdateRole:output_type -> google.longrunning.Operation
-	21, // 27: vws.iam.v1.RoleService.DeleteRole:output_type -> google.longrunning.Operation
-	21, // 28: vws.iam.v1.RoleService.RevokeRoleSessions:output_type -> google.longrunning.Operation
-	11, // 29: vws.iam.v1.RoleService.PutRolePermissionsBoundary:output_type -> vws.iam.v1.PutRolePermissionsBoundaryResponse
-	13, // 30: vws.iam.v1.RoleService.DeleteServiceLinkedRole:output_type -> vws.iam.v1.DeleteServiceLinkedRoleResponse
-	15, // 31: vws.iam.v1.RoleService.CreateServiceLinkedRole:output_type -> vws.iam.v1.CreateServiceLinkedRoleResponse
-	23, // [23:32] is the sub-list for method output_type
-	14, // [14:23] is the sub-list for method input_type
+	12, // 21: vws.iam.v1.RoleService.DeleteRolePermissionsBoundary:input_type -> vws.iam.v1.DeleteRolePermissionsBoundaryRequest
+	14, // 22: vws.iam.v1.RoleService.DeleteServiceLinkedRole:input_type -> vws.iam.v1.DeleteServiceLinkedRoleRequest
+	16, // 23: vws.iam.v1.RoleService.CreateServiceLinkedRole:input_type -> vws.iam.v1.CreateServiceLinkedRoleRequest
+	0,  // 24: vws.iam.v1.RoleService.GetRole:output_type -> vws.iam.v1.Role
+	5,  // 25: vws.iam.v1.RoleService.ListRoles:output_type -> vws.iam.v1.ListRolesResponse
+	23, // 26: vws.iam.v1.RoleService.CreateRole:output_type -> google.longrunning.Operation
+	23, // 27: vws.iam.v1.RoleService.UpdateRole:output_type -> google.longrunning.Operation
+	23, // 28: vws.iam.v1.RoleService.DeleteRole:output_type -> google.longrunning.Operation
+	23, // 29: vws.iam.v1.RoleService.RevokeRoleSessions:output_type -> google.longrunning.Operation
+	11, // 30: vws.iam.v1.RoleService.PutRolePermissionsBoundary:output_type -> vws.iam.v1.PutRolePermissionsBoundaryResponse
+	13, // 31: vws.iam.v1.RoleService.DeleteRolePermissionsBoundary:output_type -> vws.iam.v1.DeleteRolePermissionsBoundaryResponse
+	15, // 32: vws.iam.v1.RoleService.DeleteServiceLinkedRole:output_type -> vws.iam.v1.DeleteServiceLinkedRoleResponse
+	17, // 33: vws.iam.v1.RoleService.CreateServiceLinkedRole:output_type -> vws.iam.v1.CreateServiceLinkedRoleResponse
+	24, // [24:34] is the sub-list for method output_type
+	14, // [14:24] is the sub-list for method input_type
 	14, // [14:14] is the sub-list for extension type_name
 	14, // [14:14] is the sub-list for extension extendee
 	0,  // [0:14] is the sub-list for field type_name
@@ -1261,7 +1355,7 @@ func file_vws_iam_v1_role_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_role_proto_rawDesc), len(file_vws_iam_v1_role_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
