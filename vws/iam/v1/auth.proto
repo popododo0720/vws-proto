@@ -56,8 +56,9 @@ service AuthService {
 // and verifies that credential itself. A request without one is
 // UNAUTHENTICATED / INVALID_CREDENTIALS. The deprecated caller field is
 // ignored: trusting it would let any client that reaches this service act as
-// any principal (impersonation). AssumeRoleWithSAML is the one exception: it
-// takes no caller credential, and the signed SAML response is the
+// any principal (impersonation). AssumeRoleWithSAML and
+// AssumeRoleWithWebIdentity are the exceptions: they take no caller
+// credential, and the signed SAML response or OIDC ID token is the
 // authentication.
 service TokenService {
   // AssumeRole needs the role's trust policy to allow the caller and the
@@ -132,6 +133,28 @@ service TokenService {
   // credentials, and a repeat with the same unexpired response issues
   // another session, as in AWS.
   rpc AssumeRoleWithSAML(AssumeRoleWithSAMLRequest) returns (AssumeRoleWithSAMLResponse);
+
+  // AssumeRoleWithWebIdentity is AWS STS AssumeRoleWithWebIdentity:
+  // temporary credentials for role_arn from an OIDC ID token (a JWT). No
+  // caller credential: vws-iam verifies the token signature against the
+  // JWKS of the OIDC provider for the token's issuer in the role's project.
+  // Validation errors are on the request fields. A token that is not a
+  // compact JWS, uses an algorithm other than RS256, RS384, RS512, ES256,
+  // ES384 or ES512, has a bad signature, comes from an issuer with no OIDC
+  // provider in the project, has no audience in the provider's client id
+  // list, has a non-integer exp, nbf or iat, or an nbf or iat in the future,
+  // or a request with provider_id, is INVALID_ARGUMENT / INVALID_SPEC
+  // (InvalidIdentityToken). An expired token (exp) is UNAUTHENTICATED /
+  // TOKEN_EXPIRED (ExpiredToken). A provider whose JWKS cannot be fetched is
+  // UNAVAILABLE / RECONCILIATION_FAILED with retryable=true
+  // (IDPCommunicationError). An unknown role, or a trust policy that does
+  // not allow sts:AssumeRoleWithWebIdentity for the Federated provider, is
+  // PERMISSION_DENIED / ACCESS_DENIED (AccessDenied). The session's
+  // permissions are the role's policies, intersected with the session
+  // policies when any are given. Nothing is stored: each call issues new
+  // credentials, and a repeat with the same unexpired token issues another
+  // session, as in AWS.
+  rpc AssumeRoleWithWebIdentity(AssumeRoleWithWebIdentityRequest) returns (AssumeRoleWithWebIdentityResponse);
 }
 
 // Principal is the authenticated caller, as resolved by vws-iam.
@@ -605,4 +628,75 @@ message AssumedRoleUser {
   string assumed_role_id = 1;
   // arn:vws:sts::{project}:assumed-role/{role}/{session}.
   string arn = 2;
+}
+
+message AssumeRoleWithWebIdentityRequest {
+  // AWS RoleArn, arn:vws:iam::{project}:role{path}{role}, 20-2048
+  // characters. A wrong length is INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError).
+  string role_arn = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS RoleSessionName, 2-64 characters of [\w+=,.@-]. Otherwise
+  // INVALID_ARGUMENT / INVALID_SPEC (ValidationError).
+  string role_session_name = 2 [(google.api.field_behavior) = REQUIRED];
+  // AWS WebIdentityToken: the OIDC ID token, 4-20000 characters. A wrong
+  // length is INVALID_ARGUMENT / INVALID_SPEC (ValidationError). A bearer
+  // credential: never log it.
+  string web_identity_token = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
+  // AWS ProviderId, 4-2048 characters, only for OAuth 2.0 access tokens
+  // (www.amazon.com, graph.facebook.com). Empty means an OIDC ID token. A
+  // wrong length is INVALID_ARGUMENT / INVALID_SPEC (ValidationError); any
+  // other non-empty value is INVALID_ARGUMENT / INVALID_SPEC
+  // (InvalidIdentityToken), because VWS accepts only OIDC ID tokens.
+  string provider_id = 4;
+  // 900 to 43200, and not above the role's max_session_duration_seconds.
+  // Zero means 3600. Otherwise INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError).
+  int32 duration_seconds = 5;
+  // AWS Policy: inline session policy JSON, 1-2048 characters of
+  // [\u0009\u000A\u000D\u0020-\u00FF]. Empty means none. More than 2048
+  // characters, or another character, is INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError); a document that does not parse is INVALID_ARGUMENT /
+  // INVALID_SPEC (MalformedPolicyDocument). Do not log it.
+  string policy = 6 [
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
+  // AWS PolicyArns.member.N.arn: at most 10, each 20-2048 characters, each a
+  // managed policy of the role's project. More than 10 or a wrong length is
+  // INVALID_ARGUMENT / INVALID_SPEC (ValidationError); an ARN that is not an
+  // existing managed policy of the project is INVALID_ARGUMENT /
+  // INVALID_SPEC (MalformedPolicyDocument). When policy and each entry pass
+  // their own limits, the plaintext of policy plus every policy_arns entry
+  // over 2048 characters in total is INVALID_ARGUMENT / INVALID_SPEC
+  // (PackedPolicyTooLarge).
+  repeated string policy_arns = 7;
+  // Client IP of the current request, set by the gateway (console-api) from
+  // the connection it observed, never from a client-supplied value. Kept for
+  // aws:SourceIp in the trust policy. Empty means unknown: the key is absent.
+  string source_ip = 8;
+}
+
+message AssumeRoleWithWebIdentityResponse {
+  Credentials credentials = 1;
+  // arn arn:vws:sts::{project}:assumed-role/{role}/{session} and
+  // assumed_role_id {role id}:{session}, where {session} is
+  // role_session_name.
+  AssumedRoleUser assumed_role_user = 2;
+  // AWS PackedPolicySize: percentage (0-100) of the 2048-character session
+  // policy limit that the plaintext of policy and policy_arns uses.
+  int32 packed_policy_size = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS Audience: the token's azp claim, else its aud claim.
+  string audience = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS Provider: the token's iss claim.
+  string provider = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS SubjectFromWebIdentityToken: the token's sub claim.
+  string subject_from_web_identity_token = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // AWS SourceIdentity, from the token's
+  // https://aws.amazon.com/source_identity claim. Empty when the token has
+  // none.
+  string source_identity = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
