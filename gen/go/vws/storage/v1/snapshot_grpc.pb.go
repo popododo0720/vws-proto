@@ -20,12 +20,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SnapshotService_GetSnapshot_FullMethodName          = "/vws.storage.v1.SnapshotService/GetSnapshot"
-	SnapshotService_ListSnapshots_FullMethodName        = "/vws.storage.v1.SnapshotService/ListSnapshots"
-	SnapshotService_CreateSnapshot_FullMethodName       = "/vws.storage.v1.SnapshotService/CreateSnapshot"
-	SnapshotService_UpdateSnapshot_FullMethodName       = "/vws.storage.v1.SnapshotService/UpdateSnapshot"
-	SnapshotService_DeleteSnapshot_FullMethodName       = "/vws.storage.v1.SnapshotService/DeleteSnapshot"
-	SnapshotService_ReportSnapshotStatus_FullMethodName = "/vws.storage.v1.SnapshotService/ReportSnapshotStatus"
+	SnapshotService_GetSnapshot_FullMethodName                  = "/vws.storage.v1.SnapshotService/GetSnapshot"
+	SnapshotService_ListSnapshots_FullMethodName                = "/vws.storage.v1.SnapshotService/ListSnapshots"
+	SnapshotService_CreateSnapshot_FullMethodName               = "/vws.storage.v1.SnapshotService/CreateSnapshot"
+	SnapshotService_UpdateSnapshot_FullMethodName               = "/vws.storage.v1.SnapshotService/UpdateSnapshot"
+	SnapshotService_DeleteSnapshot_FullMethodName               = "/vws.storage.v1.SnapshotService/DeleteSnapshot"
+	SnapshotService_ModifyCreateVolumePermission_FullMethodName = "/vws.storage.v1.SnapshotService/ModifyCreateVolumePermission"
+	SnapshotService_GetCreateVolumePermission_FullMethodName    = "/vws.storage.v1.SnapshotService/GetCreateVolumePermission"
+	SnapshotService_ReportSnapshotStatus_FullMethodName         = "/vws.storage.v1.SnapshotService/ReportSnapshotStatus"
 )
 
 // SnapshotServiceClient is the client API for SnapshotService service.
@@ -52,6 +54,19 @@ type SnapshotServiceClient interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	DeleteSnapshot(ctx context.Context, in *DeleteSnapshotRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	// ModifyCreateVolumePermission is EC2 ModifySnapshotAttribute with
+	// Attribute=createVolumePermission. It adds and removes the projects and the
+	// public group that may create volumes from this snapshot.
+	// Only the owning project may call it. There is nothing for a node to
+	// reconcile: the server stores the change and returns a done operation
+	// whose response is the permission after the change. A re-run with the same
+	// entries reaches the same permission. Rules and errors: docs/validation.md.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ModifyCreateVolumePermission(ctx context.Context, in *ModifyCreateVolumePermissionRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	// GetCreateVolumePermission is EC2 DescribeSnapshotAttribute with
+	// Attribute=createVolumePermission. Only the owning project may call it.
+	GetCreateVolumePermission(ctx context.Context, in *GetCreateVolumePermissionRequest, opts ...grpc.CallOption) (*GetCreateVolumePermissionResponse, error)
 	// ReportSnapshotStatus is the node reconcile write.
 	ReportSnapshotStatus(ctx context.Context, in *ReportSnapshotStatusRequest, opts ...grpc.CallOption) (*ReportSnapshotStatusResponse, error)
 }
@@ -114,6 +129,26 @@ func (c *snapshotServiceClient) DeleteSnapshot(ctx context.Context, in *DeleteSn
 	return out, nil
 }
 
+func (c *snapshotServiceClient) ModifyCreateVolumePermission(ctx context.Context, in *ModifyCreateVolumePermissionRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, SnapshotService_ModifyCreateVolumePermission_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *snapshotServiceClient) GetCreateVolumePermission(ctx context.Context, in *GetCreateVolumePermissionRequest, opts ...grpc.CallOption) (*GetCreateVolumePermissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCreateVolumePermissionResponse)
+	err := c.cc.Invoke(ctx, SnapshotService_GetCreateVolumePermission_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *snapshotServiceClient) ReportSnapshotStatus(ctx context.Context, in *ReportSnapshotStatusRequest, opts ...grpc.CallOption) (*ReportSnapshotStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ReportSnapshotStatusResponse)
@@ -148,6 +183,19 @@ type SnapshotServiceServer interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	DeleteSnapshot(context.Context, *DeleteSnapshotRequest) (*longrunningpb.Operation, error)
+	// ModifyCreateVolumePermission is EC2 ModifySnapshotAttribute with
+	// Attribute=createVolumePermission. It adds and removes the projects and the
+	// public group that may create volumes from this snapshot.
+	// Only the owning project may call it. There is nothing for a node to
+	// reconcile: the server stores the change and returns a done operation
+	// whose response is the permission after the change. A re-run with the same
+	// entries reaches the same permission. Rules and errors: docs/validation.md.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ModifyCreateVolumePermission(context.Context, *ModifyCreateVolumePermissionRequest) (*longrunningpb.Operation, error)
+	// GetCreateVolumePermission is EC2 DescribeSnapshotAttribute with
+	// Attribute=createVolumePermission. Only the owning project may call it.
+	GetCreateVolumePermission(context.Context, *GetCreateVolumePermissionRequest) (*GetCreateVolumePermissionResponse, error)
 	// ReportSnapshotStatus is the node reconcile write.
 	ReportSnapshotStatus(context.Context, *ReportSnapshotStatusRequest) (*ReportSnapshotStatusResponse, error)
 	mustEmbedUnimplementedSnapshotServiceServer()
@@ -174,6 +222,12 @@ func (UnimplementedSnapshotServiceServer) UpdateSnapshot(context.Context, *Updat
 }
 func (UnimplementedSnapshotServiceServer) DeleteSnapshot(context.Context, *DeleteSnapshotRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteSnapshot not implemented")
+}
+func (UnimplementedSnapshotServiceServer) ModifyCreateVolumePermission(context.Context, *ModifyCreateVolumePermissionRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method ModifyCreateVolumePermission not implemented")
+}
+func (UnimplementedSnapshotServiceServer) GetCreateVolumePermission(context.Context, *GetCreateVolumePermissionRequest) (*GetCreateVolumePermissionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCreateVolumePermission not implemented")
 }
 func (UnimplementedSnapshotServiceServer) ReportSnapshotStatus(context.Context, *ReportSnapshotStatusRequest) (*ReportSnapshotStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportSnapshotStatus not implemented")
@@ -289,6 +343,42 @@ func _SnapshotService_DeleteSnapshot_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SnapshotService_ModifyCreateVolumePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ModifyCreateVolumePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SnapshotServiceServer).ModifyCreateVolumePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SnapshotService_ModifyCreateVolumePermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SnapshotServiceServer).ModifyCreateVolumePermission(ctx, req.(*ModifyCreateVolumePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SnapshotService_GetCreateVolumePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCreateVolumePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SnapshotServiceServer).GetCreateVolumePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SnapshotService_GetCreateVolumePermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SnapshotServiceServer).GetCreateVolumePermission(ctx, req.(*GetCreateVolumePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SnapshotService_ReportSnapshotStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReportSnapshotStatusRequest)
 	if err := dec(in); err != nil {
@@ -333,6 +423,14 @@ var SnapshotService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteSnapshot",
 			Handler:    _SnapshotService_DeleteSnapshot_Handler,
+		},
+		{
+			MethodName: "ModifyCreateVolumePermission",
+			Handler:    _SnapshotService_ModifyCreateVolumePermission_Handler,
+		},
+		{
+			MethodName: "GetCreateVolumePermission",
+			Handler:    _SnapshotService_GetCreateVolumePermission_Handler,
 		},
 		{
 			MethodName: "ReportSnapshotStatus",

@@ -69,6 +69,32 @@ service SnapshotService {
     };
   }
 
+  // ModifyCreateVolumePermission is EC2 ModifySnapshotAttribute with
+  // Attribute=createVolumePermission. It adds and removes the projects and the
+  // public group that may create volumes from this snapshot.
+  // Only the owning project may call it. There is nothing for a node to
+  // reconcile: the server stores the change and returns a done operation
+  // whose response is the permission after the change. A re-run with the same
+  // entries reaches the same permission. Rules and errors: docs/validation.md.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc ModifyCreateVolumePermission(ModifyCreateVolumePermissionRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/regions/*/snapshots/*}:modifyCreateVolumePermission"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.storage.v1.CreateVolumePermission"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // GetCreateVolumePermission is EC2 DescribeSnapshotAttribute with
+  // Attribute=createVolumePermission. Only the owning project may call it.
+  rpc GetCreateVolumePermission(GetCreateVolumePermissionRequest) returns (GetCreateVolumePermissionResponse) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/regions/*/snapshots/*}:getCreateVolumePermission"};
+  }
+
   // ReportSnapshotStatus is the node reconcile write.
   rpc ReportSnapshotStatus(ReportSnapshotStatusRequest) returns (ReportSnapshotStatusResponse) {
     option (google.api.http) = {
@@ -199,4 +225,45 @@ message ReportSnapshotStatusRequest {
 
 message ReportSnapshotStatusResponse {
   Snapshot snapshot = 1;
+}
+
+// CreateVolumePermission lists who, besides the owning project, may create a
+// volume or image from a snapshot (EC2 createVolumePermission). The owning
+// project always may and is never listed. It is not part of spec: a change
+// does not change generation and nodes do not reconcile it. A new snapshot
+// has an empty permission. Deleting the snapshot deletes it. Removing a grant
+// does not change volumes or images already created from the snapshot.
+message CreateVolumePermission {
+  // Granted projects as `projects/{project}` (EC2 UserId; a project is an
+  // AWS account). Unique and sorted by project id in responses.
+  repeated string projects = 1;
+  // EC2 Group=all: every project may use the snapshot.
+  bool all = 2;
+}
+
+message ModifyCreateVolumePermissionRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.storage/Snapshot"
+  ];
+  // Entries to grant. Granting an entry already granted is a no-op.
+  CreateVolumePermission add = 2 [(google.api.field_behavior) = OPTIONAL];
+  // Entries to revoke. Revoking an entry not granted is a no-op.
+  CreateVolumePermission remove = 3 [(google.api.field_behavior) = OPTIONAL];
+  string request_id = 4 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message GetCreateVolumePermissionRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.storage/Snapshot"
+  ];
+}
+
+message GetCreateVolumePermissionResponse {
+  CreateVolumePermission create_volume_permission = 1;
 }

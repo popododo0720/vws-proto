@@ -751,6 +751,233 @@ func (x *ReportSnapshotStatusResponse) GetSnapshot() *Snapshot {
 	return nil
 }
 
+// CreateVolumePermission lists who, besides the owning project, may create a
+// volume or image from a snapshot (EC2 createVolumePermission). The owning
+// project always may and is never listed. It is not part of spec: a change
+// does not change generation and nodes do not reconcile it. A new snapshot
+// has an empty permission. Deleting the snapshot deletes it. Removing a grant
+// does not change volumes or images already created from the snapshot.
+type CreateVolumePermission struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Granted projects as `projects/{project}` (EC2 UserId; a project is an
+	// AWS account). Unique and sorted by project id in responses.
+	Projects []string `protobuf:"bytes,1,rep,name=projects,proto3" json:"projects,omitempty"`
+	// EC2 Group=all: every project may use the snapshot.
+	All           bool `protobuf:"varint,2,opt,name=all,proto3" json:"all,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateVolumePermission) Reset() {
+	*x = CreateVolumePermission{}
+	mi := &file_vws_storage_v1_snapshot_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateVolumePermission) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateVolumePermission) ProtoMessage() {}
+
+func (x *CreateVolumePermission) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_storage_v1_snapshot_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateVolumePermission.ProtoReflect.Descriptor instead.
+func (*CreateVolumePermission) Descriptor() ([]byte, []int) {
+	return file_vws_storage_v1_snapshot_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *CreateVolumePermission) GetProjects() []string {
+	if x != nil {
+		return x.Projects
+	}
+	return nil
+}
+
+func (x *CreateVolumePermission) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
+}
+
+type ModifyCreateVolumePermissionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Entries to grant. Granting an entry already granted is a no-op.
+	Add *CreateVolumePermission `protobuf:"bytes,2,opt,name=add,proto3" json:"add,omitempty"`
+	// Entries to revoke. Revoking an entry not granted is a no-op.
+	Remove        *CreateVolumePermission `protobuf:"bytes,3,opt,name=remove,proto3" json:"remove,omitempty"`
+	RequestId     string                  `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly  bool                    `protobuf:"varint,5,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ModifyCreateVolumePermissionRequest) Reset() {
+	*x = ModifyCreateVolumePermissionRequest{}
+	mi := &file_vws_storage_v1_snapshot_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ModifyCreateVolumePermissionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModifyCreateVolumePermissionRequest) ProtoMessage() {}
+
+func (x *ModifyCreateVolumePermissionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_storage_v1_snapshot_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModifyCreateVolumePermissionRequest.ProtoReflect.Descriptor instead.
+func (*ModifyCreateVolumePermissionRequest) Descriptor() ([]byte, []int) {
+	return file_vws_storage_v1_snapshot_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ModifyCreateVolumePermissionRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ModifyCreateVolumePermissionRequest) GetAdd() *CreateVolumePermission {
+	if x != nil {
+		return x.Add
+	}
+	return nil
+}
+
+func (x *ModifyCreateVolumePermissionRequest) GetRemove() *CreateVolumePermission {
+	if x != nil {
+		return x.Remove
+	}
+	return nil
+}
+
+func (x *ModifyCreateVolumePermissionRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *ModifyCreateVolumePermissionRequest) GetValidateOnly() bool {
+	if x != nil {
+		return x.ValidateOnly
+	}
+	return false
+}
+
+type GetCreateVolumePermissionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCreateVolumePermissionRequest) Reset() {
+	*x = GetCreateVolumePermissionRequest{}
+	mi := &file_vws_storage_v1_snapshot_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCreateVolumePermissionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCreateVolumePermissionRequest) ProtoMessage() {}
+
+func (x *GetCreateVolumePermissionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_storage_v1_snapshot_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCreateVolumePermissionRequest.ProtoReflect.Descriptor instead.
+func (*GetCreateVolumePermissionRequest) Descriptor() ([]byte, []int) {
+	return file_vws_storage_v1_snapshot_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetCreateVolumePermissionRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetCreateVolumePermissionResponse struct {
+	state                  protoimpl.MessageState  `protogen:"open.v1"`
+	CreateVolumePermission *CreateVolumePermission `protobuf:"bytes,1,opt,name=create_volume_permission,json=createVolumePermission,proto3" json:"create_volume_permission,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *GetCreateVolumePermissionResponse) Reset() {
+	*x = GetCreateVolumePermissionResponse{}
+	mi := &file_vws_storage_v1_snapshot_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCreateVolumePermissionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCreateVolumePermissionResponse) ProtoMessage() {}
+
+func (x *GetCreateVolumePermissionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_storage_v1_snapshot_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCreateVolumePermissionResponse.ProtoReflect.Descriptor instead.
+func (*GetCreateVolumePermissionResponse) Descriptor() ([]byte, []int) {
+	return file_vws_storage_v1_snapshot_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetCreateVolumePermissionResponse) GetCreateVolumePermission() *CreateVolumePermission {
+	if x != nil {
+		return x.CreateVolumePermission
+	}
+	return nil
+}
+
 var File_vws_storage_v1_snapshot_proto protoreflect.FileDescriptor
 
 const file_vws_storage_v1_snapshot_proto_rawDesc = "" +
@@ -827,7 +1054,23 @@ const file_vws_storage_v1_snapshot_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"T\n" +
 	"\x1cReportSnapshotStatusResponse\x124\n" +
-	"\bsnapshot\x18\x01 \x01(\v2\x18.vws.storage.v1.SnapshotR\bsnapshot2\xe0\b\n" +
+	"\bsnapshot\x18\x01 \x01(\v2\x18.vws.storage.v1.SnapshotR\bsnapshot\"F\n" +
+	"\x16CreateVolumePermission\x12\x1a\n" +
+	"\bprojects\x18\x01 \x03(\tR\bprojects\x12\x10\n" +
+	"\x03all\x18\x02 \x01(\bR\x03all\"\xb1\x02\n" +
+	"#ModifyCreateVolumePermissionRequest\x120\n" +
+	"\x04name\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\n" +
+	"\x14vws.storage/SnapshotR\x04name\x12=\n" +
+	"\x03add\x18\x02 \x01(\v2&.vws.storage.v1.CreateVolumePermissionB\x03\xe0A\x01R\x03add\x12C\n" +
+	"\x06remove\x18\x03 \x01(\v2&.vws.storage.v1.CreateVolumePermissionB\x03\xe0A\x01R\x06remove\x12*\n" +
+	"\n" +
+	"request_id\x18\x04 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
+	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"T\n" +
+	" GetCreateVolumePermissionRequest\x120\n" +
+	"\x04name\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\n" +
+	"\x14vws.storage/SnapshotR\x04name\"\x85\x01\n" +
+	"!GetCreateVolumePermissionResponse\x12`\n" +
+	"\x18create_volume_permission\x18\x01 \x01(\v2&.vws.storage.v1.CreateVolumePermissionR\x16createVolumePermission2\xc8\f\n" +
 	"\x0fSnapshotService\x12\x80\x01\n" +
 	"\vGetSnapshot\x12\".vws.storage.v1.GetSnapshotRequest\x1a\x18.vws.storage.v1.Snapshot\"3\x82\xd3\xe4\x93\x02-\x12+/v1/{name=projects/*/regions/*/snapshots/*}\x12\x91\x01\n" +
 	"\rListSnapshots\x12$.vws.storage.v1.ListSnapshotsRequest\x1a%.vws.storage.v1.ListSnapshotsResponse\"3\x82\xd3\xe4\x93\x02-\x12+/v1/{parent=projects/*/regions/*}/snapshots\x12\xd2\x01\n" +
@@ -836,7 +1079,10 @@ const file_vws_storage_v1_snapshot_proto_rawDesc = "" +
 	"\x0eUpdateSnapshot\x12%.vws.storage.v1.UpdateSnapshotRequest\x1a\x1d.google.longrunning.Operation\"\x83\x01\xcaA:\n" +
 	"\x17vws.storage.v1.Snapshot\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02@:\bsnapshot24/v1/{snapshot.name=projects/*/regions/*/snapshots/*}\x12\xc8\x01\n" +
 	"\x0eDeleteSnapshot\x12%.vws.storage.v1.DeleteSnapshotRequest\x1a\x1d.google.longrunning.Operation\"p\xcaA:\n" +
-	"\x17vws.storage.v1.Snapshot\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02-*+/v1/{name=projects/*/regions/*/snapshots/*}\x12\xb6\x01\n" +
+	"\x17vws.storage.v1.Snapshot\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02-*+/v1/{name=projects/*/regions/*/snapshots/*}\x12\x93\x02\n" +
+	"\x1cModifyCreateVolumePermission\x123.vws.storage.v1.ModifyCreateVolumePermissionRequest\x1a\x1d.google.longrunning.Operation\"\x9e\x01\xcaAH\n" +
+	"%vws.storage.v1.CreateVolumePermission\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02M:\x01*\"H/v1/{name=projects/*/regions/*/snapshots/*}:modifyCreateVolumePermission\x12\xcf\x01\n" +
+	"\x19GetCreateVolumePermission\x120.vws.storage.v1.GetCreateVolumePermissionRequest\x1a1.vws.storage.v1.GetCreateVolumePermissionResponse\"M\x82\xd3\xe4\x93\x02G\x12E/v1/{name=projects/*/regions/*/snapshots/*}:getCreateVolumePermission\x12\xb6\x01\n" +
 	"\x14ReportSnapshotStatus\x12+.vws.storage.v1.ReportSnapshotStatusRequest\x1a,.vws.storage.v1.ReportSnapshotStatusResponse\"C\x82\xd3\xe4\x93\x02=:\x01*\"8/v1/{name=projects/*/regions/*/snapshots/*}:reportStatusBh\n" +
 	"\x12dev.vws.storage.v1B\rSnapshotProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/storage/v1;storagev1b\x06proto3"
 
@@ -852,56 +1098,67 @@ func file_vws_storage_v1_snapshot_proto_rawDescGZIP() []byte {
 	return file_vws_storage_v1_snapshot_proto_rawDescData
 }
 
-var file_vws_storage_v1_snapshot_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_vws_storage_v1_snapshot_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_vws_storage_v1_snapshot_proto_goTypes = []any{
-	(*Snapshot)(nil),                     // 0: vws.storage.v1.Snapshot
-	(*SnapshotSpec)(nil),                 // 1: vws.storage.v1.SnapshotSpec
-	(*SnapshotStatus)(nil),               // 2: vws.storage.v1.SnapshotStatus
-	(*GetSnapshotRequest)(nil),           // 3: vws.storage.v1.GetSnapshotRequest
-	(*ListSnapshotsRequest)(nil),         // 4: vws.storage.v1.ListSnapshotsRequest
-	(*ListSnapshotsResponse)(nil),        // 5: vws.storage.v1.ListSnapshotsResponse
-	(*CreateSnapshotRequest)(nil),        // 6: vws.storage.v1.CreateSnapshotRequest
-	(*UpdateSnapshotRequest)(nil),        // 7: vws.storage.v1.UpdateSnapshotRequest
-	(*DeleteSnapshotRequest)(nil),        // 8: vws.storage.v1.DeleteSnapshotRequest
-	(*ReportSnapshotStatusRequest)(nil),  // 9: vws.storage.v1.ReportSnapshotStatusRequest
-	(*ReportSnapshotStatusResponse)(nil), // 10: vws.storage.v1.ReportSnapshotStatusResponse
-	nil,                                  // 11: vws.storage.v1.Snapshot.LabelsEntry
-	(*timestamppb.Timestamp)(nil),        // 12: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),             // 13: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),        // 14: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),      // 15: google.longrunning.Operation
+	(*Snapshot)(nil),                            // 0: vws.storage.v1.Snapshot
+	(*SnapshotSpec)(nil),                        // 1: vws.storage.v1.SnapshotSpec
+	(*SnapshotStatus)(nil),                      // 2: vws.storage.v1.SnapshotStatus
+	(*GetSnapshotRequest)(nil),                  // 3: vws.storage.v1.GetSnapshotRequest
+	(*ListSnapshotsRequest)(nil),                // 4: vws.storage.v1.ListSnapshotsRequest
+	(*ListSnapshotsResponse)(nil),               // 5: vws.storage.v1.ListSnapshotsResponse
+	(*CreateSnapshotRequest)(nil),               // 6: vws.storage.v1.CreateSnapshotRequest
+	(*UpdateSnapshotRequest)(nil),               // 7: vws.storage.v1.UpdateSnapshotRequest
+	(*DeleteSnapshotRequest)(nil),               // 8: vws.storage.v1.DeleteSnapshotRequest
+	(*ReportSnapshotStatusRequest)(nil),         // 9: vws.storage.v1.ReportSnapshotStatusRequest
+	(*ReportSnapshotStatusResponse)(nil),        // 10: vws.storage.v1.ReportSnapshotStatusResponse
+	(*CreateVolumePermission)(nil),              // 11: vws.storage.v1.CreateVolumePermission
+	(*ModifyCreateVolumePermissionRequest)(nil), // 12: vws.storage.v1.ModifyCreateVolumePermissionRequest
+	(*GetCreateVolumePermissionRequest)(nil),    // 13: vws.storage.v1.GetCreateVolumePermissionRequest
+	(*GetCreateVolumePermissionResponse)(nil),   // 14: vws.storage.v1.GetCreateVolumePermissionResponse
+	nil,                             // 15: vws.storage.v1.Snapshot.LabelsEntry
+	(*timestamppb.Timestamp)(nil),   // 16: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),        // 17: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),   // 18: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil), // 19: google.longrunning.Operation
 }
 var file_vws_storage_v1_snapshot_proto_depIdxs = []int32{
-	11, // 0: vws.storage.v1.Snapshot.labels:type_name -> vws.storage.v1.Snapshot.LabelsEntry
+	15, // 0: vws.storage.v1.Snapshot.labels:type_name -> vws.storage.v1.Snapshot.LabelsEntry
 	1,  // 1: vws.storage.v1.Snapshot.spec:type_name -> vws.storage.v1.SnapshotSpec
 	2,  // 2: vws.storage.v1.Snapshot.status:type_name -> vws.storage.v1.SnapshotStatus
-	12, // 3: vws.storage.v1.Snapshot.create_time:type_name -> google.protobuf.Timestamp
-	12, // 4: vws.storage.v1.Snapshot.update_time:type_name -> google.protobuf.Timestamp
-	12, // 5: vws.storage.v1.Snapshot.delete_time:type_name -> google.protobuf.Timestamp
-	13, // 6: vws.storage.v1.SnapshotStatus.observed:type_name -> vws.common.v1.ObservedState
+	16, // 3: vws.storage.v1.Snapshot.create_time:type_name -> google.protobuf.Timestamp
+	16, // 4: vws.storage.v1.Snapshot.update_time:type_name -> google.protobuf.Timestamp
+	16, // 5: vws.storage.v1.Snapshot.delete_time:type_name -> google.protobuf.Timestamp
+	17, // 6: vws.storage.v1.SnapshotStatus.observed:type_name -> vws.common.v1.ObservedState
 	0,  // 7: vws.storage.v1.ListSnapshotsResponse.snapshots:type_name -> vws.storage.v1.Snapshot
 	0,  // 8: vws.storage.v1.CreateSnapshotRequest.snapshot:type_name -> vws.storage.v1.Snapshot
 	0,  // 9: vws.storage.v1.UpdateSnapshotRequest.snapshot:type_name -> vws.storage.v1.Snapshot
-	14, // 10: vws.storage.v1.UpdateSnapshotRequest.update_mask:type_name -> google.protobuf.FieldMask
+	18, // 10: vws.storage.v1.UpdateSnapshotRequest.update_mask:type_name -> google.protobuf.FieldMask
 	2,  // 11: vws.storage.v1.ReportSnapshotStatusRequest.status:type_name -> vws.storage.v1.SnapshotStatus
 	0,  // 12: vws.storage.v1.ReportSnapshotStatusResponse.snapshot:type_name -> vws.storage.v1.Snapshot
-	3,  // 13: vws.storage.v1.SnapshotService.GetSnapshot:input_type -> vws.storage.v1.GetSnapshotRequest
-	4,  // 14: vws.storage.v1.SnapshotService.ListSnapshots:input_type -> vws.storage.v1.ListSnapshotsRequest
-	6,  // 15: vws.storage.v1.SnapshotService.CreateSnapshot:input_type -> vws.storage.v1.CreateSnapshotRequest
-	7,  // 16: vws.storage.v1.SnapshotService.UpdateSnapshot:input_type -> vws.storage.v1.UpdateSnapshotRequest
-	8,  // 17: vws.storage.v1.SnapshotService.DeleteSnapshot:input_type -> vws.storage.v1.DeleteSnapshotRequest
-	9,  // 18: vws.storage.v1.SnapshotService.ReportSnapshotStatus:input_type -> vws.storage.v1.ReportSnapshotStatusRequest
-	0,  // 19: vws.storage.v1.SnapshotService.GetSnapshot:output_type -> vws.storage.v1.Snapshot
-	5,  // 20: vws.storage.v1.SnapshotService.ListSnapshots:output_type -> vws.storage.v1.ListSnapshotsResponse
-	15, // 21: vws.storage.v1.SnapshotService.CreateSnapshot:output_type -> google.longrunning.Operation
-	15, // 22: vws.storage.v1.SnapshotService.UpdateSnapshot:output_type -> google.longrunning.Operation
-	15, // 23: vws.storage.v1.SnapshotService.DeleteSnapshot:output_type -> google.longrunning.Operation
-	10, // 24: vws.storage.v1.SnapshotService.ReportSnapshotStatus:output_type -> vws.storage.v1.ReportSnapshotStatusResponse
-	19, // [19:25] is the sub-list for method output_type
-	13, // [13:19] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	11, // 13: vws.storage.v1.ModifyCreateVolumePermissionRequest.add:type_name -> vws.storage.v1.CreateVolumePermission
+	11, // 14: vws.storage.v1.ModifyCreateVolumePermissionRequest.remove:type_name -> vws.storage.v1.CreateVolumePermission
+	11, // 15: vws.storage.v1.GetCreateVolumePermissionResponse.create_volume_permission:type_name -> vws.storage.v1.CreateVolumePermission
+	3,  // 16: vws.storage.v1.SnapshotService.GetSnapshot:input_type -> vws.storage.v1.GetSnapshotRequest
+	4,  // 17: vws.storage.v1.SnapshotService.ListSnapshots:input_type -> vws.storage.v1.ListSnapshotsRequest
+	6,  // 18: vws.storage.v1.SnapshotService.CreateSnapshot:input_type -> vws.storage.v1.CreateSnapshotRequest
+	7,  // 19: vws.storage.v1.SnapshotService.UpdateSnapshot:input_type -> vws.storage.v1.UpdateSnapshotRequest
+	8,  // 20: vws.storage.v1.SnapshotService.DeleteSnapshot:input_type -> vws.storage.v1.DeleteSnapshotRequest
+	12, // 21: vws.storage.v1.SnapshotService.ModifyCreateVolumePermission:input_type -> vws.storage.v1.ModifyCreateVolumePermissionRequest
+	13, // 22: vws.storage.v1.SnapshotService.GetCreateVolumePermission:input_type -> vws.storage.v1.GetCreateVolumePermissionRequest
+	9,  // 23: vws.storage.v1.SnapshotService.ReportSnapshotStatus:input_type -> vws.storage.v1.ReportSnapshotStatusRequest
+	0,  // 24: vws.storage.v1.SnapshotService.GetSnapshot:output_type -> vws.storage.v1.Snapshot
+	5,  // 25: vws.storage.v1.SnapshotService.ListSnapshots:output_type -> vws.storage.v1.ListSnapshotsResponse
+	19, // 26: vws.storage.v1.SnapshotService.CreateSnapshot:output_type -> google.longrunning.Operation
+	19, // 27: vws.storage.v1.SnapshotService.UpdateSnapshot:output_type -> google.longrunning.Operation
+	19, // 28: vws.storage.v1.SnapshotService.DeleteSnapshot:output_type -> google.longrunning.Operation
+	19, // 29: vws.storage.v1.SnapshotService.ModifyCreateVolumePermission:output_type -> google.longrunning.Operation
+	14, // 30: vws.storage.v1.SnapshotService.GetCreateVolumePermission:output_type -> vws.storage.v1.GetCreateVolumePermissionResponse
+	10, // 31: vws.storage.v1.SnapshotService.ReportSnapshotStatus:output_type -> vws.storage.v1.ReportSnapshotStatusResponse
+	24, // [24:32] is the sub-list for method output_type
+	16, // [16:24] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_vws_storage_v1_snapshot_proto_init() }
@@ -915,7 +1172,7 @@ func file_vws_storage_v1_snapshot_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_storage_v1_snapshot_proto_rawDesc), len(file_vws_storage_v1_snapshot_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
