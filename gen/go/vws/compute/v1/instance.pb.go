@@ -293,7 +293,12 @@ type InstanceSpec struct {
 	// At most one of user_data and user_data_raw is set; both set is
 	// INVALID_ARGUMENT / INVALID_SPEC. When set, the node delivers these bytes
 	// instead of user_data.
-	UserDataRaw   []byte `protobuf:"bytes,7,opt,name=user_data_raw,json=userDataRaw,proto3" json:"user_data_raw,omitempty"`
+	UserDataRaw []byte `protobuf:"bytes,7,opt,name=user_data_raw,json=userDataRaw,proto3" json:"user_data_raw,omitempty"`
+	// Reboot requests accepted for this instance. Starts at 0. Only
+	// RebootInstance increments it; UpdateInstance ignores client values and
+	// keeps the stored one, so an update never reboots. The vws-compute node
+	// agent reboots the guest when it is greater than status.reboot_count.
+	RebootCount   int64 `protobuf:"varint,8,opt,name=reboot_count,json=rebootCount,proto3" json:"reboot_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -375,6 +380,13 @@ func (x *InstanceSpec) GetUserDataRaw() []byte {
 		return x.UserDataRaw
 	}
 	return nil
+}
+
+func (x *InstanceSpec) GetRebootCount() int64 {
+	if x != nil {
+		return x.RebootCount
+	}
+	return 0
 }
 
 type NetworkInterface struct {
@@ -544,7 +556,14 @@ type InstanceStatus struct {
 	// from spec.volumes or from the volume's status.instance, which are set
 	// before hot-plug finishes. An entry missing for a spec volume means the
 	// node has not started the attach yet (report it as attaching).
-	Volumes       []*ObservedVolumeAttachment `protobuf:"bytes,5,rep,name=volumes,proto3" json:"volumes,omitempty"`
+	Volumes []*ObservedVolumeAttachment `protobuf:"bytes,5,rep,name=volumes,proto3" json:"volumes,omitempty"`
+	// spec.reboot_count of the last reboot the node finished. The vws-compute
+	// node agent writes it after the guest reboots, and on restart compares it
+	// with spec.reboot_count to decide whether a reboot is still owed. A stop,
+	// or a start from stopped, also covers a pending reboot: the node reports
+	// spec.reboot_count without a second reboot. A value greater than
+	// spec.reboot_count is INVALID_ARGUMENT / INVALID_SPEC.
+	RebootCount   int64 `protobuf:"varint,6,opt,name=reboot_count,json=rebootCount,proto3" json:"reboot_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -605,6 +624,13 @@ func (x *InstanceStatus) GetVolumes() []*ObservedVolumeAttachment {
 		return x.Volumes
 	}
 	return nil
+}
+
+func (x *InstanceStatus) GetRebootCount() int64 {
+	if x != nil {
+		return x.RebootCount
+	}
+	return 0
 }
 
 // ObservedVolumeAttachment is the node's view of one volume on this instance.
@@ -1141,6 +1167,67 @@ func (x *DeleteInstanceRequest) GetEtag() string {
 	return ""
 }
 
+type RebootInstanceRequest struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Name      string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	RequestId string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// When set, must match the stored etag.
+	Etag          string `protobuf:"bytes,3,opt,name=etag,proto3" json:"etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RebootInstanceRequest) Reset() {
+	*x = RebootInstanceRequest{}
+	mi := &file_vws_compute_v1_instance_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RebootInstanceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RebootInstanceRequest) ProtoMessage() {}
+
+func (x *RebootInstanceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_compute_v1_instance_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RebootInstanceRequest.ProtoReflect.Descriptor instead.
+func (*RebootInstanceRequest) Descriptor() ([]byte, []int) {
+	return file_vws_compute_v1_instance_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *RebootInstanceRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *RebootInstanceRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *RebootInstanceRequest) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
 type ReportInstanceStatusRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Name   string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -1153,7 +1240,7 @@ type ReportInstanceStatusRequest struct {
 
 func (x *ReportInstanceStatusRequest) Reset() {
 	*x = ReportInstanceStatusRequest{}
-	mi := &file_vws_compute_v1_instance_proto_msgTypes[13]
+	mi := &file_vws_compute_v1_instance_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1165,7 +1252,7 @@ func (x *ReportInstanceStatusRequest) String() string {
 func (*ReportInstanceStatusRequest) ProtoMessage() {}
 
 func (x *ReportInstanceStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_compute_v1_instance_proto_msgTypes[13]
+	mi := &file_vws_compute_v1_instance_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1178,7 +1265,7 @@ func (x *ReportInstanceStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportInstanceStatusRequest.ProtoReflect.Descriptor instead.
 func (*ReportInstanceStatusRequest) Descriptor() ([]byte, []int) {
-	return file_vws_compute_v1_instance_proto_rawDescGZIP(), []int{13}
+	return file_vws_compute_v1_instance_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ReportInstanceStatusRequest) GetName() string {
@@ -1211,7 +1298,7 @@ type ReportInstanceStatusResponse struct {
 
 func (x *ReportInstanceStatusResponse) Reset() {
 	*x = ReportInstanceStatusResponse{}
-	mi := &file_vws_compute_v1_instance_proto_msgTypes[14]
+	mi := &file_vws_compute_v1_instance_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1223,7 +1310,7 @@ func (x *ReportInstanceStatusResponse) String() string {
 func (*ReportInstanceStatusResponse) ProtoMessage() {}
 
 func (x *ReportInstanceStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_compute_v1_instance_proto_msgTypes[14]
+	mi := &file_vws_compute_v1_instance_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1236,7 +1323,7 @@ func (x *ReportInstanceStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportInstanceStatusResponse.ProtoReflect.Descriptor instead.
 func (*ReportInstanceStatusResponse) Descriptor() ([]byte, []int) {
-	return file_vws_compute_v1_instance_proto_rawDescGZIP(), []int{14}
+	return file_vws_compute_v1_instance_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ReportInstanceStatusResponse) GetInstance() *Instance {
@@ -1275,7 +1362,7 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:d\xeaAa\n" +
-	"\x14vws.compute/Instance\x124projects/{project}/zones/{zone}/instances/{instance}*\tinstances2\binstance\"\xf8\x02\n" +
+	"\x14vws.compute/Instance\x124projects/{project}/zones/{zone}/instances/{instance}*\tinstances2\binstance\"\xa0\x03\n" +
 	"\fInstanceSpec\x12&\n" +
 	"\fmachine_type\x18\x01 \x01(\tB\x03\xe0A\x02R\vmachineType\x128\n" +
 	"\x05power\x18\x02 \x01(\x0e2\x1d.vws.compute.v1.InstancePowerB\x03\xe0A\x02R\x05power\x123\n" +
@@ -1284,7 +1371,8 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\tuser_data\x18\x04 \x01(\tR\buserData\x12O\n" +
 	"\x12network_interfaces\x18\x05 \x03(\v2 .vws.compute.v1.NetworkInterfaceR\x11networkInterfaces\x12?\n" +
 	"\avolumes\x18\x06 \x03(\v2 .vws.compute.v1.VolumeAttachmentB\x03\xe0A\x02R\avolumes\x12\"\n" +
-	"\ruser_data_raw\x18\a \x01(\fR\vuserDataRaw\"\xd8\x01\n" +
+	"\ruser_data_raw\x18\a \x01(\fR\vuserDataRaw\x12&\n" +
+	"\freboot_count\x18\b \x01(\x03B\x03\xe0A\x03R\vrebootCount\"\xd8\x01\n" +
 	"\x10NetworkInterface\x12$\n" +
 	"\vdevice_name\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"deviceName\x122\n" +
@@ -1302,12 +1390,13 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\x15delete_on_termination\x18\x04 \x01(\bH\x00R\x13deleteOnTermination\x88\x01\x01\x12@\n" +
 	"\vattach_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
 	"attachTimeB\x18\n" +
-	"\x16_delete_on_termination\"\xb1\x02\n" +
+	"\x16_delete_on_termination\"\xd4\x02\n" +
 	"\x0eInstanceStatus\x128\n" +
 	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\x123\n" +
 	"\x05power\x18\x02 \x01(\x0e2\x1d.vws.compute.v1.InstancePowerR\x05power\x12W\n" +
 	"\x12network_interfaces\x18\x03 \x03(\v2(.vws.compute.v1.ObservedNetworkInterfaceR\x11networkInterfaces\x12B\n" +
-	"\avolumes\x18\x05 \x03(\v2(.vws.compute.v1.ObservedVolumeAttachmentR\avolumesJ\x04\b\x04\x10\x05R\rassigned_node\"\xa2\x02\n" +
+	"\avolumes\x18\x05 \x03(\v2(.vws.compute.v1.ObservedVolumeAttachmentR\avolumes\x12!\n" +
+	"\freboot_count\x18\x06 \x01(\x03R\vrebootCountJ\x04\b\x04\x10\x05R\rassigned_node\"\xa2\x02\n" +
 	"\x18ObservedVolumeAttachment\x12/\n" +
 	"\x06volume\x18\x01 \x01(\tB\x17\xfaA\x14\n" +
 	"\x12vws.storage/VolumeR\x06volume\x12\x1f\n" +
@@ -1358,7 +1447,13 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
-	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\xb8\x01\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\x8e\x01\n" +
+	"\x15RebootInstanceRequest\x120\n" +
+	"\x04name\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\n" +
+	"\x14vws.compute/InstanceR\x04name\x12*\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12\x17\n" +
+	"\x04etag\x18\x03 \x01(\tB\x03\xe0A\x01R\x04etag\"\xb8\x01\n" +
 	"\x1bReportInstanceStatusRequest\x120\n" +
 	"\x04name\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\n" +
 	"\x14vws.compute/InstanceR\x04name\x12;\n" +
@@ -1376,7 +1471,8 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\rInstancePower\x12\x1e\n" +
 	"\x1aINSTANCE_POWER_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16INSTANCE_POWER_RUNNING\x10\x01\x12\x1a\n" +
-	"\x16INSTANCE_POWER_STOPPED\x10\x022\xd3\b\n" +
+	"\x16INSTANCE_POWER_STOPPED\x10\x022\xa6\n" +
+	"\n" +
 	"\x0fInstanceService\x12~\n" +
 	"\vGetInstance\x12\".vws.compute.v1.GetInstanceRequest\x1a\x18.vws.compute.v1.Instance\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{name=projects/*/zones/*/instances/*}\x12\x8f\x01\n" +
 	"\rListInstances\x12$.vws.compute.v1.ListInstancesRequest\x1a%.vws.compute.v1.ListInstancesResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{parent=projects/*/zones/*}/instances\x12\xd0\x01\n" +
@@ -1385,7 +1481,9 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\x0eUpdateInstance\x12%.vws.compute.v1.UpdateInstanceRequest\x1a\x1d.google.longrunning.Operation\"\x81\x01\xcaA:\n" +
 	"\x17vws.compute.v1.Instance\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02>:\binstance22/v1/{instance.name=projects/*/zones/*/instances/*}\x12\xc6\x01\n" +
 	"\x0eDeleteInstance\x12%.vws.compute.v1.DeleteInstanceRequest\x1a\x1d.google.longrunning.Operation\"n\xcaA:\n" +
-	"\x17vws.compute.v1.Instance\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02+*)/v1/{name=projects/*/zones/*/instances/*}\x12\xb4\x01\n" +
+	"\x17vws.compute.v1.Instance\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02+*)/v1/{name=projects/*/zones/*/instances/*}\x12\xd0\x01\n" +
+	"\x0eRebootInstance\x12%.vws.compute.v1.RebootInstanceRequest\x1a\x1d.google.longrunning.Operation\"x\xcaA:\n" +
+	"\x17vws.compute.v1.Instance\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x025:\x01*\"0/v1/{name=projects/*/zones/*/instances/*}:reboot\x12\xb4\x01\n" +
 	"\x14ReportInstanceStatus\x12+.vws.compute.v1.ReportInstanceStatusRequest\x1a,.vws.compute.v1.ReportInstanceStatusResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{name=projects/*/zones/*/instances/*}:reportStatusBh\n" +
 	"\x12dev.vws.compute.v1B\rInstanceProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/compute/v1;computev1b\x06proto3"
 
@@ -1402,7 +1500,7 @@ func file_vws_compute_v1_instance_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_compute_v1_instance_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_vws_compute_v1_instance_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_vws_compute_v1_instance_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_vws_compute_v1_instance_proto_goTypes = []any{
 	(VolumeAttachState)(0),               // 0: vws.compute.v1.VolumeAttachState
 	(InstancePower)(0),                   // 1: vws.compute.v1.InstancePower
@@ -1419,38 +1517,39 @@ var file_vws_compute_v1_instance_proto_goTypes = []any{
 	(*CreateInstanceRequest)(nil),        // 12: vws.compute.v1.CreateInstanceRequest
 	(*UpdateInstanceRequest)(nil),        // 13: vws.compute.v1.UpdateInstanceRequest
 	(*DeleteInstanceRequest)(nil),        // 14: vws.compute.v1.DeleteInstanceRequest
-	(*ReportInstanceStatusRequest)(nil),  // 15: vws.compute.v1.ReportInstanceStatusRequest
-	(*ReportInstanceStatusResponse)(nil), // 16: vws.compute.v1.ReportInstanceStatusResponse
-	nil,                                  // 17: vws.compute.v1.Instance.LabelsEntry
-	nil,                                  // 18: vws.compute.v1.Instance.AnnotationsEntry
-	(*timestamppb.Timestamp)(nil),        // 19: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),             // 20: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),        // 21: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),      // 22: google.longrunning.Operation
+	(*RebootInstanceRequest)(nil),        // 15: vws.compute.v1.RebootInstanceRequest
+	(*ReportInstanceStatusRequest)(nil),  // 16: vws.compute.v1.ReportInstanceStatusRequest
+	(*ReportInstanceStatusResponse)(nil), // 17: vws.compute.v1.ReportInstanceStatusResponse
+	nil,                                  // 18: vws.compute.v1.Instance.LabelsEntry
+	nil,                                  // 19: vws.compute.v1.Instance.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil),        // 20: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),             // 21: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),        // 22: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil),      // 23: google.longrunning.Operation
 }
 var file_vws_compute_v1_instance_proto_depIdxs = []int32{
-	17, // 0: vws.compute.v1.Instance.labels:type_name -> vws.compute.v1.Instance.LabelsEntry
+	18, // 0: vws.compute.v1.Instance.labels:type_name -> vws.compute.v1.Instance.LabelsEntry
 	3,  // 1: vws.compute.v1.Instance.spec:type_name -> vws.compute.v1.InstanceSpec
 	6,  // 2: vws.compute.v1.Instance.status:type_name -> vws.compute.v1.InstanceStatus
-	19, // 3: vws.compute.v1.Instance.create_time:type_name -> google.protobuf.Timestamp
-	19, // 4: vws.compute.v1.Instance.update_time:type_name -> google.protobuf.Timestamp
-	19, // 5: vws.compute.v1.Instance.delete_time:type_name -> google.protobuf.Timestamp
-	18, // 6: vws.compute.v1.Instance.annotations:type_name -> vws.compute.v1.Instance.AnnotationsEntry
+	20, // 3: vws.compute.v1.Instance.create_time:type_name -> google.protobuf.Timestamp
+	20, // 4: vws.compute.v1.Instance.update_time:type_name -> google.protobuf.Timestamp
+	20, // 5: vws.compute.v1.Instance.delete_time:type_name -> google.protobuf.Timestamp
+	19, // 6: vws.compute.v1.Instance.annotations:type_name -> vws.compute.v1.Instance.AnnotationsEntry
 	1,  // 7: vws.compute.v1.InstanceSpec.power:type_name -> vws.compute.v1.InstancePower
 	4,  // 8: vws.compute.v1.InstanceSpec.network_interfaces:type_name -> vws.compute.v1.NetworkInterface
 	5,  // 9: vws.compute.v1.InstanceSpec.volumes:type_name -> vws.compute.v1.VolumeAttachment
-	19, // 10: vws.compute.v1.VolumeAttachment.attach_time:type_name -> google.protobuf.Timestamp
-	20, // 11: vws.compute.v1.InstanceStatus.observed:type_name -> vws.common.v1.ObservedState
+	20, // 10: vws.compute.v1.VolumeAttachment.attach_time:type_name -> google.protobuf.Timestamp
+	21, // 11: vws.compute.v1.InstanceStatus.observed:type_name -> vws.common.v1.ObservedState
 	1,  // 12: vws.compute.v1.InstanceStatus.power:type_name -> vws.compute.v1.InstancePower
 	8,  // 13: vws.compute.v1.InstanceStatus.network_interfaces:type_name -> vws.compute.v1.ObservedNetworkInterface
 	7,  // 14: vws.compute.v1.InstanceStatus.volumes:type_name -> vws.compute.v1.ObservedVolumeAttachment
 	0,  // 15: vws.compute.v1.ObservedVolumeAttachment.state:type_name -> vws.compute.v1.VolumeAttachState
-	19, // 16: vws.compute.v1.ObservedVolumeAttachment.state_time:type_name -> google.protobuf.Timestamp
-	19, // 17: vws.compute.v1.ObservedVolumeAttachment.attach_time:type_name -> google.protobuf.Timestamp
+	20, // 16: vws.compute.v1.ObservedVolumeAttachment.state_time:type_name -> google.protobuf.Timestamp
+	20, // 17: vws.compute.v1.ObservedVolumeAttachment.attach_time:type_name -> google.protobuf.Timestamp
 	2,  // 18: vws.compute.v1.ListInstancesResponse.instances:type_name -> vws.compute.v1.Instance
 	2,  // 19: vws.compute.v1.CreateInstanceRequest.instance:type_name -> vws.compute.v1.Instance
 	2,  // 20: vws.compute.v1.UpdateInstanceRequest.instance:type_name -> vws.compute.v1.Instance
-	21, // 21: vws.compute.v1.UpdateInstanceRequest.update_mask:type_name -> google.protobuf.FieldMask
+	22, // 21: vws.compute.v1.UpdateInstanceRequest.update_mask:type_name -> google.protobuf.FieldMask
 	6,  // 22: vws.compute.v1.ReportInstanceStatusRequest.status:type_name -> vws.compute.v1.InstanceStatus
 	2,  // 23: vws.compute.v1.ReportInstanceStatusResponse.instance:type_name -> vws.compute.v1.Instance
 	9,  // 24: vws.compute.v1.InstanceService.GetInstance:input_type -> vws.compute.v1.GetInstanceRequest
@@ -1458,15 +1557,17 @@ var file_vws_compute_v1_instance_proto_depIdxs = []int32{
 	12, // 26: vws.compute.v1.InstanceService.CreateInstance:input_type -> vws.compute.v1.CreateInstanceRequest
 	13, // 27: vws.compute.v1.InstanceService.UpdateInstance:input_type -> vws.compute.v1.UpdateInstanceRequest
 	14, // 28: vws.compute.v1.InstanceService.DeleteInstance:input_type -> vws.compute.v1.DeleteInstanceRequest
-	15, // 29: vws.compute.v1.InstanceService.ReportInstanceStatus:input_type -> vws.compute.v1.ReportInstanceStatusRequest
-	2,  // 30: vws.compute.v1.InstanceService.GetInstance:output_type -> vws.compute.v1.Instance
-	11, // 31: vws.compute.v1.InstanceService.ListInstances:output_type -> vws.compute.v1.ListInstancesResponse
-	22, // 32: vws.compute.v1.InstanceService.CreateInstance:output_type -> google.longrunning.Operation
-	22, // 33: vws.compute.v1.InstanceService.UpdateInstance:output_type -> google.longrunning.Operation
-	22, // 34: vws.compute.v1.InstanceService.DeleteInstance:output_type -> google.longrunning.Operation
-	16, // 35: vws.compute.v1.InstanceService.ReportInstanceStatus:output_type -> vws.compute.v1.ReportInstanceStatusResponse
-	30, // [30:36] is the sub-list for method output_type
-	24, // [24:30] is the sub-list for method input_type
+	15, // 29: vws.compute.v1.InstanceService.RebootInstance:input_type -> vws.compute.v1.RebootInstanceRequest
+	16, // 30: vws.compute.v1.InstanceService.ReportInstanceStatus:input_type -> vws.compute.v1.ReportInstanceStatusRequest
+	2,  // 31: vws.compute.v1.InstanceService.GetInstance:output_type -> vws.compute.v1.Instance
+	11, // 32: vws.compute.v1.InstanceService.ListInstances:output_type -> vws.compute.v1.ListInstancesResponse
+	23, // 33: vws.compute.v1.InstanceService.CreateInstance:output_type -> google.longrunning.Operation
+	23, // 34: vws.compute.v1.InstanceService.UpdateInstance:output_type -> google.longrunning.Operation
+	23, // 35: vws.compute.v1.InstanceService.DeleteInstance:output_type -> google.longrunning.Operation
+	23, // 36: vws.compute.v1.InstanceService.RebootInstance:output_type -> google.longrunning.Operation
+	17, // 37: vws.compute.v1.InstanceService.ReportInstanceStatus:output_type -> vws.compute.v1.ReportInstanceStatusResponse
+	31, // [31:38] is the sub-list for method output_type
+	24, // [24:31] is the sub-list for method input_type
 	24, // [24:24] is the sub-list for extension type_name
 	24, // [24:24] is the sub-list for extension extendee
 	0,  // [0:24] is the sub-list for field type_name
@@ -1484,7 +1585,7 @@ func file_vws_compute_v1_instance_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_compute_v1_instance_proto_rawDesc), len(file_vws_compute_v1_instance_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   17,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

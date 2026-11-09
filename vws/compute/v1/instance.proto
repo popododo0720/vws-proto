@@ -74,6 +74,41 @@ service InstanceService {
     };
   }
 
+  // RebootInstance is EC2 RebootInstances for one instance. The caller is
+  // vws-console-api. The server increments spec.reboot_count and generation
+  // and returns a RUNNING operation with verb UPDATE and action
+  // "RebootInstances". The vws-compute node agent consumes it: when
+  // spec.reboot_count is greater than status.reboot_count it reboots the guest
+  // once, then reports status.reboot_count equal to spec.reboot_count. The
+  // operation completes when observed.generation catches up, like
+  // UpdateInstance.
+  // Idempotency:
+  //   - Same request_id and name: return the original operation. Nothing is
+  //     incremented again.
+  //   - Same request_id and a different name: ABORTED / IDEMPOTENCY_CONFLICT.
+  //   - A reboot still pending (spec.reboot_count greater than
+  //     status.reboot_count): return its operation. Requests made before the
+  //     guest reboots merge into that one reboot.
+  // Errors:
+  //   - Unknown instance: NOT_FOUND / RESOURCE_NOT_FOUND
+  //     (EC2 InvalidInstanceID.NotFound).
+  //   - spec.power is not RUNNING, or delete_time is set:
+  //     FAILED_PRECONDITION / INCORRECT_STATE (EC2 IncorrectInstanceState).
+  //     Nothing is written.
+  //   - etag set and not the stored etag: ABORTED / ETAG_MISMATCH.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc RebootInstance(RebootInstanceRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/zones/*/instances/*}:reboot"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.compute.v1.Instance"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
   // ReportInstanceStatus is the node reconcile write.
   // The server applies the idempotency rules on OperationMetadata.
   rpc ReportInstanceStatus(ReportInstanceStatusRequest) returns (ReportInstanceStatusResponse) {
@@ -143,6 +178,11 @@ message InstanceSpec {
   // INVALID_ARGUMENT / INVALID_SPEC. When set, the node delivers these bytes
   // instead of user_data.
   bytes user_data_raw = 7;
+  // Reboot requests accepted for this instance. Starts at 0. Only
+  // RebootInstance increments it; UpdateInstance ignores client values and
+  // keeps the stored one, so an update never reboots. The vws-compute node
+  // agent reboots the guest when it is greater than status.reboot_count.
+  int64 reboot_count = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message NetworkInterface {
@@ -192,6 +232,13 @@ message InstanceStatus {
   // before hot-plug finishes. An entry missing for a spec volume means the
   // node has not started the attach yet (report it as attaching).
   repeated ObservedVolumeAttachment volumes = 5;
+  // spec.reboot_count of the last reboot the node finished. The vws-compute
+  // node agent writes it after the guest reboots, and on restart compares it
+  // with spec.reboot_count to decide whether a reboot is still owed. A stop,
+  // or a start from stopped, also covers a pending reboot: the node reports
+  // spec.reboot_count without a second reboot. A value greater than
+  // spec.reboot_count is INVALID_ARGUMENT / INVALID_SPEC.
+  int64 reboot_count = 6;
 }
 
 // ObservedVolumeAttachment is the node's view of one volume on this instance.
@@ -298,6 +345,19 @@ message DeleteInstanceRequest {
   bool allow_missing = 3 [(google.api.field_behavior) = OPTIONAL];
   // When set, must match the stored etag.
   string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message RebootInstanceRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.compute/Instance"
+  ];
+  string request_id = 2 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  // When set, must match the stored etag.
+  string etag = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ReportInstanceStatusRequest {
