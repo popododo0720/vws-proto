@@ -27,6 +27,7 @@ const (
 	RoleService_DeleteRole_FullMethodName                 = "/vws.iam.v1.RoleService/DeleteRole"
 	RoleService_RevokeRoleSessions_FullMethodName         = "/vws.iam.v1.RoleService/RevokeRoleSessions"
 	RoleService_PutRolePermissionsBoundary_FullMethodName = "/vws.iam.v1.RoleService/PutRolePermissionsBoundary"
+	RoleService_DeleteServiceLinkedRole_FullMethodName    = "/vws.iam.v1.RoleService/DeleteServiceLinkedRole"
 )
 
 // RoleServiceClient is the client API for RoleService service.
@@ -81,6 +82,20 @@ type RoleServiceClient interface {
 	// retry after a lost response succeeds.
 	// Authorization (iam:PutRolePermissionsBoundary) is console-api's.
 	PutRolePermissionsBoundary(ctx context.Context, in *PutRolePermissionsBoundaryRequest, opts ...grpc.CallOption) (*PutRolePermissionsBoundaryResponse, error)
+	// DeleteServiceLinkedRole is AWS DeleteServiceLinkedRole. It deletes a
+	// service-linked role and returns its deletion task id. It is synchronous
+	// and not an operation: the role is deleted from the store when the call
+	// returns. GetServiceLinkedRoleDeletionStatus is a separate request.
+	// A malformed name or role id is INVALID_ARGUMENT / INVALID_SPEC (AWS
+	// ValidationError). A role that does not exist, or one that is not
+	// service-linked (created with CreateRole), is NOT_FOUND /
+	// RESOURCE_NOT_FOUND (NoSuchEntity).
+	// The task id is derived from the role's uid, so concurrent or repeated
+	// requests return the same id while the role exists. Once it is deleted a
+	// repeat is NOT_FOUND.
+	// Authorization (iam:DeleteServiceLinkedRole on the role ARN) is
+	// console-api's.
+	DeleteServiceLinkedRole(ctx context.Context, in *DeleteServiceLinkedRoleRequest, opts ...grpc.CallOption) (*DeleteServiceLinkedRoleResponse, error)
 }
 
 type roleServiceClient struct {
@@ -161,6 +176,16 @@ func (c *roleServiceClient) PutRolePermissionsBoundary(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *roleServiceClient) DeleteServiceLinkedRole(ctx context.Context, in *DeleteServiceLinkedRoleRequest, opts ...grpc.CallOption) (*DeleteServiceLinkedRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteServiceLinkedRoleResponse)
+	err := c.cc.Invoke(ctx, RoleService_DeleteServiceLinkedRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoleServiceServer is the server API for RoleService service.
 // All implementations must embed UnimplementedRoleServiceServer
 // for forward compatibility.
@@ -213,6 +238,20 @@ type RoleServiceServer interface {
 	// retry after a lost response succeeds.
 	// Authorization (iam:PutRolePermissionsBoundary) is console-api's.
 	PutRolePermissionsBoundary(context.Context, *PutRolePermissionsBoundaryRequest) (*PutRolePermissionsBoundaryResponse, error)
+	// DeleteServiceLinkedRole is AWS DeleteServiceLinkedRole. It deletes a
+	// service-linked role and returns its deletion task id. It is synchronous
+	// and not an operation: the role is deleted from the store when the call
+	// returns. GetServiceLinkedRoleDeletionStatus is a separate request.
+	// A malformed name or role id is INVALID_ARGUMENT / INVALID_SPEC (AWS
+	// ValidationError). A role that does not exist, or one that is not
+	// service-linked (created with CreateRole), is NOT_FOUND /
+	// RESOURCE_NOT_FOUND (NoSuchEntity).
+	// The task id is derived from the role's uid, so concurrent or repeated
+	// requests return the same id while the role exists. Once it is deleted a
+	// repeat is NOT_FOUND.
+	// Authorization (iam:DeleteServiceLinkedRole on the role ARN) is
+	// console-api's.
+	DeleteServiceLinkedRole(context.Context, *DeleteServiceLinkedRoleRequest) (*DeleteServiceLinkedRoleResponse, error)
 	mustEmbedUnimplementedRoleServiceServer()
 }
 
@@ -243,6 +282,9 @@ func (UnimplementedRoleServiceServer) RevokeRoleSessions(context.Context, *Revok
 }
 func (UnimplementedRoleServiceServer) PutRolePermissionsBoundary(context.Context, *PutRolePermissionsBoundaryRequest) (*PutRolePermissionsBoundaryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PutRolePermissionsBoundary not implemented")
+}
+func (UnimplementedRoleServiceServer) DeleteServiceLinkedRole(context.Context, *DeleteServiceLinkedRoleRequest) (*DeleteServiceLinkedRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteServiceLinkedRole not implemented")
 }
 func (UnimplementedRoleServiceServer) mustEmbedUnimplementedRoleServiceServer() {}
 func (UnimplementedRoleServiceServer) testEmbeddedByValue()                     {}
@@ -391,6 +433,24 @@ func _RoleService_PutRolePermissionsBoundary_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoleService_DeleteServiceLinkedRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteServiceLinkedRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleServiceServer).DeleteServiceLinkedRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleService_DeleteServiceLinkedRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleServiceServer).DeleteServiceLinkedRole(ctx, req.(*DeleteServiceLinkedRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoleService_ServiceDesc is the grpc.ServiceDesc for RoleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -425,6 +485,10 @@ var RoleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PutRolePermissionsBoundary",
 			Handler:    _RoleService_PutRolePermissionsBoundary_Handler,
+		},
+		{
+			MethodName: "DeleteServiceLinkedRole",
+			Handler:    _RoleService_DeleteServiceLinkedRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
