@@ -112,6 +112,28 @@ service UserService {
     };
   }
 
+  // PutUserPermissionsBoundary is AWS PutUserPermissionsBoundary. It sets
+  // spec.permissions_boundary_arn to a managed policy of the user's project,
+  // replacing any boundary the user has. The attached and inline policies
+  // stay. It is synchronous and not an operation, as the AWS call is: one
+  // conditional store write, returned once stored.
+  // A UserName or ARN length or pattern fault is INVALID_ARGUMENT /
+  // INVALID_SPEC (AWS ValidationError), and an ARN that is not a managed
+  // policy ARN is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). An unknown
+  // user, or a policy that is not a managed policy of the user's project, is
+  // NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A user being renamed, or a
+  // write that keeps losing to concurrent writes, is ABORTED /
+  // GENERATION_CONFLICT (ConcurrentModification).
+  // A user that already has this boundary succeeds without a write, so a
+  // retry after a lost response succeeds.
+  // Authorization (iam:PutUserPermissionsBoundary) is console-api's.
+  rpc PutUserPermissionsBoundary(PutUserPermissionsBoundaryRequest) returns (PutUserPermissionsBoundaryResponse) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/users/*}:putPermissionsBoundary"
+      body: "*"
+    };
+  }
+
   // DeleteUserPermissionsBoundary is AWS DeleteUserPermissionsBoundary. It
   // clears spec.permissions_boundary_arn. The attached and inline policies
   // stay. It is synchronous and not an operation, as the AWS call is: one
@@ -168,9 +190,9 @@ message UserSpec {
   map<string, string> inline_policies = 3;
   // AWS PermissionsBoundary.PermissionsBoundaryArn, a managed policy ARN
   // arn:vws:iam::{project}:policy{path}{policy}. Empty means no boundary.
-  // PermissionsBoundaryType is always PermissionsBoundaryPolicy. Cleared only
-  // by DeleteUserPermissionsBoundary. CreateUser and UpdateUser do not change
-  // it.
+  // PermissionsBoundaryType is always PermissionsBoundaryPolicy. Set only by
+  // PutUserPermissionsBoundary and cleared only by
+  // DeleteUserPermissionsBoundary. CreateUser and UpdateUser do not change it.
   string permissions_boundary_arn = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
@@ -383,6 +405,22 @@ message RevokeUserSessionsRequest {
     (google.api.field_behavior) = OPTIONAL
   ];
 }
+
+message PutUserPermissionsBoundaryRequest {
+  // projects/{project}/users/{user}. The user id is AWS UserName, 1-64
+  // characters of [\w+=,.@-].
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
+  // AWS PermissionsBoundary, 20-2048 characters. A managed policy ARN
+  // arn:vws:iam::{project}:policy{path}{policy} of the user's project.
+  string permissions_boundary = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// PutUserPermissionsBoundaryResponse is empty, as AWS returns only a request
+// id. GetUser reads the boundary back.
+message PutUserPermissionsBoundaryResponse {}
 
 message DeleteUserPermissionsBoundaryRequest {
   // projects/{project}/users/{user}. The user id is AWS UserName, 1-64

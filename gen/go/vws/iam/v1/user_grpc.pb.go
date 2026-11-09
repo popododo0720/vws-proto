@@ -29,6 +29,7 @@ const (
 	UserService_SetLoginProfile_FullMethodName               = "/vws.iam.v1.UserService/SetLoginProfile"
 	UserService_DeleteLoginProfile_FullMethodName            = "/vws.iam.v1.UserService/DeleteLoginProfile"
 	UserService_ChangePassword_FullMethodName                = "/vws.iam.v1.UserService/ChangePassword"
+	UserService_PutUserPermissionsBoundary_FullMethodName    = "/vws.iam.v1.UserService/PutUserPermissionsBoundary"
 	UserService_DeleteUserPermissionsBoundary_FullMethodName = "/vws.iam.v1.UserService/DeleteUserPermissionsBoundary"
 )
 
@@ -74,6 +75,22 @@ type UserServiceClient interface {
 	DeleteLoginProfile(ctx context.Context, in *DeleteLoginProfileRequest, opts ...grpc.CallOption) (*DeleteLoginProfileResponse, error)
 	// ChangePassword is the user's own change. old_password must verify.
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
+	// PutUserPermissionsBoundary is AWS PutUserPermissionsBoundary. It sets
+	// spec.permissions_boundary_arn to a managed policy of the user's project,
+	// replacing any boundary the user has. The attached and inline policies
+	// stay. It is synchronous and not an operation, as the AWS call is: one
+	// conditional store write, returned once stored.
+	// A UserName or ARN length or pattern fault is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError), and an ARN that is not a managed
+	// policy ARN is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). An unknown
+	// user, or a policy that is not a managed policy of the user's project, is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A user being renamed, or a
+	// write that keeps losing to concurrent writes, is ABORTED /
+	// GENERATION_CONFLICT (ConcurrentModification).
+	// A user that already has this boundary succeeds without a write, so a
+	// retry after a lost response succeeds.
+	// Authorization (iam:PutUserPermissionsBoundary) is console-api's.
+	PutUserPermissionsBoundary(ctx context.Context, in *PutUserPermissionsBoundaryRequest, opts ...grpc.CallOption) (*PutUserPermissionsBoundaryResponse, error)
 	// DeleteUserPermissionsBoundary is AWS DeleteUserPermissionsBoundary. It
 	// clears spec.permissions_boundary_arn. The attached and inline policies
 	// stay. It is synchronous and not an operation, as the AWS call is: one
@@ -187,6 +204,16 @@ func (c *userServiceClient) ChangePassword(ctx context.Context, in *ChangePasswo
 	return out, nil
 }
 
+func (c *userServiceClient) PutUserPermissionsBoundary(ctx context.Context, in *PutUserPermissionsBoundaryRequest, opts ...grpc.CallOption) (*PutUserPermissionsBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutUserPermissionsBoundaryResponse)
+	err := c.cc.Invoke(ctx, UserService_PutUserPermissionsBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) DeleteUserPermissionsBoundary(ctx context.Context, in *DeleteUserPermissionsBoundaryRequest, opts ...grpc.CallOption) (*DeleteUserPermissionsBoundaryResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteUserPermissionsBoundaryResponse)
@@ -239,6 +266,22 @@ type UserServiceServer interface {
 	DeleteLoginProfile(context.Context, *DeleteLoginProfileRequest) (*DeleteLoginProfileResponse, error)
 	// ChangePassword is the user's own change. old_password must verify.
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
+	// PutUserPermissionsBoundary is AWS PutUserPermissionsBoundary. It sets
+	// spec.permissions_boundary_arn to a managed policy of the user's project,
+	// replacing any boundary the user has. The attached and inline policies
+	// stay. It is synchronous and not an operation, as the AWS call is: one
+	// conditional store write, returned once stored.
+	// A UserName or ARN length or pattern fault is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError), and an ARN that is not a managed
+	// policy ARN is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). An unknown
+	// user, or a policy that is not a managed policy of the user's project, is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A user being renamed, or a
+	// write that keeps losing to concurrent writes, is ABORTED /
+	// GENERATION_CONFLICT (ConcurrentModification).
+	// A user that already has this boundary succeeds without a write, so a
+	// retry after a lost response succeeds.
+	// Authorization (iam:PutUserPermissionsBoundary) is console-api's.
+	PutUserPermissionsBoundary(context.Context, *PutUserPermissionsBoundaryRequest) (*PutUserPermissionsBoundaryResponse, error)
 	// DeleteUserPermissionsBoundary is AWS DeleteUserPermissionsBoundary. It
 	// clears spec.permissions_boundary_arn. The attached and inline policies
 	// stay. It is synchronous and not an operation, as the AWS call is: one
@@ -288,6 +331,9 @@ func (UnimplementedUserServiceServer) DeleteLoginProfile(context.Context, *Delet
 }
 func (UnimplementedUserServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ChangePassword not implemented")
+}
+func (UnimplementedUserServiceServer) PutUserPermissionsBoundary(context.Context, *PutUserPermissionsBoundaryRequest) (*PutUserPermissionsBoundaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PutUserPermissionsBoundary not implemented")
 }
 func (UnimplementedUserServiceServer) DeleteUserPermissionsBoundary(context.Context, *DeleteUserPermissionsBoundaryRequest) (*DeleteUserPermissionsBoundaryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUserPermissionsBoundary not implemented")
@@ -475,6 +521,24 @@ func _UserService_ChangePassword_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_PutUserPermissionsBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutUserPermissionsBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).PutUserPermissionsBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_PutUserPermissionsBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).PutUserPermissionsBoundary(ctx, req.(*PutUserPermissionsBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_DeleteUserPermissionsBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteUserPermissionsBoundaryRequest)
 	if err := dec(in); err != nil {
@@ -535,6 +599,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangePassword",
 			Handler:    _UserService_ChangePassword_Handler,
+		},
+		{
+			MethodName: "PutUserPermissionsBoundary",
+			Handler:    _UserService_PutUserPermissionsBoundary_Handler,
 		},
 		{
 			MethodName: "DeleteUserPermissionsBoundary",

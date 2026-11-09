@@ -217,9 +217,9 @@ type UserSpec struct {
 	InlinePolicies map[string]string `protobuf:"bytes,3,rep,name=inline_policies,json=inlinePolicies,proto3" json:"inline_policies,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// AWS PermissionsBoundary.PermissionsBoundaryArn, a managed policy ARN
 	// arn:vws:iam::{project}:policy{path}{policy}. Empty means no boundary.
-	// PermissionsBoundaryType is always PermissionsBoundaryPolicy. Cleared only
-	// by DeleteUserPermissionsBoundary. CreateUser and UpdateUser do not change
-	// it.
+	// PermissionsBoundaryType is always PermissionsBoundaryPolicy. Set only by
+	// PutUserPermissionsBoundary and cleared only by
+	// DeleteUserPermissionsBoundary. CreateUser and UpdateUser do not change it.
 	PermissionsBoundaryArn string `protobuf:"bytes,4,opt,name=permissions_boundary_arn,json=permissionsBoundaryArn,proto3" json:"permissions_boundary_arn,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
@@ -1202,6 +1202,100 @@ func (x *RevokeUserSessionsRequest) GetRequestId() string {
 	return ""
 }
 
+type PutUserPermissionsBoundaryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}/users/{user}. The user id is AWS UserName, 1-64
+	// characters of [\w+=,.@-].
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// AWS PermissionsBoundary, 20-2048 characters. A managed policy ARN
+	// arn:vws:iam::{project}:policy{path}{policy} of the user's project.
+	PermissionsBoundary string `protobuf:"bytes,2,opt,name=permissions_boundary,json=permissionsBoundary,proto3" json:"permissions_boundary,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *PutUserPermissionsBoundaryRequest) Reset() {
+	*x = PutUserPermissionsBoundaryRequest{}
+	mi := &file_vws_iam_v1_user_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutUserPermissionsBoundaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutUserPermissionsBoundaryRequest) ProtoMessage() {}
+
+func (x *PutUserPermissionsBoundaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_user_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutUserPermissionsBoundaryRequest.ProtoReflect.Descriptor instead.
+func (*PutUserPermissionsBoundaryRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *PutUserPermissionsBoundaryRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PutUserPermissionsBoundaryRequest) GetPermissionsBoundary() string {
+	if x != nil {
+		return x.PermissionsBoundary
+	}
+	return ""
+}
+
+// PutUserPermissionsBoundaryResponse is empty, as AWS returns only a request
+// id. GetUser reads the boundary back.
+type PutUserPermissionsBoundaryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutUserPermissionsBoundaryResponse) Reset() {
+	*x = PutUserPermissionsBoundaryResponse{}
+	mi := &file_vws_iam_v1_user_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutUserPermissionsBoundaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutUserPermissionsBoundaryResponse) ProtoMessage() {}
+
+func (x *PutUserPermissionsBoundaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_user_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutUserPermissionsBoundaryResponse.ProtoReflect.Descriptor instead.
+func (*PutUserPermissionsBoundaryResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{17}
+}
+
 type DeleteUserPermissionsBoundaryRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// projects/{project}/users/{user}. The user id is AWS UserName, 1-64
@@ -1213,7 +1307,7 @@ type DeleteUserPermissionsBoundaryRequest struct {
 
 func (x *DeleteUserPermissionsBoundaryRequest) Reset() {
 	*x = DeleteUserPermissionsBoundaryRequest{}
-	mi := &file_vws_iam_v1_user_proto_msgTypes[16]
+	mi := &file_vws_iam_v1_user_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1225,7 +1319,7 @@ func (x *DeleteUserPermissionsBoundaryRequest) String() string {
 func (*DeleteUserPermissionsBoundaryRequest) ProtoMessage() {}
 
 func (x *DeleteUserPermissionsBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_user_proto_msgTypes[16]
+	mi := &file_vws_iam_v1_user_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1238,7 +1332,7 @@ func (x *DeleteUserPermissionsBoundaryRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use DeleteUserPermissionsBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserPermissionsBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{16}
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *DeleteUserPermissionsBoundaryRequest) GetName() string {
@@ -1258,7 +1352,7 @@ type DeleteUserPermissionsBoundaryResponse struct {
 
 func (x *DeleteUserPermissionsBoundaryResponse) Reset() {
 	*x = DeleteUserPermissionsBoundaryResponse{}
-	mi := &file_vws_iam_v1_user_proto_msgTypes[17]
+	mi := &file_vws_iam_v1_user_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1270,7 +1364,7 @@ func (x *DeleteUserPermissionsBoundaryResponse) String() string {
 func (*DeleteUserPermissionsBoundaryResponse) ProtoMessage() {}
 
 func (x *DeleteUserPermissionsBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_user_proto_msgTypes[17]
+	mi := &file_vws_iam_v1_user_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1283,7 +1377,7 @@ func (x *DeleteUserPermissionsBoundaryResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use DeleteUserPermissionsBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserPermissionsBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{17}
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{19}
 }
 
 var File_vws_iam_v1_user_proto protoreflect.FileDescriptor
@@ -1392,7 +1486,12 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\x12*\n" +
 	"\n" +
-	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"P\n" +
+	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"\x85\x01\n" +
+	"!PutUserPermissionsBoundaryRequest\x12(\n" +
+	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
+	"\fvws.iam/UserR\x04name\x126\n" +
+	"\x14permissions_boundary\x18\x02 \x01(\tB\x03\xe0A\x02R\x13permissionsBoundary\"$\n" +
+	"\"PutUserPermissionsBoundaryResponse\"P\n" +
 	"$DeleteUserPermissionsBoundaryRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\"'\n" +
@@ -1401,7 +1500,7 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"$LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fLOGIN_PROFILE_WRITE_MODE_UPSERT\x10\x01\x12(\n" +
 	"$LOGIN_PROFILE_WRITE_MODE_CREATE_ONLY\x10\x02\x12'\n" +
-	"#LOGIN_PROFILE_WRITE_MODE_MUST_EXIST\x10\x032\xca\f\n" +
+	"#LOGIN_PROFILE_WRITE_MODE_MUST_EXIST\x10\x032\x89\x0e\n" +
 	"\vUserService\x12^\n" +
 	"\aGetUser\x12\x1a.vws.iam.v1.GetUserRequest\x1a\x10.vws.iam.v1.User\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{name=projects/*/users/*}\x12o\n" +
 	"\tListUsers\x12\x1c.vws.iam.v1.ListUsersRequest\x1a\x1d.vws.iam.v1.ListUsersResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{parent=projects/*}/users\x12\xac\x01\n" +
@@ -1418,7 +1517,8 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\x0fvws.iam.v1.User\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/users/*}:revokeSessions\x12\x94\x01\n" +
 	"\x0fSetLoginProfile\x12\".vws.iam.v1.SetLoginProfileRequest\x1a#.vws.iam.v1.SetLoginProfileResponse\"8\x82\xd3\xe4\x93\x022:\x01*\"-/v1/{name=projects/*/users/*}:setLoginProfile\x12\x9d\x01\n" +
 	"\x12DeleteLoginProfile\x12%.vws.iam.v1.DeleteLoginProfileRequest\x1a&.vws.iam.v1.DeleteLoginProfileResponse\"8\x82\xd3\xe4\x93\x022\"0/v1/{name=projects/*/users/*}:deleteLoginProfile\x12\x90\x01\n" +
-	"\x0eChangePassword\x12!.vws.iam.v1.ChangePasswordRequest\x1a\".vws.iam.v1.ChangePasswordResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/users/*}:changePassword\x12\xc8\x01\n" +
+	"\x0eChangePassword\x12!.vws.iam.v1.ChangePasswordRequest\x1a\".vws.iam.v1.ChangePasswordResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/users/*}:changePassword\x12\xbc\x01\n" +
+	"\x1aPutUserPermissionsBoundary\x12-.vws.iam.v1.PutUserPermissionsBoundaryRequest\x1a..vws.iam.v1.PutUserPermissionsBoundaryResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{name=projects/*/users/*}:putPermissionsBoundary\x12\xc8\x01\n" +
 	"\x1dDeleteUserPermissionsBoundary\x120.vws.iam.v1.DeleteUserPermissionsBoundaryRequest\x1a1.vws.iam.v1.DeleteUserPermissionsBoundaryResponse\"B\x82\xd3\xe4\x93\x02<:\x01*\"7/v1/{name=projects/*/users/*}:deletePermissionsBoundaryBX\n" +
 	"\x0edev.vws.iam.v1B\tUserProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
@@ -1435,7 +1535,7 @@ func file_vws_iam_v1_user_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_iam_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_vws_iam_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_vws_iam_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_vws_iam_v1_user_proto_goTypes = []any{
 	(LoginProfileWriteMode)(0),                    // 0: vws.iam.v1.LoginProfileWriteMode
 	(*User)(nil),                                  // 1: vws.iam.v1.User
@@ -1454,30 +1554,32 @@ var file_vws_iam_v1_user_proto_goTypes = []any{
 	(*DeleteLoginProfileResponse)(nil),            // 14: vws.iam.v1.DeleteLoginProfileResponse
 	(*ChangePasswordResponse)(nil),                // 15: vws.iam.v1.ChangePasswordResponse
 	(*RevokeUserSessionsRequest)(nil),             // 16: vws.iam.v1.RevokeUserSessionsRequest
-	(*DeleteUserPermissionsBoundaryRequest)(nil),  // 17: vws.iam.v1.DeleteUserPermissionsBoundaryRequest
-	(*DeleteUserPermissionsBoundaryResponse)(nil), // 18: vws.iam.v1.DeleteUserPermissionsBoundaryResponse
-	nil,                             // 19: vws.iam.v1.User.LabelsEntry
-	nil,                             // 20: vws.iam.v1.UserSpec.InlinePoliciesEntry
-	(*timestamppb.Timestamp)(nil),   // 21: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),        // 22: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),   // 23: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil), // 24: google.longrunning.Operation
+	(*PutUserPermissionsBoundaryRequest)(nil),     // 17: vws.iam.v1.PutUserPermissionsBoundaryRequest
+	(*PutUserPermissionsBoundaryResponse)(nil),    // 18: vws.iam.v1.PutUserPermissionsBoundaryResponse
+	(*DeleteUserPermissionsBoundaryRequest)(nil),  // 19: vws.iam.v1.DeleteUserPermissionsBoundaryRequest
+	(*DeleteUserPermissionsBoundaryResponse)(nil), // 20: vws.iam.v1.DeleteUserPermissionsBoundaryResponse
+	nil,                             // 21: vws.iam.v1.User.LabelsEntry
+	nil,                             // 22: vws.iam.v1.UserSpec.InlinePoliciesEntry
+	(*timestamppb.Timestamp)(nil),   // 23: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),        // 24: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),   // 25: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil), // 26: google.longrunning.Operation
 }
 var file_vws_iam_v1_user_proto_depIdxs = []int32{
-	19, // 0: vws.iam.v1.User.labels:type_name -> vws.iam.v1.User.LabelsEntry
+	21, // 0: vws.iam.v1.User.labels:type_name -> vws.iam.v1.User.LabelsEntry
 	2,  // 1: vws.iam.v1.User.spec:type_name -> vws.iam.v1.UserSpec
 	3,  // 2: vws.iam.v1.User.status:type_name -> vws.iam.v1.UserStatus
-	21, // 3: vws.iam.v1.User.create_time:type_name -> google.protobuf.Timestamp
-	21, // 4: vws.iam.v1.User.update_time:type_name -> google.protobuf.Timestamp
-	21, // 5: vws.iam.v1.User.delete_time:type_name -> google.protobuf.Timestamp
-	20, // 6: vws.iam.v1.UserSpec.inline_policies:type_name -> vws.iam.v1.UserSpec.InlinePoliciesEntry
-	22, // 7: vws.iam.v1.UserStatus.observed:type_name -> vws.common.v1.ObservedState
-	21, // 8: vws.iam.v1.UserStatus.password_last_used_time:type_name -> google.protobuf.Timestamp
-	21, // 9: vws.iam.v1.UserStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
+	23, // 3: vws.iam.v1.User.create_time:type_name -> google.protobuf.Timestamp
+	23, // 4: vws.iam.v1.User.update_time:type_name -> google.protobuf.Timestamp
+	23, // 5: vws.iam.v1.User.delete_time:type_name -> google.protobuf.Timestamp
+	22, // 6: vws.iam.v1.UserSpec.inline_policies:type_name -> vws.iam.v1.UserSpec.InlinePoliciesEntry
+	24, // 7: vws.iam.v1.UserStatus.observed:type_name -> vws.common.v1.ObservedState
+	23, // 8: vws.iam.v1.UserStatus.password_last_used_time:type_name -> google.protobuf.Timestamp
+	23, // 9: vws.iam.v1.UserStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
 	1,  // 10: vws.iam.v1.ListUsersResponse.users:type_name -> vws.iam.v1.User
 	1,  // 11: vws.iam.v1.CreateUserRequest.user:type_name -> vws.iam.v1.User
 	1,  // 12: vws.iam.v1.UpdateUserRequest.user:type_name -> vws.iam.v1.User
-	23, // 13: vws.iam.v1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
+	25, // 13: vws.iam.v1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
 	0,  // 14: vws.iam.v1.SetLoginProfileRequest.mode:type_name -> vws.iam.v1.LoginProfileWriteMode
 	4,  // 15: vws.iam.v1.UserService.GetUser:input_type -> vws.iam.v1.GetUserRequest
 	5,  // 16: vws.iam.v1.UserService.ListUsers:input_type -> vws.iam.v1.ListUsersRequest
@@ -1488,19 +1590,21 @@ var file_vws_iam_v1_user_proto_depIdxs = []int32{
 	10, // 21: vws.iam.v1.UserService.SetLoginProfile:input_type -> vws.iam.v1.SetLoginProfileRequest
 	11, // 22: vws.iam.v1.UserService.DeleteLoginProfile:input_type -> vws.iam.v1.DeleteLoginProfileRequest
 	12, // 23: vws.iam.v1.UserService.ChangePassword:input_type -> vws.iam.v1.ChangePasswordRequest
-	17, // 24: vws.iam.v1.UserService.DeleteUserPermissionsBoundary:input_type -> vws.iam.v1.DeleteUserPermissionsBoundaryRequest
-	1,  // 25: vws.iam.v1.UserService.GetUser:output_type -> vws.iam.v1.User
-	6,  // 26: vws.iam.v1.UserService.ListUsers:output_type -> vws.iam.v1.ListUsersResponse
-	24, // 27: vws.iam.v1.UserService.CreateUser:output_type -> google.longrunning.Operation
-	24, // 28: vws.iam.v1.UserService.UpdateUser:output_type -> google.longrunning.Operation
-	24, // 29: vws.iam.v1.UserService.DeleteUser:output_type -> google.longrunning.Operation
-	24, // 30: vws.iam.v1.UserService.RevokeUserSessions:output_type -> google.longrunning.Operation
-	13, // 31: vws.iam.v1.UserService.SetLoginProfile:output_type -> vws.iam.v1.SetLoginProfileResponse
-	14, // 32: vws.iam.v1.UserService.DeleteLoginProfile:output_type -> vws.iam.v1.DeleteLoginProfileResponse
-	15, // 33: vws.iam.v1.UserService.ChangePassword:output_type -> vws.iam.v1.ChangePasswordResponse
-	18, // 34: vws.iam.v1.UserService.DeleteUserPermissionsBoundary:output_type -> vws.iam.v1.DeleteUserPermissionsBoundaryResponse
-	25, // [25:35] is the sub-list for method output_type
-	15, // [15:25] is the sub-list for method input_type
+	17, // 24: vws.iam.v1.UserService.PutUserPermissionsBoundary:input_type -> vws.iam.v1.PutUserPermissionsBoundaryRequest
+	19, // 25: vws.iam.v1.UserService.DeleteUserPermissionsBoundary:input_type -> vws.iam.v1.DeleteUserPermissionsBoundaryRequest
+	1,  // 26: vws.iam.v1.UserService.GetUser:output_type -> vws.iam.v1.User
+	6,  // 27: vws.iam.v1.UserService.ListUsers:output_type -> vws.iam.v1.ListUsersResponse
+	26, // 28: vws.iam.v1.UserService.CreateUser:output_type -> google.longrunning.Operation
+	26, // 29: vws.iam.v1.UserService.UpdateUser:output_type -> google.longrunning.Operation
+	26, // 30: vws.iam.v1.UserService.DeleteUser:output_type -> google.longrunning.Operation
+	26, // 31: vws.iam.v1.UserService.RevokeUserSessions:output_type -> google.longrunning.Operation
+	13, // 32: vws.iam.v1.UserService.SetLoginProfile:output_type -> vws.iam.v1.SetLoginProfileResponse
+	14, // 33: vws.iam.v1.UserService.DeleteLoginProfile:output_type -> vws.iam.v1.DeleteLoginProfileResponse
+	15, // 34: vws.iam.v1.UserService.ChangePassword:output_type -> vws.iam.v1.ChangePasswordResponse
+	18, // 35: vws.iam.v1.UserService.PutUserPermissionsBoundary:output_type -> vws.iam.v1.PutUserPermissionsBoundaryResponse
+	20, // 36: vws.iam.v1.UserService.DeleteUserPermissionsBoundary:output_type -> vws.iam.v1.DeleteUserPermissionsBoundaryResponse
+	26, // [26:37] is the sub-list for method output_type
+	15, // [15:26] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
 	15, // [15:15] is the sub-list for extension extendee
 	0,  // [0:15] is the sub-list for field type_name
@@ -1517,7 +1621,7 @@ func file_vws_iam_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_user_proto_rawDesc), len(file_vws_iam_v1_user_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   20,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
