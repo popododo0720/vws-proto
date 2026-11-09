@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	InstanceProfileService_AddRoleToInstanceProfile_FullMethodName      = "/vws.iam.v1.InstanceProfileService/AddRoleToInstanceProfile"
 	InstanceProfileService_RemoveRoleFromInstanceProfile_FullMethodName = "/vws.iam.v1.InstanceProfileService/RemoveRoleFromInstanceProfile"
 )
 
@@ -29,6 +30,22 @@ const (
 // InstanceProfileService manages IAM instance profiles, AWS's container for
 // the one role an instance runs as.
 type InstanceProfileServiceClient interface {
+	// AddRoleToInstanceProfile is AWS AddRoleToInstanceProfile. It adds the
+	// role to the instance profile. It is synchronous and not an operation, as
+	// the AWS call is: one conditional store write, returned once stored.
+	// An instance profile name or RoleName length or pattern fault is
+	// INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). An unknown
+	// instance profile or an unknown role is NOT_FOUND / RESOURCE_NOT_FOUND
+	// (NoSuchEntity). A profile that already holds a role, the same role
+	// included, is RESOURCE_EXHAUSTED / QUOTA_EXCEEDED (LimitExceeded): one
+	// role per instance profile, a fixed AWS quota. A service-linked role is
+	// FAILED_PRECONDITION / UNMODIFIABLE_ENTITY (UnmodifiableEntity). A write
+	// that keeps losing to concurrent writes is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// A repeat after success is RESOURCE_EXHAUSTED (LimitExceeded), as in AWS.
+	// Authorization (iam:AddRoleToInstanceProfile and iam:PassRole on the
+	// role) is console-api's.
+	AddRoleToInstanceProfile(ctx context.Context, in *AddRoleToInstanceProfileRequest, opts ...grpc.CallOption) (*AddRoleToInstanceProfileResponse, error)
 	// RemoveRoleFromInstanceProfile is AWS RemoveRoleFromInstanceProfile. It
 	// removes the role from the instance profile; the role and the profile
 	// stay. It is synchronous and not an operation, as the AWS call is: one
@@ -53,6 +70,16 @@ func NewInstanceProfileServiceClient(cc grpc.ClientConnInterface) InstanceProfil
 	return &instanceProfileServiceClient{cc}
 }
 
+func (c *instanceProfileServiceClient) AddRoleToInstanceProfile(ctx context.Context, in *AddRoleToInstanceProfileRequest, opts ...grpc.CallOption) (*AddRoleToInstanceProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddRoleToInstanceProfileResponse)
+	err := c.cc.Invoke(ctx, InstanceProfileService_AddRoleToInstanceProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *instanceProfileServiceClient) RemoveRoleFromInstanceProfile(ctx context.Context, in *RemoveRoleFromInstanceProfileRequest, opts ...grpc.CallOption) (*RemoveRoleFromInstanceProfileResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveRoleFromInstanceProfileResponse)
@@ -70,6 +97,22 @@ func (c *instanceProfileServiceClient) RemoveRoleFromInstanceProfile(ctx context
 // InstanceProfileService manages IAM instance profiles, AWS's container for
 // the one role an instance runs as.
 type InstanceProfileServiceServer interface {
+	// AddRoleToInstanceProfile is AWS AddRoleToInstanceProfile. It adds the
+	// role to the instance profile. It is synchronous and not an operation, as
+	// the AWS call is: one conditional store write, returned once stored.
+	// An instance profile name or RoleName length or pattern fault is
+	// INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). An unknown
+	// instance profile or an unknown role is NOT_FOUND / RESOURCE_NOT_FOUND
+	// (NoSuchEntity). A profile that already holds a role, the same role
+	// included, is RESOURCE_EXHAUSTED / QUOTA_EXCEEDED (LimitExceeded): one
+	// role per instance profile, a fixed AWS quota. A service-linked role is
+	// FAILED_PRECONDITION / UNMODIFIABLE_ENTITY (UnmodifiableEntity). A write
+	// that keeps losing to concurrent writes is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// A repeat after success is RESOURCE_EXHAUSTED (LimitExceeded), as in AWS.
+	// Authorization (iam:AddRoleToInstanceProfile and iam:PassRole on the
+	// role) is console-api's.
+	AddRoleToInstanceProfile(context.Context, *AddRoleToInstanceProfileRequest) (*AddRoleToInstanceProfileResponse, error)
 	// RemoveRoleFromInstanceProfile is AWS RemoveRoleFromInstanceProfile. It
 	// removes the role from the instance profile; the role and the profile
 	// stay. It is synchronous and not an operation, as the AWS call is: one
@@ -94,6 +137,9 @@ type InstanceProfileServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedInstanceProfileServiceServer struct{}
 
+func (UnimplementedInstanceProfileServiceServer) AddRoleToInstanceProfile(context.Context, *AddRoleToInstanceProfileRequest) (*AddRoleToInstanceProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddRoleToInstanceProfile not implemented")
+}
 func (UnimplementedInstanceProfileServiceServer) RemoveRoleFromInstanceProfile(context.Context, *RemoveRoleFromInstanceProfileRequest) (*RemoveRoleFromInstanceProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveRoleFromInstanceProfile not implemented")
 }
@@ -117,6 +163,24 @@ func RegisterInstanceProfileServiceServer(s grpc.ServiceRegistrar, srv InstanceP
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&InstanceProfileService_ServiceDesc, srv)
+}
+
+func _InstanceProfileService_AddRoleToInstanceProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddRoleToInstanceProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceProfileServiceServer).AddRoleToInstanceProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceProfileService_AddRoleToInstanceProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceProfileServiceServer).AddRoleToInstanceProfile(ctx, req.(*AddRoleToInstanceProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _InstanceProfileService_RemoveRoleFromInstanceProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -144,6 +208,10 @@ var InstanceProfileService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "vws.iam.v1.InstanceProfileService",
 	HandlerType: (*InstanceProfileServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AddRoleToInstanceProfile",
+			Handler:    _InstanceProfileService_AddRoleToInstanceProfile_Handler,
+		},
 		{
 			MethodName: "RemoveRoleFromInstanceProfile",
 			Handler:    _InstanceProfileService_RemoveRoleFromInstanceProfile_Handler,
