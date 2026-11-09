@@ -119,7 +119,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Retry: a user with no boundary succeeds without a write, so a retry after a lost response succeeds.
 - Authorization (`iam:DeleteUserPermissionsBoundary`) is console-api's.
 
-## Instance profiles (#118, #119, #120, #121)
+## Instance profiles (#118, #119, #120, #121, #122)
 
 - `InstanceProfile` is the resource `projects/{project}/instanceProfiles/{instance_profile}`; the id is AWS `InstanceProfileName`. `spec.path` is AWS `Path`. `spec.roles` holds the full resource names of its roles (at most one) and is output only: only `AddRoleToInstanceProfile` and `RemoveRoleFromInstanceProfile` change it. `status.arn` is `arn:vws:iam::{project}:instance-profile{path}{instance_profile}`, `status.unique_id` is AWS `InstanceProfileId` (`AIPA...`), and `status.roles` is the `Role` of each `spec.roles` entry, as AWS `InstanceProfile.Roles` carries.
 - `InstanceProfileService.AddRoleToInstanceProfile` is AWS `AddRoleToInstanceProfile`. `name` is `projects/{project}/instanceProfiles/{instance_profile}` and `role_name` is the AWS `RoleName` of a role in the same project. It adds the role to the profile. It is not an operation, and the response is empty, as AWS returns only a request id.
@@ -138,7 +138,10 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: a `path_prefix`, `page_size` or `page_token` length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A well-formed `page_token` the server did not issue is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). No matching profile is an empty, complete page. console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
 - Pages: deterministic in case-folded name order. A profile that exists and matches for the whole listing is returned once. The call only reads, so a retry is safe.
 - Authorization (`iam:ListInstanceProfiles`) is console-api's.
-- The other instance profile actions (#122, #124, #126) join this service.
+- `InstanceProfileService.GetInstanceProfile` (#122) is AWS `GetInstanceProfile`. `name` is `projects/{project}/instanceProfiles/{instance_profile}`. It returns the `InstanceProfile` under its stored name, with `status.roles` holding its role (empty when it holds none). Names compare case-insensitively. It is a read RPC, not an operation. AWS also returns `Tags`; vws-iam does not model instance profile tags yet, so a `tags` field is added with that work.
+- Errors: a name length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). An unknown profile is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). The call only reads, so a retry is safe.
+- Authorization (`iam:GetInstanceProfile`) is console-api's.
+- The other instance profile actions (#124, #126) join this service.
 
 ## Decode authorization message (#84)
 

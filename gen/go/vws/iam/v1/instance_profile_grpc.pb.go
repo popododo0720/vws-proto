@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	InstanceProfileService_GetInstanceProfile_FullMethodName            = "/vws.iam.v1.InstanceProfileService/GetInstanceProfile"
 	InstanceProfileService_AddRoleToInstanceProfile_FullMethodName      = "/vws.iam.v1.InstanceProfileService/AddRoleToInstanceProfile"
 	InstanceProfileService_RemoveRoleFromInstanceProfile_FullMethodName = "/vws.iam.v1.InstanceProfileService/RemoveRoleFromInstanceProfile"
 	InstanceProfileService_ListInstanceProfilesForRole_FullMethodName   = "/vws.iam.v1.InstanceProfileService/ListInstanceProfilesForRole"
@@ -32,6 +33,17 @@ const (
 // InstanceProfileService manages IAM instance profiles, AWS's container for
 // the one role an instance runs as.
 type InstanceProfileServiceClient interface {
+	// GetInstanceProfile is AWS GetInstanceProfile. It returns the instance
+	// profile under its stored name, with status.roles carrying the role it
+	// holds (empty when it holds none). Names compare case-insensitively. It
+	// only reads.
+	// An instance profile name length or pattern fault is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError). An unknown instance profile is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+	// Authorization (iam:GetInstanceProfile) is console-api's.
+	// AIP-131: the Get response is the resource.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	GetInstanceProfile(ctx context.Context, in *GetInstanceProfileRequest, opts ...grpc.CallOption) (*InstanceProfile, error)
 	// AddRoleToInstanceProfile is AWS AddRoleToInstanceProfile. It adds the
 	// role to the instance profile. It is synchronous and not an operation, as
 	// the AWS call is: one conditional store write, returned once stored.
@@ -91,6 +103,16 @@ func NewInstanceProfileServiceClient(cc grpc.ClientConnInterface) InstanceProfil
 	return &instanceProfileServiceClient{cc}
 }
 
+func (c *instanceProfileServiceClient) GetInstanceProfile(ctx context.Context, in *GetInstanceProfileRequest, opts ...grpc.CallOption) (*InstanceProfile, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InstanceProfile)
+	err := c.cc.Invoke(ctx, InstanceProfileService_GetInstanceProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *instanceProfileServiceClient) AddRoleToInstanceProfile(ctx context.Context, in *AddRoleToInstanceProfileRequest, opts ...grpc.CallOption) (*AddRoleToInstanceProfileResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddRoleToInstanceProfileResponse)
@@ -138,6 +160,17 @@ func (c *instanceProfileServiceClient) ListInstanceProfiles(ctx context.Context,
 // InstanceProfileService manages IAM instance profiles, AWS's container for
 // the one role an instance runs as.
 type InstanceProfileServiceServer interface {
+	// GetInstanceProfile is AWS GetInstanceProfile. It returns the instance
+	// profile under its stored name, with status.roles carrying the role it
+	// holds (empty when it holds none). Names compare case-insensitively. It
+	// only reads.
+	// An instance profile name length or pattern fault is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError). An unknown instance profile is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+	// Authorization (iam:GetInstanceProfile) is console-api's.
+	// AIP-131: the Get response is the resource.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	GetInstanceProfile(context.Context, *GetInstanceProfileRequest) (*InstanceProfile, error)
 	// AddRoleToInstanceProfile is AWS AddRoleToInstanceProfile. It adds the
 	// role to the instance profile. It is synchronous and not an operation, as
 	// the AWS call is: one conditional store write, returned once stored.
@@ -197,6 +230,9 @@ type InstanceProfileServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedInstanceProfileServiceServer struct{}
 
+func (UnimplementedInstanceProfileServiceServer) GetInstanceProfile(context.Context, *GetInstanceProfileRequest) (*InstanceProfile, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInstanceProfile not implemented")
+}
 func (UnimplementedInstanceProfileServiceServer) AddRoleToInstanceProfile(context.Context, *AddRoleToInstanceProfileRequest) (*AddRoleToInstanceProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddRoleToInstanceProfile not implemented")
 }
@@ -229,6 +265,24 @@ func RegisterInstanceProfileServiceServer(s grpc.ServiceRegistrar, srv InstanceP
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&InstanceProfileService_ServiceDesc, srv)
+}
+
+func _InstanceProfileService_GetInstanceProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInstanceProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceProfileServiceServer).GetInstanceProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceProfileService_GetInstanceProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceProfileServiceServer).GetInstanceProfile(ctx, req.(*GetInstanceProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _InstanceProfileService_AddRoleToInstanceProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -310,6 +364,10 @@ var InstanceProfileService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "vws.iam.v1.InstanceProfileService",
 	HandlerType: (*InstanceProfileServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetInstanceProfile",
+			Handler:    _InstanceProfileService_GetInstanceProfile_Handler,
+		},
 		{
 			MethodName: "AddRoleToInstanceProfile",
 			Handler:    _InstanceProfileService_AddRoleToInstanceProfile_Handler,

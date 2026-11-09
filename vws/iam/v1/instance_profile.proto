@@ -18,6 +18,20 @@ option java_package = "dev.vws.iam.v1";
 // InstanceProfileService manages IAM instance profiles, AWS's container for
 // the one role an instance runs as.
 service InstanceProfileService {
+  // GetInstanceProfile is AWS GetInstanceProfile. It returns the instance
+  // profile under its stored name, with status.roles carrying the role it
+  // holds (empty when it holds none). Names compare case-insensitively. It
+  // only reads.
+  // An instance profile name length or pattern fault is INVALID_ARGUMENT /
+  // INVALID_SPEC (AWS ValidationError). An unknown instance profile is
+  // NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+  // Authorization (iam:GetInstanceProfile) is console-api's.
+  // AIP-131: the Get response is the resource.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc GetInstanceProfile(GetInstanceProfileRequest) returns (InstanceProfile) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/instanceProfiles/*}"};
+  }
+
   // AddRoleToInstanceProfile is AWS AddRoleToInstanceProfile. It adds the
   // role to the instance profile. It is synchronous and not an operation, as
   // the AWS call is: one conditional store write, returned once stored.
@@ -133,6 +147,15 @@ message InstanceProfileStatus {
   // The Role of each spec.roles entry, read with the profile, as AWS
   // InstanceProfile.Roles carries.
   repeated Role roles = 4;
+}
+
+message GetInstanceProfileRequest {
+  // projects/{project}/instanceProfiles/{instance_profile}. The instance
+  // profile id is AWS InstanceProfileName, 1-128 characters of [\w+=,.@-].
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/InstanceProfile"
+  ];
 }
 
 message ListInstanceProfilesForRoleRequest {
