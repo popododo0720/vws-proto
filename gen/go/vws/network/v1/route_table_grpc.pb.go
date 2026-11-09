@@ -66,6 +66,14 @@ const (
 //     (aws_code=RouteTableLimitExceeded). 200 is the EC2 default quota.
 //   - Then the route table row and its local route are written.
 //
+// Create idempotency (vws.common.v1.OperationMetadata) compares spec.vpc,
+// labels and annotations. The request_id fingerprint covers the same fields.
+// Server-written spec.routes and status are not compared, so a retry of the
+// same create, with or without request_id and after the request_id window,
+// returns a succeeded operation for the stored table, not ALREADY_EXISTS. A
+// stored table with a different spec.vpc, labels or annotations is
+// ALREADY_EXISTS.
+//
 // VpcService.DeleteVpc is rejected with DEPENDENCY_MISSING while a non-main
 // route table whose spec.vpc names the VPC remains.
 type RouteTableServiceClient interface {
@@ -180,6 +188,14 @@ func (c *routeTableServiceClient) ReportRouteTableStatus(ctx context.Context, in
 //     delete_time set included: RESOURCE_EXHAUSTED / QUOTA_EXCEEDED
 //     (aws_code=RouteTableLimitExceeded). 200 is the EC2 default quota.
 //   - Then the route table row and its local route are written.
+//
+// Create idempotency (vws.common.v1.OperationMetadata) compares spec.vpc,
+// labels and annotations. The request_id fingerprint covers the same fields.
+// Server-written spec.routes and status are not compared, so a retry of the
+// same create, with or without request_id and after the request_id window,
+// returns a succeeded operation for the stored table, not ALREADY_EXISTS. A
+// stored table with a different spec.vpc, labels or annotations is
+// ALREADY_EXISTS.
 //
 // VpcService.DeleteVpc is rejected with DEPENDENCY_MISSING while a non-main
 // route table whose spec.vpc names the VPC remains.

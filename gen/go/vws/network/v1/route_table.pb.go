@@ -313,7 +313,7 @@ type RouteTableSpec struct {
 	// Routes of this table, the local route first. On create the caller leaves
 	// it empty and the server writes the local route. A create that sends any
 	// route is INVALID_ARGUMENT / INVALID_SPEC. At most one route per
-	// destination_ipv4_cidr.
+	// destination_ipv4_cidr. Create idempotency does not compare this field.
 	Routes        []*Route `protobuf:"bytes,2,rep,name=routes,proto3" json:"routes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

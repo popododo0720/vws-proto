@@ -50,6 +50,14 @@ option java_package = "dev.vws.network.v1";
 //     (aws_code=RouteTableLimitExceeded). 200 is the EC2 default quota.
 //   - Then the route table row and its local route are written.
 //
+// Create idempotency (vws.common.v1.OperationMetadata) compares spec.vpc,
+// labels and annotations. The request_id fingerprint covers the same fields.
+// Server-written spec.routes and status are not compared, so a retry of the
+// same create, with or without request_id and after the request_id window,
+// returns a succeeded operation for the stored table, not ALREADY_EXISTS. A
+// stored table with a different spec.vpc, labels or annotations is
+// ALREADY_EXISTS.
+//
 // VpcService.DeleteVpc is rejected with DEPENDENCY_MISSING while a non-main
 // route table whose spec.vpc names the VPC remains.
 service RouteTableService {
@@ -136,7 +144,7 @@ message RouteTableSpec {
   // Routes of this table, the local route first. On create the caller leaves
   // it empty and the server writes the local route. A create that sends any
   // route is INVALID_ARGUMENT / INVALID_SPEC. At most one route per
-  // destination_ipv4_cidr.
+  // destination_ipv4_cidr. Create idempotency does not compare this field.
   repeated Route routes = 2;
 }
 
