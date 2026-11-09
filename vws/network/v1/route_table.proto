@@ -1,0 +1,276 @@
+syntax = "proto3";
+
+package vws.network.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/timestamp.proto";
+import "vws/common/v1/resource.proto";
+
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/network/v1;networkv1";
+option java_multiple_files = true;
+option java_outer_classname = "RouteTableProto";
+option java_package = "dev.vws.network.v1";
+
+// RouteTableService stores desired state for the route table of a VPC.
+// Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
+// EC2 CreateRouteTable maps to CreateRouteTable, DescribeRouteTables to
+// ListRouteTables, and DeleteRouteTable to DeleteRouteTable. EC2 ClientToken
+// maps to request_id: the same token with a different request is ABORTED /
+// IDEMPOTENCY_CONFLICT (EC2 IdempotentParameterMismatch). EC2 DryRun maps to
+// validate_only. EC2 TagSpecification for resource type route-table maps to
+// annotations.
+//
+// Where an error below names an aws_code, the server sets that value under the
+// key "aws_code" in google.rpc.ErrorInfo.metadata. The gateway returns it as the
+// EC2 error code.
+//
+// Main route table. Every VPC has exactly one main route table. CreateVpc
+// stores it in the same write as the VPC, so a VPC is never visible without it.
+// The server picks its route_table_id. Its status.main is true and its
+// status.associations holds one entry with an empty subnet, the main
+// association. CreateRouteTable never makes a main table. DeleteRouteTable on
+// the main table is FAILED_PRECONDITION / DEPENDENCY_MISSING
+// (aws_code=DependencyViolation). The main table is removed with its VPC.
+//
+// Local route. Every route table, the main one included, has the local route
+// in spec.routes from the write that stores it: destination_ipv4_cidr is the
+// VPC spec.ipv4_cidr, target is ROUTE_TARGET_LOCAL and origin is
+// ROUTE_ORIGIN_CREATE_ROUTE_TABLE. The server writes it. It cannot be removed.
+//
+// CreateRouteTable checks, in one store for the VPC region:
+//   - spec.vpc empty: INVALID_ARGUMENT / INVALID_SPEC (aws_code=MissingParameter).
+//   - spec.vpc names a VPC that does not exist or has delete_time set:
+//     NOT_FOUND / RESOURCE_NOT_FOUND (aws_code=InvalidVpcID.NotFound).
+//   - The VPC already has 200 route tables, the main one and rows with
+//     delete_time set included: RESOURCE_EXHAUSTED / QUOTA_EXCEEDED
+//     (aws_code=RouteTableLimitExceeded). 200 is the EC2 default quota.
+//   - Then the route table row and its local route are written.
+//
+// VpcService.DeleteVpc is rejected with DEPENDENCY_MISSING while a non-main
+// route table whose spec.vpc names the VPC remains.
+service RouteTableService {
+  // AIP-131: the Get response is the resource.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc GetRouteTable(GetRouteTableRequest) returns (RouteTable) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/regions/*/routeTables/*}"};
+  }
+
+  rpc ListRouteTables(ListRouteTablesRequest) returns (ListRouteTablesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*/regions/*}/routeTables"};
+  }
+
+  // AIP-151: every mutation returns google.longrunning.Operation.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc CreateRouteTable(CreateRouteTableRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*/regions/*}/routeTables"
+      body: "route_table"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.network.v1.RouteTable"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc DeleteRouteTable(DeleteRouteTableRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {delete: "/v1/{name=projects/*/regions/*/routeTables/*}"};
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.network.v1.RouteTable"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // ReportRouteTableStatus is the node reconcile write.
+  rpc ReportRouteTableStatus(ReportRouteTableStatusRequest) returns (ReportRouteTableStatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/regions/*/routeTables/*}:reportStatus"
+      body: "*"
+    };
+  }
+}
+
+// RouteTable is the set of routes for traffic in a VPC.
+// Fields 1-10 are the shared resource envelope.
+message RouteTable {
+  option (google.api.resource) = {
+    type: "vws.network/RouteTable"
+    pattern: "projects/{project}/regions/{region}/routeTables/{route_table}"
+    plural: "routeTables"
+    singular: "routeTable"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = UUID4
+  ];
+  int64 generation = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string etag = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  map<string, string> labels = 5;
+  RouteTableSpec spec = 6 [(google.api.field_behavior) = REQUIRED];
+  RouteTableStatus status = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp delete_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // User metadata stored and returned verbatim; not filterable. See the
+  // envelope comment in vws/common/v1/resource.proto for limits.
+  map<string, string> annotations = 11;
+}
+
+message RouteTableSpec {
+  // VPC this route table belongs to. Full resource name of vws.network/Vpc.
+  // Project and region must equal the route table (INVALID_ARGUMENT /
+  // INVALID_SPEC). Immutable.
+  string vpc = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "vws.network/Vpc"
+  ];
+  // Routes of this table, the local route first. On create the caller leaves
+  // it empty and the server writes the local route. A create that sends any
+  // route is INVALID_ARGUMENT / INVALID_SPEC. At most one route per
+  // destination_ipv4_cidr.
+  repeated Route routes = 2;
+}
+
+message Route {
+  // IPv4 CIDR the route matches. Prefix length is 0 to 32.
+  string destination_ipv4_cidr = 1 [(google.api.field_behavior) = REQUIRED];
+  RouteTarget target = 2 [(google.api.field_behavior) = REQUIRED];
+  // How the route was added. The server writes it.
+  RouteOrigin origin = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// RouteTarget is where matching traffic goes. Gateway targets are added later.
+enum RouteTarget {
+  ROUTE_TARGET_UNSPECIFIED = 0;
+  // Inside the VPC. EC2 gatewayId "local".
+  ROUTE_TARGET_LOCAL = 1;
+}
+
+// RouteOrigin matches EC2 Route.origin.
+enum RouteOrigin {
+  ROUTE_ORIGIN_UNSPECIFIED = 0;
+  // Added when the route table was created. The local route has this origin.
+  ROUTE_ORIGIN_CREATE_ROUTE_TABLE = 1;
+  // Added by a later route write.
+  ROUTE_ORIGIN_CREATE_ROUTE = 2;
+}
+
+message RouteTableStatus {
+  vws.common.v1.ObservedState observed = 1;
+  // True only for the main route table of the VPC. The server sets it when
+  // CreateVpc stores the table. It never changes. ReportRouteTableStatus leaves
+  // the stored value as it is.
+  bool main = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The server writes it. Empty on a table made by CreateRouteTable. The main
+  // table holds the main association. ReportRouteTableStatus leaves the stored
+  // value as it is.
+  repeated RouteTableAssociation associations = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // One entry per spec route the node has applied or failed to apply. A spec
+  // route with no entry has not been reconciled yet.
+  repeated RouteStatus routes = 4;
+}
+
+// RouteTableAssociation links the table to a subnet or makes it the main table.
+message RouteTableAssociation {
+  // Server-assigned id, unique in the region and stable for the life of the
+  // association. Uses vws.common.v1.ResourceId grammar.
+  string association_id = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Subnet this association routes. Empty for the main association.
+  string subnet = 2 [(google.api.resource_reference).type = "vws.network/Subnet"];
+}
+
+message RouteStatus {
+  // destination_ipv4_cidr of the spec route this entry reports.
+  string destination_ipv4_cidr = 1;
+  RouteState state = 2;
+}
+
+// RouteState matches EC2 Route.state.
+enum RouteState {
+  ROUTE_STATE_UNSPECIFIED = 0;
+  ROUTE_STATE_ACTIVE = 1;
+  // The target is gone, so matching traffic is dropped.
+  ROUTE_STATE_BLACKHOLE = 2;
+}
+
+message GetRouteTableRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/RouteTable"
+  ];
+}
+
+message ListRouteTablesRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.network/RouteTable"
+  ];
+  // Server default is 50. Values above 1000 are coerced to 1000.
+  int32 page_size = 2;
+  string page_token = 3;
+  // When set, only route tables whose spec.vpc equals this name are returned.
+  // A well-formed name of a VPC that does not exist returns an empty list.
+  string vpc = 4 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "vws.network/Vpc"
+  ];
+}
+
+message ListRouteTablesResponse {
+  repeated RouteTable route_tables = 1;
+  string next_page_token = 2;
+}
+
+message CreateRouteTableRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.network/RouteTable"
+  ];
+  // Final path segment. Must match vws.common.v1.ResourceId.
+  string route_table_id = 2 [(google.api.field_behavior) = REQUIRED];
+  RouteTable route_table = 3 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 4 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  // Runs every create check, the VPC and quota checks included, and writes nothing.
+  bool validate_only = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteRouteTableRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/RouteTable"
+  ];
+  string request_id = 2 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool allow_missing = 3 [(google.api.field_behavior) = OPTIONAL];
+  string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ReportRouteTableStatusRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/RouteTable"
+  ];
+  RouteTableStatus status = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+message ReportRouteTableStatusResponse {
+  RouteTable route_table = 1;
+}

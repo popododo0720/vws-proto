@@ -34,8 +34,11 @@ const (
 //
 // VpcService stores desired state for a regional network.
 // Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
+// CreateVpc stores the VPC and its main route table in one write. See
+// RouteTableService.
 // Delete is rejected with DEPENDENCY_MISSING while a subnet, a security group,
-// or an Address whose spec.vpc names this VPC remains.
+// an Address whose spec.vpc names this VPC, or a non-main route table whose
+// spec.vpc names this VPC remains. The main route table is removed with the VPC.
 type VpcServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -129,8 +132,11 @@ func (c *vpcServiceClient) ReportVpcStatus(ctx context.Context, in *ReportVpcSta
 //
 // VpcService stores desired state for a regional network.
 // Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
+// CreateVpc stores the VPC and its main route table in one write. See
+// RouteTableService.
 // Delete is rejected with DEPENDENCY_MISSING while a subnet, a security group,
-// or an Address whose spec.vpc names this VPC remains.
+// an Address whose spec.vpc names this VPC, or a non-main route table whose
+// spec.vpc names this VPC remains. The main route table is removed with the VPC.
 type VpcServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
