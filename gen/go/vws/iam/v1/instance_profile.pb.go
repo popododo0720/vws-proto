@@ -7,9 +7,11 @@
 package iamv1
 
 import (
+	v1 "github.com/popododo0720/vws-proto/gen/go/vws/common/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,6 +23,386 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+// InstanceProfile is an IAM instance profile, AWS's container for the one
+// role an instance runs as.
+// Fields 1-10 are the shared resource envelope.
+type InstanceProfile struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The instance profile id is AWS InstanceProfileName, 1-128 characters of
+	// [\w+=,.@-], unique per project ignoring case.
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Uid           string                 `protobuf:"bytes,2,opt,name=uid,proto3" json:"uid,omitempty"`
+	Generation    int64                  `protobuf:"varint,3,opt,name=generation,proto3" json:"generation,omitempty"`
+	Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	Labels        map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Spec          *InstanceProfileSpec   `protobuf:"bytes,6,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *InstanceProfileStatus `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	CreateTime    *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	DeleteTime    *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=delete_time,json=deleteTime,proto3" json:"delete_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstanceProfile) Reset() {
+	*x = InstanceProfile{}
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstanceProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstanceProfile) ProtoMessage() {}
+
+func (x *InstanceProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstanceProfile.ProtoReflect.Descriptor instead.
+func (*InstanceProfile) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *InstanceProfile) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *InstanceProfile) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *InstanceProfile) GetGeneration() int64 {
+	if x != nil {
+		return x.Generation
+	}
+	return 0
+}
+
+func (x *InstanceProfile) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+func (x *InstanceProfile) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *InstanceProfile) GetSpec() *InstanceProfileSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *InstanceProfile) GetStatus() *InstanceProfileStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
+func (x *InstanceProfile) GetCreateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreateTime
+	}
+	return nil
+}
+
+func (x *InstanceProfile) GetUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return nil
+}
+
+func (x *InstanceProfile) GetDeleteTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DeleteTime
+	}
+	return nil
+}
+
+type InstanceProfileSpec struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// AWS Path, "/" when empty.
+	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	// The roles the profile holds, full resource names
+	// projects/{project}/roles/{role} of the same project, at most one.
+	// Changed only by AddRoleToInstanceProfile and
+	// RemoveRoleFromInstanceProfile.
+	Roles         []string `protobuf:"bytes,2,rep,name=roles,proto3" json:"roles,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstanceProfileSpec) Reset() {
+	*x = InstanceProfileSpec{}
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstanceProfileSpec) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstanceProfileSpec) ProtoMessage() {}
+
+func (x *InstanceProfileSpec) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstanceProfileSpec.ProtoReflect.Descriptor instead.
+func (*InstanceProfileSpec) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *InstanceProfileSpec) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *InstanceProfileSpec) GetRoles() []string {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+type InstanceProfileStatus struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Observed *v1.ObservedState      `protobuf:"bytes,1,opt,name=observed,proto3" json:"observed,omitempty"`
+	// arn:vws:iam::{project}:instance-profile{path}{instance_profile}
+	Arn string `protobuf:"bytes,2,opt,name=arn,proto3" json:"arn,omitempty"`
+	// "AIPA" followed by 17 uppercase letters and digits.
+	UniqueId string `protobuf:"bytes,3,opt,name=unique_id,json=uniqueId,proto3" json:"unique_id,omitempty"`
+	// The Role of each spec.roles entry, read with the profile, as AWS
+	// InstanceProfile.Roles carries.
+	Roles         []*Role `protobuf:"bytes,4,rep,name=roles,proto3" json:"roles,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstanceProfileStatus) Reset() {
+	*x = InstanceProfileStatus{}
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstanceProfileStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstanceProfileStatus) ProtoMessage() {}
+
+func (x *InstanceProfileStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstanceProfileStatus.ProtoReflect.Descriptor instead.
+func (*InstanceProfileStatus) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *InstanceProfileStatus) GetObserved() *v1.ObservedState {
+	if x != nil {
+		return x.Observed
+	}
+	return nil
+}
+
+func (x *InstanceProfileStatus) GetArn() string {
+	if x != nil {
+		return x.Arn
+	}
+	return ""
+}
+
+func (x *InstanceProfileStatus) GetUniqueId() string {
+	if x != nil {
+		return x.UniqueId
+	}
+	return ""
+}
+
+func (x *InstanceProfileStatus) GetRoles() []*Role {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+type ListInstanceProfilesForRoleRequest struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// AWS RoleName, 1-64 characters of [\w+=,.@-]: a role of the parent
+	// project.
+	RoleName string `protobuf:"bytes,2,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
+	// AWS MaxItems, 1-1000. 0 means not set: the server default is 100, as in
+	// AWS. console-api answers an explicit MaxItems=0 as ValidationError
+	// itself, since 0 cannot be told apart from unset here.
+	PageSize int32 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// AWS Marker, 1-320 characters of [\u0020-\u00FF]. Only a
+	// next_page_token this RPC returned.
+	PageToken     string `protobuf:"bytes,4,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListInstanceProfilesForRoleRequest) Reset() {
+	*x = ListInstanceProfilesForRoleRequest{}
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListInstanceProfilesForRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListInstanceProfilesForRoleRequest) ProtoMessage() {}
+
+func (x *ListInstanceProfilesForRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListInstanceProfilesForRoleRequest.ProtoReflect.Descriptor instead.
+func (*ListInstanceProfilesForRoleRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ListInstanceProfilesForRoleRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *ListInstanceProfilesForRoleRequest) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
+	}
+	return ""
+}
+
+func (x *ListInstanceProfilesForRoleRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListInstanceProfilesForRoleRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListInstanceProfilesForRoleResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Ordered by case-folded name. Every profile that holds the role for the
+	// whole listing is returned once.
+	InstanceProfiles []*InstanceProfile `protobuf:"bytes,1,rep,name=instance_profiles,json=instanceProfiles,proto3" json:"instance_profiles,omitempty"`
+	// AWS Marker. Set exactly when the result is truncated (AWS IsTruncated).
+	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListInstanceProfilesForRoleResponse) Reset() {
+	*x = ListInstanceProfilesForRoleResponse{}
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListInstanceProfilesForRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListInstanceProfilesForRoleResponse) ProtoMessage() {}
+
+func (x *ListInstanceProfilesForRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListInstanceProfilesForRoleResponse.ProtoReflect.Descriptor instead.
+func (*ListInstanceProfilesForRoleResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ListInstanceProfilesForRoleResponse) GetInstanceProfiles() []*InstanceProfile {
+	if x != nil {
+		return x.InstanceProfiles
+	}
+	return nil
+}
+
+func (x *ListInstanceProfilesForRoleResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
 
 type AddRoleToInstanceProfileRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -36,7 +418,7 @@ type AddRoleToInstanceProfileRequest struct {
 
 func (x *AddRoleToInstanceProfileRequest) Reset() {
 	*x = AddRoleToInstanceProfileRequest{}
-	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[0]
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -48,7 +430,7 @@ func (x *AddRoleToInstanceProfileRequest) String() string {
 func (*AddRoleToInstanceProfileRequest) ProtoMessage() {}
 
 func (x *AddRoleToInstanceProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[0]
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +443,7 @@ func (x *AddRoleToInstanceProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddRoleToInstanceProfileRequest.ProtoReflect.Descriptor instead.
 func (*AddRoleToInstanceProfileRequest) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{0}
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *AddRoleToInstanceProfileRequest) GetName() string {
@@ -88,7 +470,7 @@ type AddRoleToInstanceProfileResponse struct {
 
 func (x *AddRoleToInstanceProfileResponse) Reset() {
 	*x = AddRoleToInstanceProfileResponse{}
-	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[1]
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -100,7 +482,7 @@ func (x *AddRoleToInstanceProfileResponse) String() string {
 func (*AddRoleToInstanceProfileResponse) ProtoMessage() {}
 
 func (x *AddRoleToInstanceProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[1]
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -113,7 +495,7 @@ func (x *AddRoleToInstanceProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddRoleToInstanceProfileResponse.ProtoReflect.Descriptor instead.
 func (*AddRoleToInstanceProfileResponse) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{1}
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{6}
 }
 
 type RemoveRoleFromInstanceProfileRequest struct {
@@ -130,7 +512,7 @@ type RemoveRoleFromInstanceProfileRequest struct {
 
 func (x *RemoveRoleFromInstanceProfileRequest) Reset() {
 	*x = RemoveRoleFromInstanceProfileRequest{}
-	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[2]
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -142,7 +524,7 @@ func (x *RemoveRoleFromInstanceProfileRequest) String() string {
 func (*RemoveRoleFromInstanceProfileRequest) ProtoMessage() {}
 
 func (x *RemoveRoleFromInstanceProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[2]
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -155,7 +537,7 @@ func (x *RemoveRoleFromInstanceProfileRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use RemoveRoleFromInstanceProfileRequest.ProtoReflect.Descriptor instead.
 func (*RemoveRoleFromInstanceProfileRequest) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{2}
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RemoveRoleFromInstanceProfileRequest) GetName() string {
@@ -182,7 +564,7 @@ type RemoveRoleFromInstanceProfileResponse struct {
 
 func (x *RemoveRoleFromInstanceProfileResponse) Reset() {
 	*x = RemoveRoleFromInstanceProfileResponse{}
-	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[3]
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -194,7 +576,7 @@ func (x *RemoveRoleFromInstanceProfileResponse) String() string {
 func (*RemoveRoleFromInstanceProfileResponse) ProtoMessage() {}
 
 func (x *RemoveRoleFromInstanceProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[3]
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -207,7 +589,7 @@ func (x *RemoveRoleFromInstanceProfileResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use RemoveRoleFromInstanceProfileResponse.ProtoReflect.Descriptor instead.
 func (*RemoveRoleFromInstanceProfileResponse) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{3}
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{8}
 }
 
 var File_vws_iam_v1_instance_profile_proto protoreflect.FileDescriptor
@@ -215,7 +597,45 @@ var File_vws_iam_v1_instance_profile_proto protoreflect.FileDescriptor
 const file_vws_iam_v1_instance_profile_proto_rawDesc = "" +
 	"\n" +
 	"!vws/iam/v1/instance_profile.proto\x12\n" +
-	"vws.iam.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\\\n" +
+	"vws.iam.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cvws/common/v1/resource.proto\x1a\x15vws/iam/v1/role.proto\"\xbc\x05\n" +
+	"\x0fInstanceProfile\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1d\n" +
+	"\x03uid\x18\x02 \x01(\tB\v\xe0A\x03\xe2\x8c\xcf\xd7\b\x02\b\x01R\x03uid\x12#\n" +
+	"\n" +
+	"generation\x18\x03 \x01(\x03B\x03\xe0A\x03R\n" +
+	"generation\x12\x17\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x03R\x04etag\x12?\n" +
+	"\x06labels\x18\x05 \x03(\v2'.vws.iam.v1.InstanceProfile.LabelsEntryR\x06labels\x128\n" +
+	"\x04spec\x18\x06 \x01(\v2\x1f.vws.iam.v1.InstanceProfileSpecB\x03\xe0A\x02R\x04spec\x12>\n" +
+	"\x06status\x18\a \x01(\v2!.vws.iam.v1.InstanceProfileStatusB\x03\xe0A\x03R\x06status\x12@\n" +
+	"\vcreate_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"createTime\x12@\n" +
+	"\vupdate_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"updateTime\x12@\n" +
+	"\vdelete_time\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
+	"deleteTime\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01:w\xeaAt\n" +
+	"\x17vws.iam/InstanceProfile\x126projects/{project}/instanceProfiles/{instance_profile}*\x10instanceProfiles2\x0finstanceProfile\"D\n" +
+	"\x13InstanceProfileSpec\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12\x19\n" +
+	"\x05roles\x18\x02 \x03(\tB\x03\xe0A\x03R\x05roles\"\xa8\x01\n" +
+	"\x15InstanceProfileStatus\x128\n" +
+	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\x12\x10\n" +
+	"\x03arn\x18\x02 \x01(\tR\x03arn\x12\x1b\n" +
+	"\tunique_id\x18\x03 \x01(\tR\buniqueId\x12&\n" +
+	"\x05roles\x18\x04 \x03(\v2\x10.vws.iam.v1.RoleR\x05roles\"\xbb\x01\n" +
+	"\"ListInstanceProfilesForRoleRequest\x127\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1f\xe0A\x02\xfaA\x19\x12\x17vws.iam/InstanceProfileR\x06parent\x12 \n" +
+	"\trole_name\x18\x02 \x01(\tB\x03\xe0A\x02R\broleName\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x04 \x01(\tR\tpageToken\"\x97\x01\n" +
+	"#ListInstanceProfilesForRoleResponse\x12H\n" +
+	"\x11instance_profiles\x18\x01 \x03(\v2\x1b.vws.iam.v1.InstanceProfileR\x10instanceProfiles\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\\\n" +
 	"\x1fAddRoleToInstanceProfileRequest\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
 	"\trole_name\x18\x02 \x01(\tB\x03\xe0A\x02R\broleName\"\"\n" +
@@ -223,10 +643,11 @@ const file_vws_iam_v1_instance_profile_proto_rawDesc = "" +
 	"$RemoveRoleFromInstanceProfileRequest\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
 	"\trole_name\x18\x02 \x01(\tB\x03\xe0A\x02R\broleName\"'\n" +
-	"%RemoveRoleFromInstanceProfileResponse2\x94\x03\n" +
+	"%RemoveRoleFromInstanceProfileResponse2\xd9\x04\n" +
 	"\x16InstanceProfileService\x12\xb2\x01\n" +
 	"\x18AddRoleToInstanceProfile\x12+.vws.iam.v1.AddRoleToInstanceProfileRequest\x1a,.vws.iam.v1.AddRoleToInstanceProfileResponse\";\x82\xd3\xe4\x93\x025:\x01*\"0/v1/{name=projects/*/instanceProfiles/*}:addRole\x12\xc4\x01\n" +
-	"\x1dRemoveRoleFromInstanceProfile\x120.vws.iam.v1.RemoveRoleFromInstanceProfileRequest\x1a1.vws.iam.v1.RemoveRoleFromInstanceProfileResponse\">\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{name=projects/*/instanceProfiles/*}:removeRoleBc\n" +
+	"\x1dRemoveRoleFromInstanceProfile\x120.vws.iam.v1.RemoveRoleFromInstanceProfileRequest\x1a1.vws.iam.v1.RemoveRoleFromInstanceProfileResponse\">\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{name=projects/*/instanceProfiles/*}:removeRole\x12\xc2\x01\n" +
+	"\x1bListInstanceProfilesForRole\x12..vws.iam.v1.ListInstanceProfilesForRoleRequest\x1a/.vws.iam.v1.ListInstanceProfilesForRoleResponse\"B\x82\xd3\xe4\x93\x02<\x12:/v1/{parent=projects/*}/roles/{role_name}/instanceProfilesBc\n" +
 	"\x0edev.vws.iam.v1B\x14InstanceProfileProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -241,23 +662,43 @@ func file_vws_iam_v1_instance_profile_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_instance_profile_proto_rawDescData
 }
 
-var file_vws_iam_v1_instance_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_vws_iam_v1_instance_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_vws_iam_v1_instance_profile_proto_goTypes = []any{
-	(*AddRoleToInstanceProfileRequest)(nil),       // 0: vws.iam.v1.AddRoleToInstanceProfileRequest
-	(*AddRoleToInstanceProfileResponse)(nil),      // 1: vws.iam.v1.AddRoleToInstanceProfileResponse
-	(*RemoveRoleFromInstanceProfileRequest)(nil),  // 2: vws.iam.v1.RemoveRoleFromInstanceProfileRequest
-	(*RemoveRoleFromInstanceProfileResponse)(nil), // 3: vws.iam.v1.RemoveRoleFromInstanceProfileResponse
+	(*InstanceProfile)(nil),                       // 0: vws.iam.v1.InstanceProfile
+	(*InstanceProfileSpec)(nil),                   // 1: vws.iam.v1.InstanceProfileSpec
+	(*InstanceProfileStatus)(nil),                 // 2: vws.iam.v1.InstanceProfileStatus
+	(*ListInstanceProfilesForRoleRequest)(nil),    // 3: vws.iam.v1.ListInstanceProfilesForRoleRequest
+	(*ListInstanceProfilesForRoleResponse)(nil),   // 4: vws.iam.v1.ListInstanceProfilesForRoleResponse
+	(*AddRoleToInstanceProfileRequest)(nil),       // 5: vws.iam.v1.AddRoleToInstanceProfileRequest
+	(*AddRoleToInstanceProfileResponse)(nil),      // 6: vws.iam.v1.AddRoleToInstanceProfileResponse
+	(*RemoveRoleFromInstanceProfileRequest)(nil),  // 7: vws.iam.v1.RemoveRoleFromInstanceProfileRequest
+	(*RemoveRoleFromInstanceProfileResponse)(nil), // 8: vws.iam.v1.RemoveRoleFromInstanceProfileResponse
+	nil,                           // 9: vws.iam.v1.InstanceProfile.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 10: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),      // 11: vws.common.v1.ObservedState
+	(*Role)(nil),                  // 12: vws.iam.v1.Role
 }
 var file_vws_iam_v1_instance_profile_proto_depIdxs = []int32{
-	0, // 0: vws.iam.v1.InstanceProfileService.AddRoleToInstanceProfile:input_type -> vws.iam.v1.AddRoleToInstanceProfileRequest
-	2, // 1: vws.iam.v1.InstanceProfileService.RemoveRoleFromInstanceProfile:input_type -> vws.iam.v1.RemoveRoleFromInstanceProfileRequest
-	1, // 2: vws.iam.v1.InstanceProfileService.AddRoleToInstanceProfile:output_type -> vws.iam.v1.AddRoleToInstanceProfileResponse
-	3, // 3: vws.iam.v1.InstanceProfileService.RemoveRoleFromInstanceProfile:output_type -> vws.iam.v1.RemoveRoleFromInstanceProfileResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	9,  // 0: vws.iam.v1.InstanceProfile.labels:type_name -> vws.iam.v1.InstanceProfile.LabelsEntry
+	1,  // 1: vws.iam.v1.InstanceProfile.spec:type_name -> vws.iam.v1.InstanceProfileSpec
+	2,  // 2: vws.iam.v1.InstanceProfile.status:type_name -> vws.iam.v1.InstanceProfileStatus
+	10, // 3: vws.iam.v1.InstanceProfile.create_time:type_name -> google.protobuf.Timestamp
+	10, // 4: vws.iam.v1.InstanceProfile.update_time:type_name -> google.protobuf.Timestamp
+	10, // 5: vws.iam.v1.InstanceProfile.delete_time:type_name -> google.protobuf.Timestamp
+	11, // 6: vws.iam.v1.InstanceProfileStatus.observed:type_name -> vws.common.v1.ObservedState
+	12, // 7: vws.iam.v1.InstanceProfileStatus.roles:type_name -> vws.iam.v1.Role
+	0,  // 8: vws.iam.v1.ListInstanceProfilesForRoleResponse.instance_profiles:type_name -> vws.iam.v1.InstanceProfile
+	5,  // 9: vws.iam.v1.InstanceProfileService.AddRoleToInstanceProfile:input_type -> vws.iam.v1.AddRoleToInstanceProfileRequest
+	7,  // 10: vws.iam.v1.InstanceProfileService.RemoveRoleFromInstanceProfile:input_type -> vws.iam.v1.RemoveRoleFromInstanceProfileRequest
+	3,  // 11: vws.iam.v1.InstanceProfileService.ListInstanceProfilesForRole:input_type -> vws.iam.v1.ListInstanceProfilesForRoleRequest
+	6,  // 12: vws.iam.v1.InstanceProfileService.AddRoleToInstanceProfile:output_type -> vws.iam.v1.AddRoleToInstanceProfileResponse
+	8,  // 13: vws.iam.v1.InstanceProfileService.RemoveRoleFromInstanceProfile:output_type -> vws.iam.v1.RemoveRoleFromInstanceProfileResponse
+	4,  // 14: vws.iam.v1.InstanceProfileService.ListInstanceProfilesForRole:output_type -> vws.iam.v1.ListInstanceProfilesForRoleResponse
+	12, // [12:15] is the sub-list for method output_type
+	9,  // [9:12] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_instance_profile_proto_init() }
@@ -265,13 +706,14 @@ func file_vws_iam_v1_instance_profile_proto_init() {
 	if File_vws_iam_v1_instance_profile_proto != nil {
 		return
 	}
+	file_vws_iam_v1_role_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_instance_profile_proto_rawDesc), len(file_vws_iam_v1_instance_profile_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
