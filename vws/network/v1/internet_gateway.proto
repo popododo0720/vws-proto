@@ -1,0 +1,216 @@
+syntax = "proto3";
+
+package vws.network.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/timestamp.proto";
+import "vws/common/v1/resource.proto";
+
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/network/v1;networkv1";
+option java_multiple_files = true;
+option java_outer_classname = "InternetGatewayProto";
+option java_package = "dev.vws.network.v1";
+
+// InternetGatewayService stores desired state for a regional internet gateway.
+// Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
+//
+// aws_code below is the EC2 error code the AWS-compatible gateway returns for
+// that status.
+//
+// CreateInternetGateway stores a detached gateway: status.attachments is empty.
+// It maps EC2 CreateInternetGateway. TagSpecification with resource type
+// internet-gateway maps to annotations. Reaching the per-region quota is
+// RESOURCE_EXHAUSTED / QUOTA_EXCEEDED (aws_code=InternetGatewayLimitExceeded).
+//
+// EC2 DryRun on Create and Delete maps to validate_only. The gateway checks the
+// caller's ec2:CreateInternetGateway or ec2:DeleteInternetGateway permission
+// first: denied is aws_code=UnauthorizedOperation and no call is made. A
+// succeeded validate_only operation is aws_code=DryRunOperation; a validate_only
+// error is returned as for the real call.
+//
+// An internet gateway id that does not exist is NOT_FOUND / RESOURCE_NOT_FOUND
+// (aws_code=InvalidInternetGatewayID.NotFound). Delete with allow_missing
+// follows OperationMetadata instead.
+//
+// Delete is rejected with FAILED_PRECONDITION / DEPENDENCY_MISSING
+// (aws_code=DependencyViolation) while status.attachments has an entry whose
+// state is not DETACHED. The attach RPCs, when added, store the desired VPC in
+// spec, and delete is then also rejected while spec names a VPC. That check and
+// setting delete_time are one store write.
+service InternetGatewayService {
+  // AIP-131: the Get response is the resource.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc GetInternetGateway(GetInternetGatewayRequest) returns (InternetGateway) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/regions/*/internetGateways/*}"};
+  }
+
+  rpc ListInternetGateways(ListInternetGatewaysRequest) returns (ListInternetGatewaysResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*/regions/*}/internetGateways"};
+  }
+
+  // AIP-151: every mutation returns google.longrunning.Operation.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc CreateInternetGateway(CreateInternetGatewayRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*/regions/*}/internetGateways"
+      body: "internet_gateway"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.network.v1.InternetGateway"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc DeleteInternetGateway(DeleteInternetGatewayRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {delete: "/v1/{name=projects/*/regions/*/internetGateways/*}"};
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.network.v1.InternetGateway"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // ReportInternetGatewayStatus is the node reconcile write.
+  rpc ReportInternetGatewayStatus(ReportInternetGatewayStatusRequest) returns (ReportInternetGatewayStatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/regions/*/internetGateways/*}:reportStatus"
+      body: "*"
+    };
+  }
+}
+
+// InternetGateway is a regional internet gateway (EC2 InternetGateway).
+// The EC2 ownerId is the project in name.
+// Fields 1-10 are the shared resource envelope.
+message InternetGateway {
+  option (google.api.resource) = {
+    type: "vws.network/InternetGateway"
+    pattern: "projects/{project}/regions/{region}/internetGateways/{internet_gateway}"
+    plural: "internetGateways"
+    singular: "internetGateway"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = UUID4
+  ];
+  int64 generation = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string etag = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  map<string, string> labels = 5;
+  InternetGatewaySpec spec = 6 [(google.api.field_behavior) = REQUIRED];
+  InternetGatewayStatus status = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp delete_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // User metadata stored and returned verbatim; not filterable. EC2 tagSet.
+  // See the envelope comment in vws/common/v1/resource.proto for limits.
+  map<string, string> annotations = 11;
+}
+
+// InternetGatewaySpec has no fields: EC2 CreateInternetGateway takes no
+// settings. The VPC attachment is added with the attach RPCs, which are not in
+// this contract yet.
+message InternetGatewaySpec {}
+
+message InternetGatewayStatus {
+  vws.common.v1.ObservedState observed = 1;
+  // EC2 attachmentSet, as the node reported it. Empty means detached; a
+  // created gateway has no entries. At most one entry, as an EC2 internet
+  // gateway attaches to one VPC. A report with more than one entry, an empty
+  // vpc, a vpc in another project or region, or an UNSPECIFIED state is
+  // INVALID_ARGUMENT / INVALID_SPEC and nothing is stored.
+  repeated InternetGatewayAttachment attachments = 2;
+}
+
+message InternetGatewayAttachment {
+  // Full resource name of vws.network/Vpc. Project and region equal the
+  // internet gateway.
+  string vpc = 1 [(google.api.resource_reference).type = "vws.network/Vpc"];
+  InternetGatewayAttachmentState state = 2;
+}
+
+// EC2 InternetGatewayAttachment state. AVAILABLE is EC2 "available", the
+// attached state.
+enum InternetGatewayAttachmentState {
+  INTERNET_GATEWAY_ATTACHMENT_STATE_UNSPECIFIED = 0;
+  INTERNET_GATEWAY_ATTACHMENT_STATE_ATTACHING = 1;
+  INTERNET_GATEWAY_ATTACHMENT_STATE_AVAILABLE = 2;
+  INTERNET_GATEWAY_ATTACHMENT_STATE_DETACHING = 3;
+  INTERNET_GATEWAY_ATTACHMENT_STATE_DETACHED = 4;
+}
+
+message GetInternetGatewayRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/InternetGateway"
+  ];
+}
+
+message ListInternetGatewaysRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.network/InternetGateway"
+  ];
+  // Server default is 50. Values above 1000 are coerced to 1000.
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListInternetGatewaysResponse {
+  repeated InternetGateway internet_gateways = 1;
+  string next_page_token = 2;
+}
+
+message CreateInternetGatewayRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.network/InternetGateway"
+  ];
+  // Final path segment. Must match vws.common.v1.ResourceId. EC2 has no
+  // client-chosen id: the gateway mints the EC2 internetGatewayId, "igw-"
+  // followed by lowercase hex, and sends it here.
+  string internet_gateway_id = 2 [(google.api.field_behavior) = REQUIRED];
+  InternetGateway internet_gateway = 3 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 4 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteInternetGatewayRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/InternetGateway"
+  ];
+  string request_id = 2 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool allow_missing = 3 [(google.api.field_behavior) = OPTIONAL];
+  string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+  bool validate_only = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ReportInternetGatewayStatusRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/InternetGateway"
+  ];
+  InternetGatewayStatus status = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+message ReportInternetGatewayStatusResponse {
+  InternetGateway internet_gateway = 1;
+}
