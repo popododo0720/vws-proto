@@ -63,24 +63,21 @@ type InstanceServiceClient interface {
 	// and returns a RUNNING operation with verb UPDATE and action
 	// "RebootInstances". The vws-compute node agent consumes it: when
 	// spec.reboot_count is greater than status.reboot_count it reboots the guest
-	// once, then reports status.reboot_count equal to spec.reboot_count. The
-	// operation completes when observed.generation catches up, like
-	// UpdateInstance.
-	// Idempotency:
-	//   - Same request_id and name: return the original operation. Nothing is
-	//     incremented again.
-	//   - Same request_id and a different name: ABORTED / IDEMPOTENCY_CONFLICT.
-	//   - A reboot still pending (spec.reboot_count greater than
-	//     status.reboot_count): return its operation. Requests made before the
-	//     guest reboots merge into that one reboot.
-	//
-	// Errors:
-	//   - Unknown instance: NOT_FOUND / RESOURCE_NOT_FOUND
+	// once, then reports status.reboot_count equal to spec.reboot_count. Requests
+	// accepted before the node reads the spec merge into that one reboot. The
+	// operation completes when observed.generation reaches its generation and
+	// status.reboot_count reaches the spec.reboot_count it set.
+	// The server checks in this order:
+	//  1. Same request_id and name: return the original operation and write
+	//     nothing. Same request_id and a different name:
+	//     ABORTED / IDEMPOTENCY_CONFLICT.
+	//  2. Unknown instance: NOT_FOUND / RESOURCE_NOT_FOUND
 	//     (EC2 InvalidInstanceID.NotFound).
-	//   - spec.power is not RUNNING, or delete_time is set:
+	//  3. spec.power is not RUNNING, or delete_time is set:
 	//     FAILED_PRECONDITION / INCORRECT_STATE (EC2 IncorrectInstanceState).
 	//     Nothing is written.
-	//   - etag set and not the stored etag: ABORTED / ETAG_MISMATCH.
+	//  4. etag set and not the stored etag: ABORTED / ETAG_MISMATCH.
+	//  5. Otherwise increment and store, then return the new operation.
 	//
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
@@ -202,24 +199,21 @@ type InstanceServiceServer interface {
 	// and returns a RUNNING operation with verb UPDATE and action
 	// "RebootInstances". The vws-compute node agent consumes it: when
 	// spec.reboot_count is greater than status.reboot_count it reboots the guest
-	// once, then reports status.reboot_count equal to spec.reboot_count. The
-	// operation completes when observed.generation catches up, like
-	// UpdateInstance.
-	// Idempotency:
-	//   - Same request_id and name: return the original operation. Nothing is
-	//     incremented again.
-	//   - Same request_id and a different name: ABORTED / IDEMPOTENCY_CONFLICT.
-	//   - A reboot still pending (spec.reboot_count greater than
-	//     status.reboot_count): return its operation. Requests made before the
-	//     guest reboots merge into that one reboot.
-	//
-	// Errors:
-	//   - Unknown instance: NOT_FOUND / RESOURCE_NOT_FOUND
+	// once, then reports status.reboot_count equal to spec.reboot_count. Requests
+	// accepted before the node reads the spec merge into that one reboot. The
+	// operation completes when observed.generation reaches its generation and
+	// status.reboot_count reaches the spec.reboot_count it set.
+	// The server checks in this order:
+	//  1. Same request_id and name: return the original operation and write
+	//     nothing. Same request_id and a different name:
+	//     ABORTED / IDEMPOTENCY_CONFLICT.
+	//  2. Unknown instance: NOT_FOUND / RESOURCE_NOT_FOUND
 	//     (EC2 InvalidInstanceID.NotFound).
-	//   - spec.power is not RUNNING, or delete_time is set:
+	//  3. spec.power is not RUNNING, or delete_time is set:
 	//     FAILED_PRECONDITION / INCORRECT_STATE (EC2 IncorrectInstanceState).
 	//     Nothing is written.
-	//   - etag set and not the stored etag: ABORTED / ETAG_MISMATCH.
+	//  4. etag set and not the stored etag: ABORTED / ETAG_MISMATCH.
+	//  5. Otherwise increment and store, then return the new operation.
 	//
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
