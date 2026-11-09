@@ -25,6 +25,7 @@ const (
 	InstanceService_CreateInstance_FullMethodName       = "/vws.compute.v1.InstanceService/CreateInstance"
 	InstanceService_UpdateInstance_FullMethodName       = "/vws.compute.v1.InstanceService/UpdateInstance"
 	InstanceService_DeleteInstance_FullMethodName       = "/vws.compute.v1.InstanceService/DeleteInstance"
+	InstanceService_RebootInstance_FullMethodName       = "/vws.compute.v1.InstanceService/RebootInstance"
 	InstanceService_ReportInstanceStatus_FullMethodName = "/vws.compute.v1.InstanceService/ReportInstanceStatus"
 )
 
@@ -57,6 +58,30 @@ type InstanceServiceClient interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	DeleteInstance(ctx context.Context, in *DeleteInstanceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	// RebootInstance is EC2 RebootInstances for one instance. The caller is
+	// vws-console-api. The server increments spec.reboot_count and generation
+	// and returns a RUNNING operation with verb UPDATE and action
+	// "RebootInstances". The vws-compute node agent consumes it: when
+	// spec.reboot_count is greater than status.reboot_count it reboots the guest
+	// once, then reports status.reboot_count equal to spec.reboot_count. Requests
+	// accepted before the node reads the spec merge into that one reboot. The
+	// operation completes when observed.generation reaches its generation and
+	// status.reboot_count reaches the spec.reboot_count it set.
+	// The server checks in this order:
+	//  1. Same request_id and name: return the original operation and write
+	//     nothing. Same request_id and a different name:
+	//     ABORTED / IDEMPOTENCY_CONFLICT.
+	//  2. Unknown instance: NOT_FOUND / RESOURCE_NOT_FOUND
+	//     (EC2 InvalidInstanceID.NotFound).
+	//  3. spec.power is not RUNNING, or delete_time is set:
+	//     FAILED_PRECONDITION / INCORRECT_STATE (EC2 IncorrectInstanceState).
+	//     Nothing is written.
+	//  4. etag set and not the stored etag: ABORTED / ETAG_MISMATCH.
+	//  5. Otherwise increment and store, then return the new operation.
+	//
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	RebootInstance(ctx context.Context, in *RebootInstanceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// ReportInstanceStatus is the node reconcile write.
 	// The server applies the idempotency rules on OperationMetadata.
 	ReportInstanceStatus(ctx context.Context, in *ReportInstanceStatusRequest, opts ...grpc.CallOption) (*ReportInstanceStatusResponse, error)
@@ -120,6 +145,16 @@ func (c *instanceServiceClient) DeleteInstance(ctx context.Context, in *DeleteIn
 	return out, nil
 }
 
+func (c *instanceServiceClient) RebootInstance(ctx context.Context, in *RebootInstanceRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, InstanceService_RebootInstance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *instanceServiceClient) ReportInstanceStatus(ctx context.Context, in *ReportInstanceStatusRequest, opts ...grpc.CallOption) (*ReportInstanceStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ReportInstanceStatusResponse)
@@ -159,6 +194,30 @@ type InstanceServiceServer interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	DeleteInstance(context.Context, *DeleteInstanceRequest) (*longrunningpb.Operation, error)
+	// RebootInstance is EC2 RebootInstances for one instance. The caller is
+	// vws-console-api. The server increments spec.reboot_count and generation
+	// and returns a RUNNING operation with verb UPDATE and action
+	// "RebootInstances". The vws-compute node agent consumes it: when
+	// spec.reboot_count is greater than status.reboot_count it reboots the guest
+	// once, then reports status.reboot_count equal to spec.reboot_count. Requests
+	// accepted before the node reads the spec merge into that one reboot. The
+	// operation completes when observed.generation reaches its generation and
+	// status.reboot_count reaches the spec.reboot_count it set.
+	// The server checks in this order:
+	//  1. Same request_id and name: return the original operation and write
+	//     nothing. Same request_id and a different name:
+	//     ABORTED / IDEMPOTENCY_CONFLICT.
+	//  2. Unknown instance: NOT_FOUND / RESOURCE_NOT_FOUND
+	//     (EC2 InvalidInstanceID.NotFound).
+	//  3. spec.power is not RUNNING, or delete_time is set:
+	//     FAILED_PRECONDITION / INCORRECT_STATE (EC2 IncorrectInstanceState).
+	//     Nothing is written.
+	//  4. etag set and not the stored etag: ABORTED / ETAG_MISMATCH.
+	//  5. Otherwise increment and store, then return the new operation.
+	//
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	RebootInstance(context.Context, *RebootInstanceRequest) (*longrunningpb.Operation, error)
 	// ReportInstanceStatus is the node reconcile write.
 	// The server applies the idempotency rules on OperationMetadata.
 	ReportInstanceStatus(context.Context, *ReportInstanceStatusRequest) (*ReportInstanceStatusResponse, error)
@@ -186,6 +245,9 @@ func (UnimplementedInstanceServiceServer) UpdateInstance(context.Context, *Updat
 }
 func (UnimplementedInstanceServiceServer) DeleteInstance(context.Context, *DeleteInstanceRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteInstance not implemented")
+}
+func (UnimplementedInstanceServiceServer) RebootInstance(context.Context, *RebootInstanceRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method RebootInstance not implemented")
 }
 func (UnimplementedInstanceServiceServer) ReportInstanceStatus(context.Context, *ReportInstanceStatusRequest) (*ReportInstanceStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportInstanceStatus not implemented")
@@ -301,6 +363,24 @@ func _InstanceService_DeleteInstance_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InstanceService_RebootInstance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RebootInstanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceServiceServer).RebootInstance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceService_RebootInstance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceServiceServer).RebootInstance(ctx, req.(*RebootInstanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _InstanceService_ReportInstanceStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReportInstanceStatusRequest)
 	if err := dec(in); err != nil {
@@ -345,6 +425,10 @@ var InstanceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteInstance",
 			Handler:    _InstanceService_DeleteInstance_Handler,
+		},
+		{
+			MethodName: "RebootInstance",
+			Handler:    _InstanceService_RebootInstance_Handler,
 		},
 		{
 			MethodName: "ReportInstanceStatus",

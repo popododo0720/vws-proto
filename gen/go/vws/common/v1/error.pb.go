@@ -31,7 +31,8 @@ const (
 //	ALREADY_EXISTS         ALREADY_EXISTS
 //	INVALID_ARGUMENT       INVALID_RESOURCE_ID, INVALID_SPEC, INVALID_BUCKET_NAMESPACE
 //	ABORTED                IDEMPOTENCY_CONFLICT, ETAG_MISMATCH, GENERATION_CONFLICT
-//	FAILED_PRECONDITION    DEPENDENCY_NOT_READY, DEPENDENCY_MISSING, UNMODIFIABLE_ENTITY
+//	FAILED_PRECONDITION    DEPENDENCY_NOT_READY, DEPENDENCY_MISSING, UNMODIFIABLE_ENTITY,
+//	                       INCORRECT_STATE
 //	RESOURCE_EXHAUSTED     QUOTA_EXCEEDED
 //	UNAVAILABLE            RECONCILIATION_FAILED when retryable is true
 //	INTERNAL               RECONCILIATION_FAILED when retryable is false
@@ -67,6 +68,9 @@ const (
 	// The resource is protected and this call may not change it, such as a
 	// service-linked IAM role (AWS UnmodifiableEntity).
 	ErrorReason_ERROR_REASON_UNMODIFIABLE_ENTITY ErrorReason = 17
+	// The resource's own lifecycle state does not allow this call, such as a
+	// reboot of a stopped or deleting instance (EC2 IncorrectInstanceState).
+	ErrorReason_ERROR_REASON_INCORRECT_STATE ErrorReason = 18
 )
 
 // Enum value maps for ErrorReason.
@@ -90,6 +94,7 @@ var (
 		15: "ERROR_REASON_ACCESS_DENIED",
 		16: "ERROR_REASON_INVALID_BUCKET_NAMESPACE",
 		17: "ERROR_REASON_UNMODIFIABLE_ENTITY",
+		18: "ERROR_REASON_INCORRECT_STATE",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_UNSPECIFIED":              0,
@@ -110,6 +115,7 @@ var (
 		"ERROR_REASON_ACCESS_DENIED":            15,
 		"ERROR_REASON_INVALID_BUCKET_NAMESPACE": 16,
 		"ERROR_REASON_UNMODIFIABLE_ENTITY":      17,
+		"ERROR_REASON_INCORRECT_STATE":          18,
 	}
 )
 
@@ -231,7 +237,7 @@ const file_vws_common_v1_error_proto_rawDesc = "" +
 	"generation\x12\x12\n" +
 	"\x04node\x18\x03 \x01(\tR\x04node\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x1c\n" +
-	"\tretryable\x18\x05 \x01(\bR\tretryable*\x8e\x05\n" +
+	"\tretryable\x18\x05 \x01(\bR\tretryable*\xb0\x05\n" +
 	"\vErrorReason\x12\x1c\n" +
 	"\x18ERROR_REASON_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fERROR_REASON_RESOURCE_NOT_FOUND\x10\x01\x12\x1f\n" +
@@ -251,7 +257,8 @@ const file_vws_common_v1_error_proto_rawDesc = "" +
 	"\x1aERROR_REASON_TOKEN_EXPIRED\x10\x0e\x12\x1e\n" +
 	"\x1aERROR_REASON_ACCESS_DENIED\x10\x0f\x12)\n" +
 	"%ERROR_REASON_INVALID_BUCKET_NAMESPACE\x10\x10\x12$\n" +
-	" ERROR_REASON_UNMODIFIABLE_ENTITY\x10\x11Bb\n" +
+	" ERROR_REASON_UNMODIFIABLE_ENTITY\x10\x11\x12 \n" +
+	"\x1cERROR_REASON_INCORRECT_STATE\x10\x12Bb\n" +
 	"\x11dev.vws.common.v1B\n" +
 	"ErrorProtoP\x01Z?github.com/popododo0720/vws-proto/gen/go/vws/common/v1;commonv1b\x06proto3"
 

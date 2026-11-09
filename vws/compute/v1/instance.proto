@@ -74,6 +74,39 @@ service InstanceService {
     };
   }
 
+  // RebootInstance is EC2 RebootInstances for one instance. The caller is
+  // vws-console-api. The server increments spec.reboot_count and generation
+  // and returns a RUNNING operation with verb UPDATE and action
+  // "RebootInstances". The vws-compute node agent consumes it: when
+  // spec.reboot_count is greater than status.reboot_count it reboots the guest
+  // once, then reports status.reboot_count equal to spec.reboot_count. Requests
+  // accepted before the node reads the spec merge into that one reboot. The
+  // operation completes when observed.generation reaches its generation and
+  // status.reboot_count reaches the spec.reboot_count it set.
+  // The server checks in this order:
+  //   1. Same request_id and name: return the original operation and write
+  //      nothing. Same request_id and a different name:
+  //      ABORTED / IDEMPOTENCY_CONFLICT.
+  //   2. Unknown instance: NOT_FOUND / RESOURCE_NOT_FOUND
+  //      (EC2 InvalidInstanceID.NotFound).
+  //   3. spec.power is not RUNNING, or delete_time is set:
+  //      FAILED_PRECONDITION / INCORRECT_STATE (EC2 IncorrectInstanceState).
+  //      Nothing is written.
+  //   4. etag set and not the stored etag: ABORTED / ETAG_MISMATCH.
+  //   5. Otherwise increment and store, then return the new operation.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc RebootInstance(RebootInstanceRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/zones/*/instances/*}:reboot"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.compute.v1.Instance"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
   // ReportInstanceStatus is the node reconcile write.
   // The server applies the idempotency rules on OperationMetadata.
   rpc ReportInstanceStatus(ReportInstanceStatusRequest) returns (ReportInstanceStatusResponse) {
@@ -143,6 +176,11 @@ message InstanceSpec {
   // INVALID_ARGUMENT / INVALID_SPEC. When set, the node delivers these bytes
   // instead of user_data.
   bytes user_data_raw = 7;
+  // Reboot requests accepted for this instance. Starts at 0. Only
+  // RebootInstance increments it; UpdateInstance ignores client values and
+  // keeps the stored one, so an update never reboots. The vws-compute node
+  // agent reboots the guest when it is greater than status.reboot_count.
+  int64 reboot_count = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message NetworkInterface {
@@ -192,6 +230,17 @@ message InstanceStatus {
   // before hot-plug finishes. An entry missing for a spec volume means the
   // node has not started the attach yet (report it as attaching).
   repeated ObservedVolumeAttachment volumes = 5;
+  // spec.reboot_count of the last reboot the node finished. The vws-compute
+  // node agent writes it after the guest reboots. Before it reboots, the node
+  // stores the count it is applying with the VM on the node, and on restart
+  // it reports that count instead of rebooting again, so a crash between the
+  // reboot and the report does not reboot twice. A stop, or a start from
+  // stopped, also covers a pending reboot: the node reports spec.reboot_count
+  // without a second reboot. A value greater than spec.reboot_count is
+  // INVALID_ARGUMENT / INVALID_SPEC. The stored value never goes down: a
+  // report with a lower value keeps the stored one, so a delayed report does
+  // not make a finished reboot look pending.
+  int64 reboot_count = 6;
 }
 
 // ObservedVolumeAttachment is the node's view of one volume on this instance.
@@ -298,6 +347,19 @@ message DeleteInstanceRequest {
   bool allow_missing = 3 [(google.api.field_behavior) = OPTIONAL];
   // When set, must match the stored etag.
   string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message RebootInstanceRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.compute/Instance"
+  ];
+  string request_id = 2 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  // When set, must match the stored etag.
+  string etag = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ReportInstanceStatusRequest {
