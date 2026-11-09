@@ -250,6 +250,11 @@ message EnableMfaDeviceRequest {
   ];
 }
 
+// DeactivateMfaDeviceRequest unassigns the device from user. The server
+// checks a request_id replay first, then the preconditions, in the same store
+// mutation as the deactivate. A failed precondition writes nothing and leaves
+// the device enabled. Omitting all three optional fields keeps the unchecked,
+// non-replayed behavior.
 message DeactivateMfaDeviceRequest {
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
@@ -259,6 +264,28 @@ message DeactivateMfaDeviceRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "vws.iam/User"
   ];
+  // A repeated request_id within 24 hours with the same request returns the
+  // first response and writes nothing, so a retry after a lost response is not
+  // NOT_FOUND. The same request_id with a different request is
+  // ABORTED / IDEMPOTENCY_CONFLICT.
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  // Optional precondition, the device's etag as read by the caller. A
+  // mismatch, or a change of the device that lands before the commit, is
+  // ABORTED / ETAG_MISMATCH (ConcurrentModification). The device etag changes
+  // on every enable and deactivate, so a user deleted and recreated under the
+  // same name and path, whose ARN is the same, still fails this check.
+  string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Optional precondition, the IAM user ARN of user, shape
+  // "arn:vws:iam::{project}:user{path}{user}", the same contract as
+  // access_key.proto expected_user_arn. When set, the server reads the User in
+  // the same store mutation as the deactivate and checks that its current ARN
+  // equals this value. A mismatch is FAILED_PRECONDITION
+  // (ConcurrentModification). The ARN contains the IAM path, so it changes
+  // when UpdateUser moves spec.path.
+  string expected_user_arn = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message EnableMfaDeviceResponse {
