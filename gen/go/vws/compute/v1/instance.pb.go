@@ -558,11 +558,15 @@ type InstanceStatus struct {
 	// node has not started the attach yet (report it as attaching).
 	Volumes []*ObservedVolumeAttachment `protobuf:"bytes,5,rep,name=volumes,proto3" json:"volumes,omitempty"`
 	// spec.reboot_count of the last reboot the node finished. The vws-compute
-	// node agent writes it after the guest reboots, and on restart compares it
-	// with spec.reboot_count to decide whether a reboot is still owed. A stop,
-	// or a start from stopped, also covers a pending reboot: the node reports
-	// spec.reboot_count without a second reboot. A value greater than
-	// spec.reboot_count is INVALID_ARGUMENT / INVALID_SPEC.
+	// node agent writes it after the guest reboots. Before it reboots, the node
+	// stores the count it is applying with the VM on the node, and on restart
+	// it reports that count instead of rebooting again, so a crash between the
+	// reboot and the report does not reboot twice. A stop, or a start from
+	// stopped, also covers a pending reboot: the node reports spec.reboot_count
+	// without a second reboot. A value greater than spec.reboot_count is
+	// INVALID_ARGUMENT / INVALID_SPEC. The stored value never goes down: a
+	// report with a lower value keeps the stored one, so a delayed report does
+	// not make a finished reboot look pending.
 	RebootCount   int64 `protobuf:"varint,6,opt,name=reboot_count,json=rebootCount,proto3" json:"reboot_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
