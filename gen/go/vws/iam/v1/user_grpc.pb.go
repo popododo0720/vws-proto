@@ -20,15 +20,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_GetUser_FullMethodName            = "/vws.iam.v1.UserService/GetUser"
-	UserService_ListUsers_FullMethodName          = "/vws.iam.v1.UserService/ListUsers"
-	UserService_CreateUser_FullMethodName         = "/vws.iam.v1.UserService/CreateUser"
-	UserService_UpdateUser_FullMethodName         = "/vws.iam.v1.UserService/UpdateUser"
-	UserService_DeleteUser_FullMethodName         = "/vws.iam.v1.UserService/DeleteUser"
-	UserService_RevokeUserSessions_FullMethodName = "/vws.iam.v1.UserService/RevokeUserSessions"
-	UserService_SetLoginProfile_FullMethodName    = "/vws.iam.v1.UserService/SetLoginProfile"
-	UserService_DeleteLoginProfile_FullMethodName = "/vws.iam.v1.UserService/DeleteLoginProfile"
-	UserService_ChangePassword_FullMethodName     = "/vws.iam.v1.UserService/ChangePassword"
+	UserService_GetUser_FullMethodName                       = "/vws.iam.v1.UserService/GetUser"
+	UserService_ListUsers_FullMethodName                     = "/vws.iam.v1.UserService/ListUsers"
+	UserService_CreateUser_FullMethodName                    = "/vws.iam.v1.UserService/CreateUser"
+	UserService_UpdateUser_FullMethodName                    = "/vws.iam.v1.UserService/UpdateUser"
+	UserService_DeleteUser_FullMethodName                    = "/vws.iam.v1.UserService/DeleteUser"
+	UserService_RevokeUserSessions_FullMethodName            = "/vws.iam.v1.UserService/RevokeUserSessions"
+	UserService_SetLoginProfile_FullMethodName               = "/vws.iam.v1.UserService/SetLoginProfile"
+	UserService_DeleteLoginProfile_FullMethodName            = "/vws.iam.v1.UserService/DeleteLoginProfile"
+	UserService_ChangePassword_FullMethodName                = "/vws.iam.v1.UserService/ChangePassword"
+	UserService_DeleteUserPermissionsBoundary_FullMethodName = "/vws.iam.v1.UserService/DeleteUserPermissionsBoundary"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -73,6 +74,19 @@ type UserServiceClient interface {
 	DeleteLoginProfile(ctx context.Context, in *DeleteLoginProfileRequest, opts ...grpc.CallOption) (*DeleteLoginProfileResponse, error)
 	// ChangePassword is the user's own change. old_password must verify.
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
+	// DeleteUserPermissionsBoundary is AWS DeleteUserPermissionsBoundary. It
+	// clears spec.permissions_boundary_arn. The attached and inline policies
+	// stay. It is synchronous and not an operation, as the AWS call is: one
+	// conditional store write, returned once stored.
+	// A UserName length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError). An unknown user is NOT_FOUND / RESOURCE_NOT_FOUND
+	// (NoSuchEntity). A user being renamed, or a write that keeps losing to
+	// concurrent writes, is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// A user with no boundary succeeds without a write, so a retry after a
+	// lost response succeeds.
+	// Authorization (iam:DeleteUserPermissionsBoundary) is console-api's.
+	DeleteUserPermissionsBoundary(ctx context.Context, in *DeleteUserPermissionsBoundaryRequest, opts ...grpc.CallOption) (*DeleteUserPermissionsBoundaryResponse, error)
 }
 
 type userServiceClient struct {
@@ -173,6 +187,16 @@ func (c *userServiceClient) ChangePassword(ctx context.Context, in *ChangePasswo
 	return out, nil
 }
 
+func (c *userServiceClient) DeleteUserPermissionsBoundary(ctx context.Context, in *DeleteUserPermissionsBoundaryRequest, opts ...grpc.CallOption) (*DeleteUserPermissionsBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteUserPermissionsBoundaryResponse)
+	err := c.cc.Invoke(ctx, UserService_DeleteUserPermissionsBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -215,6 +239,19 @@ type UserServiceServer interface {
 	DeleteLoginProfile(context.Context, *DeleteLoginProfileRequest) (*DeleteLoginProfileResponse, error)
 	// ChangePassword is the user's own change. old_password must verify.
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
+	// DeleteUserPermissionsBoundary is AWS DeleteUserPermissionsBoundary. It
+	// clears spec.permissions_boundary_arn. The attached and inline policies
+	// stay. It is synchronous and not an operation, as the AWS call is: one
+	// conditional store write, returned once stored.
+	// A UserName length or pattern fault is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError). An unknown user is NOT_FOUND / RESOURCE_NOT_FOUND
+	// (NoSuchEntity). A user being renamed, or a write that keeps losing to
+	// concurrent writes, is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification).
+	// A user with no boundary succeeds without a write, so a retry after a
+	// lost response succeeds.
+	// Authorization (iam:DeleteUserPermissionsBoundary) is console-api's.
+	DeleteUserPermissionsBoundary(context.Context, *DeleteUserPermissionsBoundaryRequest) (*DeleteUserPermissionsBoundaryResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -251,6 +288,9 @@ func (UnimplementedUserServiceServer) DeleteLoginProfile(context.Context, *Delet
 }
 func (UnimplementedUserServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ChangePassword not implemented")
+}
+func (UnimplementedUserServiceServer) DeleteUserPermissionsBoundary(context.Context, *DeleteUserPermissionsBoundaryRequest) (*DeleteUserPermissionsBoundaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteUserPermissionsBoundary not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -435,6 +475,24 @@ func _UserService_ChangePassword_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_DeleteUserPermissionsBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserPermissionsBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DeleteUserPermissionsBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_DeleteUserPermissionsBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DeleteUserPermissionsBoundary(ctx, req.(*DeleteUserPermissionsBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -477,6 +535,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangePassword",
 			Handler:    _UserService_ChangePassword_Handler,
+		},
+		{
+			MethodName: "DeleteUserPermissionsBoundary",
+			Handler:    _UserService_DeleteUserPermissionsBoundary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
