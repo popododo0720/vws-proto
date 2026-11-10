@@ -185,6 +185,46 @@ service RoleService {
   rpc ListRoleTags(ListRoleTagsRequest) returns (ListRoleTagsResponse) {
     option (google.api.http) = {get: "/v1/{name=projects/*/roles/*}:tags"};
   }
+  // TagRole is AWS TagRole. It adds or overwrites tags on the named role.
+  // The whole request stores nothing when one tag is invalid (key outside
+  // 1-128 or value outside 0-256 characters of [\p{L}\p{Z}\p{N}_.:/=+\-@], or
+  // either beginning with aws:), the request has more than 50 tags, or the
+  // role would keep more than 50 tags: INVALID_ARGUMENT / INVALID_SPEC
+  // (InvalidInput), and the 51st tag RESOURCE_EXHAUSTED / QUOTA_EXCEEDED
+  // (LimitExceeded). A key that repeats keeps the last value. An unknown role
+  // is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). The operation is done
+  // and idempotent by request_id; its response is the Role.
+  // Authorization (iam:TagRole) is console-api's.
+  // AIP-151: every mutation returns google.longrunning.Operation.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc TagRole(TagRoleRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/roles/*}:tag"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.Role"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+  // UntagRole is AWS UntagRole. It removes the named keys from the role. A
+  // key that is not attached is ignored. Errors are those of TagRole
+  // (InvalidInput, NoSuchEntity). The operation is done and idempotent by
+  // request_id; its response is the Role.
+  // Authorization (iam:UntagRole) is console-api's.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc UntagRole(UntagRoleRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/roles/*}:untag"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.Role"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
 }
 
 // Role is an IAM role.
@@ -405,4 +445,41 @@ message ListRoleTagsResponse {
   repeated Tag tags = 1;
   // AWS Marker. Set exactly when the result is truncated (AWS IsTruncated).
   string next_page_token = 2;
+}
+
+// TagRole adds or overwrites tags on a role. The whole request fails and
+// stores nothing when one tag is invalid, the request has more than 50 tags,
+// or the role would keep more than 50 tags. The response is the Role.
+message TagRoleRequest {
+  // projects/{project}/roles/{role}. The role id is AWS RoleName, 1-64
+  // characters of [\w+=,.@-].
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/Role"
+  ];
+  // 1-50 tags (AWS Tags). A tag whose key already exists on the role
+  // overwrites it. A key that repeats within one request keeps the last value.
+  repeated Tag tags = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// UntagRole removes the named keys from a role. A key that is not attached is
+// ignored. The response is the Role.
+message UntagRoleRequest {
+  // projects/{project}/roles/{role}.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/Role"
+  ];
+  // 1-50 keys (AWS TagKeys), 1-128 characters each, same alphabet as Tag.key.
+  repeated string tag_keys = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 4 [(google.api.field_behavior) = OPTIONAL];
 }

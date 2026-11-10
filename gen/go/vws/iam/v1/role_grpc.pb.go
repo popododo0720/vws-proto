@@ -31,6 +31,8 @@ const (
 	RoleService_DeleteServiceLinkedRole_FullMethodName       = "/vws.iam.v1.RoleService/DeleteServiceLinkedRole"
 	RoleService_CreateServiceLinkedRole_FullMethodName       = "/vws.iam.v1.RoleService/CreateServiceLinkedRole"
 	RoleService_ListRoleTags_FullMethodName                  = "/vws.iam.v1.RoleService/ListRoleTags"
+	RoleService_TagRole_FullMethodName                       = "/vws.iam.v1.RoleService/TagRole"
+	RoleService_UntagRole_FullMethodName                     = "/vws.iam.v1.RoleService/UntagRole"
 )
 
 // RoleServiceClient is the client API for RoleService service.
@@ -140,6 +142,28 @@ type RoleServiceClient interface {
 	// (ServiceFailure).
 	// Authorization (iam:ListRoleTags) is console-api's.
 	ListRoleTags(ctx context.Context, in *ListRoleTagsRequest, opts ...grpc.CallOption) (*ListRoleTagsResponse, error)
+	// TagRole is AWS TagRole. It adds or overwrites tags on the named role.
+	// The whole request stores nothing when one tag is invalid (key outside
+	// 1-128 or value outside 0-256 characters of [\p{L}\p{Z}\p{N}_.:/=+\-@], or
+	// either beginning with aws:), the request has more than 50 tags, or the
+	// role would keep more than 50 tags: INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput), and the 51st tag RESOURCE_EXHAUSTED / QUOTA_EXCEEDED
+	// (LimitExceeded). A key that repeats keeps the last value. An unknown role
+	// is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). The operation is done
+	// and idempotent by request_id; its response is the Role.
+	// Authorization (iam:TagRole) is console-api's.
+	// AIP-151: every mutation returns google.longrunning.Operation.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	TagRole(ctx context.Context, in *TagRoleRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	// UntagRole is AWS UntagRole. It removes the named keys from the role. A
+	// key that is not attached is ignored. Errors are those of TagRole
+	// (InvalidInput, NoSuchEntity). The operation is done and idempotent by
+	// request_id; its response is the Role.
+	// Authorization (iam:UntagRole) is console-api's.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	UntagRole(ctx context.Context, in *UntagRoleRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 }
 
 type roleServiceClient struct {
@@ -260,6 +284,26 @@ func (c *roleServiceClient) ListRoleTags(ctx context.Context, in *ListRoleTagsRe
 	return out, nil
 }
 
+func (c *roleServiceClient) TagRole(ctx context.Context, in *TagRoleRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, RoleService_TagRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *roleServiceClient) UntagRole(ctx context.Context, in *UntagRoleRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, RoleService_UntagRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoleServiceServer is the server API for RoleService service.
 // All implementations must embed UnimplementedRoleServiceServer
 // for forward compatibility.
@@ -367,6 +411,28 @@ type RoleServiceServer interface {
 	// (ServiceFailure).
 	// Authorization (iam:ListRoleTags) is console-api's.
 	ListRoleTags(context.Context, *ListRoleTagsRequest) (*ListRoleTagsResponse, error)
+	// TagRole is AWS TagRole. It adds or overwrites tags on the named role.
+	// The whole request stores nothing when one tag is invalid (key outside
+	// 1-128 or value outside 0-256 characters of [\p{L}\p{Z}\p{N}_.:/=+\-@], or
+	// either beginning with aws:), the request has more than 50 tags, or the
+	// role would keep more than 50 tags: INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput), and the 51st tag RESOURCE_EXHAUSTED / QUOTA_EXCEEDED
+	// (LimitExceeded). A key that repeats keeps the last value. An unknown role
+	// is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). The operation is done
+	// and idempotent by request_id; its response is the Role.
+	// Authorization (iam:TagRole) is console-api's.
+	// AIP-151: every mutation returns google.longrunning.Operation.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	TagRole(context.Context, *TagRoleRequest) (*longrunningpb.Operation, error)
+	// UntagRole is AWS UntagRole. It removes the named keys from the role. A
+	// key that is not attached is ignored. Errors are those of TagRole
+	// (InvalidInput, NoSuchEntity). The operation is done and idempotent by
+	// request_id; its response is the Role.
+	// Authorization (iam:UntagRole) is console-api's.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	UntagRole(context.Context, *UntagRoleRequest) (*longrunningpb.Operation, error)
 	mustEmbedUnimplementedRoleServiceServer()
 }
 
@@ -409,6 +475,12 @@ func (UnimplementedRoleServiceServer) CreateServiceLinkedRole(context.Context, *
 }
 func (UnimplementedRoleServiceServer) ListRoleTags(context.Context, *ListRoleTagsRequest) (*ListRoleTagsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRoleTags not implemented")
+}
+func (UnimplementedRoleServiceServer) TagRole(context.Context, *TagRoleRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method TagRole not implemented")
+}
+func (UnimplementedRoleServiceServer) UntagRole(context.Context, *UntagRoleRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method UntagRole not implemented")
 }
 func (UnimplementedRoleServiceServer) mustEmbedUnimplementedRoleServiceServer() {}
 func (UnimplementedRoleServiceServer) testEmbeddedByValue()                     {}
@@ -629,6 +701,42 @@ func _RoleService_ListRoleTags_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoleService_TagRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TagRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleServiceServer).TagRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleService_TagRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleServiceServer).TagRole(ctx, req.(*TagRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RoleService_UntagRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UntagRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleServiceServer).UntagRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleService_UntagRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleServiceServer).UntagRole(ctx, req.(*UntagRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoleService_ServiceDesc is the grpc.ServiceDesc for RoleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -679,6 +787,14 @@ var RoleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListRoleTags",
 			Handler:    _RoleService_ListRoleTags_Handler,
+		},
+		{
+			MethodName: "TagRole",
+			Handler:    _RoleService_TagRole_Handler,
+		},
+		{
+			MethodName: "UntagRole",
+			Handler:    _RoleService_UntagRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
