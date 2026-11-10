@@ -227,6 +227,10 @@ message CreateVirtualMfaDeviceResponse {
   ];
 }
 
+// EnableMfaDeviceRequest binds the device to user. The server checks the user
+// preconditions in the same store mutation as the enable. A failed
+// precondition writes nothing and leaves the device unassigned. Omitting both
+// optional fields keeps the unchecked behavior.
 message EnableMfaDeviceRequest {
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
@@ -248,6 +252,21 @@ message EnableMfaDeviceRequest {
     (google.api.field_behavior) = INPUT_ONLY,
     debug_redact = true
   ];
+  // Optional precondition, the IAM user ARN of user, shape
+  // "arn:vws:iam::{project}:user{path}{user}", the same contract as
+  // access_key.proto expected_user_arn. When set, the server reads the User in
+  // the same store mutation as the enable and checks that its current ARN
+  // equals this value. A mismatch is FAILED_PRECONDITION
+  // (ConcurrentModification). The ARN contains the IAM path, so it changes
+  // when UpdateUser moves spec.path. A user deleted and recreated under the
+  // same name and path has the same ARN; user_etag catches that.
+  string expected_user_arn = 5 [(google.api.field_behavior) = OPTIONAL];
+  // Optional precondition, the User's etag as read by the caller. When set,
+  // the server commits the enable only while the user is still at this etag.
+  // A mismatch, or a change of the user that lands before the commit, is
+  // ABORTED (ConcurrentModification). A user deleted and recreated under the
+  // same name never matches an etag read before the delete.
+  string user_etag = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // DeactivateMfaDeviceRequest unassigns the device from user. The server
