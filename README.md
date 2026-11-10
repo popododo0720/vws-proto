@@ -25,7 +25,7 @@ Every resource uses the same envelope: `name`, `uid`, `generation`, `etag`, `lab
 | `vws.iam.v1.PolicyService` | `projects/{project}/policies/{policy}`, `.../versions/{version}` |
 | `vws.iam.v1.AccessKeyService` | `projects/{project}/users/{user}/accessKeys/{access_key}` |
 | `vws.iam.v1.MfaDeviceService` | `projects/{project}/mfaDevices/{mfa_device}` |
-| `vws.iam.v1.AccountService` | No resource. Account-level IAM reads (`docs/iam.md`) |
+| `vws.iam.v1.AccountService` | No resource. Account-level IAM reads and writes (`docs/iam.md`) |
 | `vws.iam.v1.AuthService`, `TokenService` | No resource. Authentication, authorization, STS (`docs/iam.md`) |
 
 `Address` is a static public address. Its association target lives only in the address's `spec.association`. `spec.vpc` is the VPC allocation chosen at creation; empty means not bound to a VPC. Volume attachments live only in the instance `spec`. Security group rules are a list in the group `spec`. Instance placement is done by the Kubernetes scheduler, and this contract has no notion of nodes.
