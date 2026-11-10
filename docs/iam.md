@@ -247,6 +247,13 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Pages: of actions. The call only reads and stores nothing, so a retry is safe.
 - Authorization (`iam:SimulateCustomPolicy`) is console-api's.
 
+## Account aliases (#127)
+
+- `AccountService.ListAccountAliases` is AWS `ListAccountAliases`. `parent` is `projects/{project}`. It lists the project's account aliases (at most one), in name order. `page_size` is AWS `MaxItems` (1-1000; 0 is unset, server default 100) and `page_token` and `next_page_token` are AWS `Marker`; `next_page_token` is set exactly when AWS `IsTruncated` is true. A project without an alias is an empty, complete page. It is a read RPC, not an operation.
+- Errors: a bad `parent`, a `page_size` outside 1-1000, or a `page_token` with a character outside `[\u0020-\u00FF]` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A well-formed `page_token` this RPC did not issue is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). Any other failure is `INTERNAL` (`ServiceFailure`), the only error AWS documents for this action. console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
+- Pages: deterministic in name order. An alias that exists for the whole listing is returned once. The call only reads, so a retry is safe.
+- Authorization (`iam:ListAccountAliases`) is console-api's.
+
 ## Decode authorization message (#84)
 
 - `TokenService.DecodeAuthorizationMessage` is AWS STS `DecodeAuthorizationMessage`. It opens the `AuthorizeResponse.encoded_message` that vws-iam sets on a `DENY_*` decision; console-api returns that message the way AWS does, for example as the EC2 `UnauthorizedOperation` "Encoded authorization failure message". It is empty on `ALLOW`.
