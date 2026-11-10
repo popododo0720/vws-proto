@@ -20,18 +20,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PolicyService_GetPolicy_FullMethodName           = "/vws.iam.v1.PolicyService/GetPolicy"
-	PolicyService_ListPolicies_FullMethodName        = "/vws.iam.v1.PolicyService/ListPolicies"
-	PolicyService_CreatePolicy_FullMethodName        = "/vws.iam.v1.PolicyService/CreatePolicy"
-	PolicyService_UpdatePolicy_FullMethodName        = "/vws.iam.v1.PolicyService/UpdatePolicy"
-	PolicyService_DeletePolicy_FullMethodName        = "/vws.iam.v1.PolicyService/DeletePolicy"
-	PolicyService_GetPolicyVersion_FullMethodName    = "/vws.iam.v1.PolicyService/GetPolicyVersion"
-	PolicyService_ListPolicyVersions_FullMethodName  = "/vws.iam.v1.PolicyService/ListPolicyVersions"
-	PolicyService_CreatePolicyVersion_FullMethodName = "/vws.iam.v1.PolicyService/CreatePolicyVersion"
-	PolicyService_DeletePolicyVersion_FullMethodName = "/vws.iam.v1.PolicyService/DeletePolicyVersion"
-	PolicyService_TagPolicy_FullMethodName           = "/vws.iam.v1.PolicyService/TagPolicy"
-	PolicyService_UntagPolicy_FullMethodName         = "/vws.iam.v1.PolicyService/UntagPolicy"
-	PolicyService_ListPolicyTags_FullMethodName      = "/vws.iam.v1.PolicyService/ListPolicyTags"
+	PolicyService_GetPolicy_FullMethodName             = "/vws.iam.v1.PolicyService/GetPolicy"
+	PolicyService_ListPolicies_FullMethodName          = "/vws.iam.v1.PolicyService/ListPolicies"
+	PolicyService_CreatePolicy_FullMethodName          = "/vws.iam.v1.PolicyService/CreatePolicy"
+	PolicyService_UpdatePolicy_FullMethodName          = "/vws.iam.v1.PolicyService/UpdatePolicy"
+	PolicyService_DeletePolicy_FullMethodName          = "/vws.iam.v1.PolicyService/DeletePolicy"
+	PolicyService_GetPolicyVersion_FullMethodName      = "/vws.iam.v1.PolicyService/GetPolicyVersion"
+	PolicyService_ListPolicyVersions_FullMethodName    = "/vws.iam.v1.PolicyService/ListPolicyVersions"
+	PolicyService_CreatePolicyVersion_FullMethodName   = "/vws.iam.v1.PolicyService/CreatePolicyVersion"
+	PolicyService_DeletePolicyVersion_FullMethodName   = "/vws.iam.v1.PolicyService/DeletePolicyVersion"
+	PolicyService_TagPolicy_FullMethodName             = "/vws.iam.v1.PolicyService/TagPolicy"
+	PolicyService_UntagPolicy_FullMethodName           = "/vws.iam.v1.PolicyService/UntagPolicy"
+	PolicyService_ListPolicyTags_FullMethodName        = "/vws.iam.v1.PolicyService/ListPolicyTags"
+	PolicyService_ListEntitiesForPolicy_FullMethodName = "/vws.iam.v1.PolicyService/ListEntitiesForPolicy"
 )
 
 // PolicyServiceClient is the client API for PolicyService service.
@@ -88,6 +89,20 @@ type PolicyServiceClient interface {
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	UntagPolicy(ctx context.Context, in *UntagPolicyRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	ListPolicyTags(ctx context.Context, in *ListPolicyTagsRequest, opts ...grpc.CallOption) (*ListPolicyTagsResponse, error)
+	// ListEntitiesForPolicy is AWS ListEntitiesForPolicy. It lists the
+	// groups, roles and users of the parent project that hold the managed
+	// policy, in that order, each by case-folded name, in pages. It only
+	// reads.
+	// A length, pattern or enum fault is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError). A policy_arn that is not a managed policy ARN,
+	// or a well-formed marker this RPC did not return, is INVALID_ARGUMENT /
+	// INVALID_SPEC (InvalidInput). All of these are checked before any
+	// store access. A policy that is not a managed policy of the project
+	// (path included) is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+	// LocalManagedPolicy and AWSManagedPolicy select nothing. Any other
+	// failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:ListEntitiesForPolicy) is console-api's.
+	ListEntitiesForPolicy(ctx context.Context, in *ListEntitiesForPolicyRequest, opts ...grpc.CallOption) (*ListEntitiesForPolicyResponse, error)
 }
 
 type policyServiceClient struct {
@@ -218,6 +233,16 @@ func (c *policyServiceClient) ListPolicyTags(ctx context.Context, in *ListPolicy
 	return out, nil
 }
 
+func (c *policyServiceClient) ListEntitiesForPolicy(ctx context.Context, in *ListEntitiesForPolicyRequest, opts ...grpc.CallOption) (*ListEntitiesForPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListEntitiesForPolicyResponse)
+	err := c.cc.Invoke(ctx, PolicyService_ListEntitiesForPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PolicyServiceServer is the server API for PolicyService service.
 // All implementations must embed UnimplementedPolicyServiceServer
 // for forward compatibility.
@@ -272,6 +297,20 @@ type PolicyServiceServer interface {
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	UntagPolicy(context.Context, *UntagPolicyRequest) (*longrunningpb.Operation, error)
 	ListPolicyTags(context.Context, *ListPolicyTagsRequest) (*ListPolicyTagsResponse, error)
+	// ListEntitiesForPolicy is AWS ListEntitiesForPolicy. It lists the
+	// groups, roles and users of the parent project that hold the managed
+	// policy, in that order, each by case-folded name, in pages. It only
+	// reads.
+	// A length, pattern or enum fault is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError). A policy_arn that is not a managed policy ARN,
+	// or a well-formed marker this RPC did not return, is INVALID_ARGUMENT /
+	// INVALID_SPEC (InvalidInput). All of these are checked before any
+	// store access. A policy that is not a managed policy of the project
+	// (path included) is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+	// LocalManagedPolicy and AWSManagedPolicy select nothing. Any other
+	// failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:ListEntitiesForPolicy) is console-api's.
+	ListEntitiesForPolicy(context.Context, *ListEntitiesForPolicyRequest) (*ListEntitiesForPolicyResponse, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -317,6 +356,9 @@ func (UnimplementedPolicyServiceServer) UntagPolicy(context.Context, *UntagPolic
 }
 func (UnimplementedPolicyServiceServer) ListPolicyTags(context.Context, *ListPolicyTagsRequest) (*ListPolicyTagsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPolicyTags not implemented")
+}
+func (UnimplementedPolicyServiceServer) ListEntitiesForPolicy(context.Context, *ListEntitiesForPolicyRequest) (*ListEntitiesForPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListEntitiesForPolicy not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}
 func (UnimplementedPolicyServiceServer) testEmbeddedByValue()                       {}
@@ -555,6 +597,24 @@ func _PolicyService_ListPolicyTags_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PolicyService_ListEntitiesForPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEntitiesForPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PolicyServiceServer).ListEntitiesForPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PolicyService_ListEntitiesForPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PolicyServiceServer).ListEntitiesForPolicy(ctx, req.(*ListEntitiesForPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PolicyService_ServiceDesc is the grpc.ServiceDesc for PolicyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -609,6 +669,10 @@ var PolicyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPolicyTags",
 			Handler:    _PolicyService_ListPolicyTags_Handler,
+		},
+		{
+			MethodName: "ListEntitiesForPolicy",
+			Handler:    _PolicyService_ListEntitiesForPolicy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

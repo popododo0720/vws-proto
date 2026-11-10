@@ -26,6 +26,118 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// PolicyEntityFilter is AWS EntityFilter. UNSPECIFIED means not set (all
+// users, groups and roles that hold the policy).
+type PolicyEntityFilter int32
+
+const (
+	PolicyEntityFilter_POLICY_ENTITY_FILTER_UNSPECIFIED PolicyEntityFilter = 0
+	PolicyEntityFilter_POLICY_ENTITY_FILTER_USER        PolicyEntityFilter = 1 // AWS User
+	PolicyEntityFilter_POLICY_ENTITY_FILTER_ROLE        PolicyEntityFilter = 2 // AWS Role
+	PolicyEntityFilter_POLICY_ENTITY_FILTER_GROUP       PolicyEntityFilter = 3 // AWS Group
+	// Selects nothing: these are not users, groups or roles.
+	PolicyEntityFilter_POLICY_ENTITY_FILTER_LOCAL_MANAGED_POLICY PolicyEntityFilter = 4 // AWS LocalManagedPolicy
+	PolicyEntityFilter_POLICY_ENTITY_FILTER_AWS_MANAGED_POLICY   PolicyEntityFilter = 5 // AWS AWSManagedPolicy
+)
+
+// Enum value maps for PolicyEntityFilter.
+var (
+	PolicyEntityFilter_name = map[int32]string{
+		0: "POLICY_ENTITY_FILTER_UNSPECIFIED",
+		1: "POLICY_ENTITY_FILTER_USER",
+		2: "POLICY_ENTITY_FILTER_ROLE",
+		3: "POLICY_ENTITY_FILTER_GROUP",
+		4: "POLICY_ENTITY_FILTER_LOCAL_MANAGED_POLICY",
+		5: "POLICY_ENTITY_FILTER_AWS_MANAGED_POLICY",
+	}
+	PolicyEntityFilter_value = map[string]int32{
+		"POLICY_ENTITY_FILTER_UNSPECIFIED":          0,
+		"POLICY_ENTITY_FILTER_USER":                 1,
+		"POLICY_ENTITY_FILTER_ROLE":                 2,
+		"POLICY_ENTITY_FILTER_GROUP":                3,
+		"POLICY_ENTITY_FILTER_LOCAL_MANAGED_POLICY": 4,
+		"POLICY_ENTITY_FILTER_AWS_MANAGED_POLICY":   5,
+	}
+)
+
+func (x PolicyEntityFilter) Enum() *PolicyEntityFilter {
+	p := new(PolicyEntityFilter)
+	*p = x
+	return p
+}
+
+func (x PolicyEntityFilter) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PolicyEntityFilter) Descriptor() protoreflect.EnumDescriptor {
+	return file_vws_iam_v1_policy_proto_enumTypes[0].Descriptor()
+}
+
+func (PolicyEntityFilter) Type() protoreflect.EnumType {
+	return &file_vws_iam_v1_policy_proto_enumTypes[0]
+}
+
+func (x PolicyEntityFilter) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PolicyEntityFilter.Descriptor instead.
+func (PolicyEntityFilter) EnumDescriptor() ([]byte, []int) {
+	return file_vws_iam_v1_policy_proto_rawDescGZIP(), []int{0}
+}
+
+// PolicyUsageFilter is AWS PolicyUsageFilter. UNSPECIFIED means not set
+// (both a permissions policy and a permissions boundary count).
+type PolicyUsageFilter int32
+
+const (
+	PolicyUsageFilter_POLICY_USAGE_FILTER_UNSPECIFIED          PolicyUsageFilter = 0
+	PolicyUsageFilter_POLICY_USAGE_FILTER_PERMISSIONS_POLICY   PolicyUsageFilter = 1 // AWS PermissionsPolicy
+	PolicyUsageFilter_POLICY_USAGE_FILTER_PERMISSIONS_BOUNDARY PolicyUsageFilter = 2 // AWS PermissionsBoundary
+)
+
+// Enum value maps for PolicyUsageFilter.
+var (
+	PolicyUsageFilter_name = map[int32]string{
+		0: "POLICY_USAGE_FILTER_UNSPECIFIED",
+		1: "POLICY_USAGE_FILTER_PERMISSIONS_POLICY",
+		2: "POLICY_USAGE_FILTER_PERMISSIONS_BOUNDARY",
+	}
+	PolicyUsageFilter_value = map[string]int32{
+		"POLICY_USAGE_FILTER_UNSPECIFIED":          0,
+		"POLICY_USAGE_FILTER_PERMISSIONS_POLICY":   1,
+		"POLICY_USAGE_FILTER_PERMISSIONS_BOUNDARY": 2,
+	}
+)
+
+func (x PolicyUsageFilter) Enum() *PolicyUsageFilter {
+	p := new(PolicyUsageFilter)
+	*p = x
+	return p
+}
+
+func (x PolicyUsageFilter) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PolicyUsageFilter) Descriptor() protoreflect.EnumDescriptor {
+	return file_vws_iam_v1_policy_proto_enumTypes[1].Descriptor()
+}
+
+func (PolicyUsageFilter) Type() protoreflect.EnumType {
+	return &file_vws_iam_v1_policy_proto_enumTypes[1]
+}
+
+func (x PolicyUsageFilter) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PolicyUsageFilter.Descriptor instead.
+func (PolicyUsageFilter) EnumDescriptor() ([]byte, []int) {
+	return file_vws_iam_v1_policy_proto_rawDescGZIP(), []int{1}
+}
+
 // Policy is a customer managed policy.
 // Fields 1-10 are the shared resource envelope.
 type Policy struct {
@@ -1520,6 +1632,245 @@ func (x *ListPolicyTagsResponse) GetNextPageToken() string {
 	return ""
 }
 
+// ListEntitiesForPolicy is AWS ListEntitiesForPolicy.
+type ListEntitiesForPolicyRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}.
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// AWS PolicyArn, 20-2048 characters, a managed policy ARN of the
+	// parent project.
+	PolicyArn string `protobuf:"bytes,2,opt,name=policy_arn,json=policyArn,proto3" json:"policy_arn,omitempty"`
+	// AWS EntityFilter. UNSPECIFIED means not set.
+	EntityFilter PolicyEntityFilter `protobuf:"varint,3,opt,name=entity_filter,json=entityFilter,proto3,enum=vws.iam.v1.PolicyEntityFilter" json:"entity_filter,omitempty"`
+	// AWS PathPrefix. Empty means not set: "/", every path. Otherwise /
+	// or 1-512 characters of [\u0021-\u007E] that start and end with /.
+	PathPrefix string `protobuf:"bytes,4,opt,name=path_prefix,json=pathPrefix,proto3" json:"path_prefix,omitempty"`
+	// AWS PolicyUsageFilter. UNSPECIFIED means not set.
+	PolicyUsageFilter PolicyUsageFilter `protobuf:"varint,5,opt,name=policy_usage_filter,json=policyUsageFilter,proto3,enum=vws.iam.v1.PolicyUsageFilter" json:"policy_usage_filter,omitempty"`
+	// AWS Marker, 1-320 characters of [\u0020-\u00FF]. Only a marker this
+	// RPC returned.
+	Marker string `protobuf:"bytes,6,opt,name=marker,proto3" json:"marker,omitempty"`
+	// AWS MaxItems, 1-1000. 0 means not set: the server default is 100, as
+	// in AWS. console-api answers an explicit MaxItems=0 as ValidationError
+	// itself, since 0 cannot be told apart from unset here.
+	MaxItems      int32 `protobuf:"varint,7,opt,name=max_items,json=maxItems,proto3" json:"max_items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEntitiesForPolicyRequest) Reset() {
+	*x = ListEntitiesForPolicyRequest{}
+	mi := &file_vws_iam_v1_policy_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEntitiesForPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEntitiesForPolicyRequest) ProtoMessage() {}
+
+func (x *ListEntitiesForPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_policy_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEntitiesForPolicyRequest.ProtoReflect.Descriptor instead.
+func (*ListEntitiesForPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_policy_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListEntitiesForPolicyRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *ListEntitiesForPolicyRequest) GetPolicyArn() string {
+	if x != nil {
+		return x.PolicyArn
+	}
+	return ""
+}
+
+func (x *ListEntitiesForPolicyRequest) GetEntityFilter() PolicyEntityFilter {
+	if x != nil {
+		return x.EntityFilter
+	}
+	return PolicyEntityFilter_POLICY_ENTITY_FILTER_UNSPECIFIED
+}
+
+func (x *ListEntitiesForPolicyRequest) GetPathPrefix() string {
+	if x != nil {
+		return x.PathPrefix
+	}
+	return ""
+}
+
+func (x *ListEntitiesForPolicyRequest) GetPolicyUsageFilter() PolicyUsageFilter {
+	if x != nil {
+		return x.PolicyUsageFilter
+	}
+	return PolicyUsageFilter_POLICY_USAGE_FILTER_UNSPECIFIED
+}
+
+func (x *ListEntitiesForPolicyRequest) GetMarker() string {
+	if x != nil {
+		return x.Marker
+	}
+	return ""
+}
+
+func (x *ListEntitiesForPolicyRequest) GetMaxItems() int32 {
+	if x != nil {
+		return x.MaxItems
+	}
+	return 0
+}
+
+type ListEntitiesForPolicyResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Groups, roles and users of this page, each ordered by case-folded
+	// name. The listing order is groups, then roles, then users.
+	PolicyGroups []*PolicyEntity `protobuf:"bytes,1,rep,name=policy_groups,json=policyGroups,proto3" json:"policy_groups,omitempty"`
+	PolicyRoles  []*PolicyEntity `protobuf:"bytes,2,rep,name=policy_roles,json=policyRoles,proto3" json:"policy_roles,omitempty"`
+	PolicyUsers  []*PolicyEntity `protobuf:"bytes,3,rep,name=policy_users,json=policyUsers,proto3" json:"policy_users,omitempty"`
+	// AWS IsTruncated.
+	IsTruncated bool `protobuf:"varint,4,opt,name=is_truncated,json=isTruncated,proto3" json:"is_truncated,omitempty"`
+	// AWS Marker. Set exactly when is_truncated is true.
+	Marker        string `protobuf:"bytes,5,opt,name=marker,proto3" json:"marker,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEntitiesForPolicyResponse) Reset() {
+	*x = ListEntitiesForPolicyResponse{}
+	mi := &file_vws_iam_v1_policy_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEntitiesForPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEntitiesForPolicyResponse) ProtoMessage() {}
+
+func (x *ListEntitiesForPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_policy_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEntitiesForPolicyResponse.ProtoReflect.Descriptor instead.
+func (*ListEntitiesForPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_policy_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ListEntitiesForPolicyResponse) GetPolicyGroups() []*PolicyEntity {
+	if x != nil {
+		return x.PolicyGroups
+	}
+	return nil
+}
+
+func (x *ListEntitiesForPolicyResponse) GetPolicyRoles() []*PolicyEntity {
+	if x != nil {
+		return x.PolicyRoles
+	}
+	return nil
+}
+
+func (x *ListEntitiesForPolicyResponse) GetPolicyUsers() []*PolicyEntity {
+	if x != nil {
+		return x.PolicyUsers
+	}
+	return nil
+}
+
+func (x *ListEntitiesForPolicyResponse) GetIsTruncated() bool {
+	if x != nil {
+		return x.IsTruncated
+	}
+	return false
+}
+
+func (x *ListEntitiesForPolicyResponse) GetMarker() string {
+	if x != nil {
+		return x.Marker
+	}
+	return ""
+}
+
+// PolicyEntity is one group, role or user that holds the policy: AWS
+// GroupName/GroupId, RoleName/RoleId or UserName/UserId.
+type PolicyEntity struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PolicyEntity) Reset() {
+	*x = PolicyEntity{}
+	mi := &file_vws_iam_v1_policy_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyEntity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyEntity) ProtoMessage() {}
+
+func (x *PolicyEntity) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_policy_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyEntity.ProtoReflect.Descriptor instead.
+func (*PolicyEntity) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_policy_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *PolicyEntity) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PolicyEntity) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
 var File_vws_iam_v1_policy_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_policy_proto_rawDesc = "" +
@@ -1669,7 +2020,37 @@ const file_vws_iam_v1_policy_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"e\n" +
 	"\x16ListPolicyTagsResponse\x12#\n" +
 	"\x04tags\x18\x01 \x03(\v2\x0f.vws.iam.v1.TagR\x04tags\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken2\xf1\x0f\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xc9\x02\n" +
+	"\x1cListEntitiesForPolicyRequest\x12\x1b\n" +
+	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\x12\"\n" +
+	"\n" +
+	"policy_arn\x18\x02 \x01(\tB\x03\xe0A\x02R\tpolicyArn\x12C\n" +
+	"\rentity_filter\x18\x03 \x01(\x0e2\x1e.vws.iam.v1.PolicyEntityFilterR\fentityFilter\x12\x1f\n" +
+	"\vpath_prefix\x18\x04 \x01(\tR\n" +
+	"pathPrefix\x12M\n" +
+	"\x13policy_usage_filter\x18\x05 \x01(\x0e2\x1d.vws.iam.v1.PolicyUsageFilterR\x11policyUsageFilter\x12\x16\n" +
+	"\x06marker\x18\x06 \x01(\tR\x06marker\x12\x1b\n" +
+	"\tmax_items\x18\a \x01(\x05R\bmaxItems\"\x93\x02\n" +
+	"\x1dListEntitiesForPolicyResponse\x12=\n" +
+	"\rpolicy_groups\x18\x01 \x03(\v2\x18.vws.iam.v1.PolicyEntityR\fpolicyGroups\x12;\n" +
+	"\fpolicy_roles\x18\x02 \x03(\v2\x18.vws.iam.v1.PolicyEntityR\vpolicyRoles\x12;\n" +
+	"\fpolicy_users\x18\x03 \x03(\v2\x18.vws.iam.v1.PolicyEntityR\vpolicyUsers\x12!\n" +
+	"\fis_truncated\x18\x04 \x01(\bR\visTruncated\x12\x16\n" +
+	"\x06marker\x18\x05 \x01(\tR\x06marker\"2\n" +
+	"\fPolicyEntity\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id*\xf4\x01\n" +
+	"\x12PolicyEntityFilter\x12$\n" +
+	" POLICY_ENTITY_FILTER_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19POLICY_ENTITY_FILTER_USER\x10\x01\x12\x1d\n" +
+	"\x19POLICY_ENTITY_FILTER_ROLE\x10\x02\x12\x1e\n" +
+	"\x1aPOLICY_ENTITY_FILTER_GROUP\x10\x03\x12-\n" +
+	")POLICY_ENTITY_FILTER_LOCAL_MANAGED_POLICY\x10\x04\x12+\n" +
+	"'POLICY_ENTITY_FILTER_AWS_MANAGED_POLICY\x10\x05*\x92\x01\n" +
+	"\x11PolicyUsageFilter\x12#\n" +
+	"\x1fPOLICY_USAGE_FILTER_UNSPECIFIED\x10\x00\x12*\n" +
+	"&POLICY_USAGE_FILTER_PERMISSIONS_POLICY\x10\x01\x12,\n" +
+	"(POLICY_USAGE_FILTER_PERMISSIONS_BOUNDARY\x10\x022\x97\x11\n" +
 	"\rPolicyService\x12g\n" +
 	"\tGetPolicy\x12\x1c.vws.iam.v1.GetPolicyRequest\x1a\x12.vws.iam.v1.Policy\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/{name=projects/*/policies/*}\x12{\n" +
 	"\fListPolicies\x12\x1f.vws.iam.v1.ListPoliciesRequest\x1a .vws.iam.v1.ListPoliciesResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/{parent=projects/*}/policies\x12\xb7\x01\n" +
@@ -1689,7 +2070,8 @@ const file_vws_iam_v1_policy_proto_rawDesc = "" +
 	"\x11vws.iam.v1.Policy\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02):\x01*\"$/v1/{name=projects/*/policies/*}:tag\x12\xb6\x01\n" +
 	"\vUntagPolicy\x12\x1e.vws.iam.v1.UntagPolicyRequest\x1a\x1d.google.longrunning.Operation\"h\xcaA4\n" +
 	"\x11vws.iam.v1.Policy\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02+:\x01*\"&/v1/{name=projects/*/policies/*}:untag\x12\x86\x01\n" +
-	"\x0eListPolicyTags\x12!.vws.iam.v1.ListPolicyTagsRequest\x1a\".vws.iam.v1.ListPolicyTagsResponse\"-\x82\xd3\xe4\x93\x02'\x12%/v1/{name=projects/*/policies/*}:tagsBZ\n" +
+	"\x0eListPolicyTags\x12!.vws.iam.v1.ListPolicyTagsRequest\x1a\".vws.iam.v1.ListPolicyTagsResponse\"-\x82\xd3\xe4\x93\x02'\x12%/v1/{name=projects/*/policies/*}:tags\x12\xa3\x01\n" +
+	"\x15ListEntitiesForPolicy\x12(.vws.iam.v1.ListEntitiesForPolicyRequest\x1a).vws.iam.v1.ListEntitiesForPolicyResponse\"5\x82\xd3\xe4\x93\x02/\x12-/v1/{parent=projects/*}:listEntitiesForPolicyBZ\n" +
 	"\x0edev.vws.iam.v1B\vPolicyProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -1704,89 +2086,102 @@ func file_vws_iam_v1_policy_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_policy_proto_rawDescData
 }
 
-var file_vws_iam_v1_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_vws_iam_v1_policy_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_vws_iam_v1_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_vws_iam_v1_policy_proto_goTypes = []any{
-	(*Policy)(nil),                     // 0: vws.iam.v1.Policy
-	(*PolicySpec)(nil),                 // 1: vws.iam.v1.PolicySpec
-	(*PolicyStatus)(nil),               // 2: vws.iam.v1.PolicyStatus
-	(*PolicyVersion)(nil),              // 3: vws.iam.v1.PolicyVersion
-	(*PolicyVersionSpec)(nil),          // 4: vws.iam.v1.PolicyVersionSpec
-	(*PolicyVersionStatus)(nil),        // 5: vws.iam.v1.PolicyVersionStatus
-	(*GetPolicyRequest)(nil),           // 6: vws.iam.v1.GetPolicyRequest
-	(*ListPoliciesRequest)(nil),        // 7: vws.iam.v1.ListPoliciesRequest
-	(*ListPoliciesResponse)(nil),       // 8: vws.iam.v1.ListPoliciesResponse
-	(*CreatePolicyRequest)(nil),        // 9: vws.iam.v1.CreatePolicyRequest
-	(*UpdatePolicyRequest)(nil),        // 10: vws.iam.v1.UpdatePolicyRequest
-	(*DeletePolicyRequest)(nil),        // 11: vws.iam.v1.DeletePolicyRequest
-	(*GetPolicyVersionRequest)(nil),    // 12: vws.iam.v1.GetPolicyVersionRequest
-	(*ListPolicyVersionsRequest)(nil),  // 13: vws.iam.v1.ListPolicyVersionsRequest
-	(*ListPolicyVersionsResponse)(nil), // 14: vws.iam.v1.ListPolicyVersionsResponse
-	(*CreatePolicyVersionRequest)(nil), // 15: vws.iam.v1.CreatePolicyVersionRequest
-	(*DeletePolicyVersionRequest)(nil), // 16: vws.iam.v1.DeletePolicyVersionRequest
-	(*Tag)(nil),                        // 17: vws.iam.v1.Tag
-	(*TagPolicyRequest)(nil),           // 18: vws.iam.v1.TagPolicyRequest
-	(*UntagPolicyRequest)(nil),         // 19: vws.iam.v1.UntagPolicyRequest
-	(*ListPolicyTagsRequest)(nil),      // 20: vws.iam.v1.ListPolicyTagsRequest
-	(*ListPolicyTagsResponse)(nil),     // 21: vws.iam.v1.ListPolicyTagsResponse
-	nil,                                // 22: vws.iam.v1.Policy.LabelsEntry
-	nil,                                // 23: vws.iam.v1.PolicyVersion.LabelsEntry
-	(*timestamppb.Timestamp)(nil),      // 24: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),           // 25: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),      // 26: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),    // 27: google.longrunning.Operation
+	(PolicyEntityFilter)(0),               // 0: vws.iam.v1.PolicyEntityFilter
+	(PolicyUsageFilter)(0),                // 1: vws.iam.v1.PolicyUsageFilter
+	(*Policy)(nil),                        // 2: vws.iam.v1.Policy
+	(*PolicySpec)(nil),                    // 3: vws.iam.v1.PolicySpec
+	(*PolicyStatus)(nil),                  // 4: vws.iam.v1.PolicyStatus
+	(*PolicyVersion)(nil),                 // 5: vws.iam.v1.PolicyVersion
+	(*PolicyVersionSpec)(nil),             // 6: vws.iam.v1.PolicyVersionSpec
+	(*PolicyVersionStatus)(nil),           // 7: vws.iam.v1.PolicyVersionStatus
+	(*GetPolicyRequest)(nil),              // 8: vws.iam.v1.GetPolicyRequest
+	(*ListPoliciesRequest)(nil),           // 9: vws.iam.v1.ListPoliciesRequest
+	(*ListPoliciesResponse)(nil),          // 10: vws.iam.v1.ListPoliciesResponse
+	(*CreatePolicyRequest)(nil),           // 11: vws.iam.v1.CreatePolicyRequest
+	(*UpdatePolicyRequest)(nil),           // 12: vws.iam.v1.UpdatePolicyRequest
+	(*DeletePolicyRequest)(nil),           // 13: vws.iam.v1.DeletePolicyRequest
+	(*GetPolicyVersionRequest)(nil),       // 14: vws.iam.v1.GetPolicyVersionRequest
+	(*ListPolicyVersionsRequest)(nil),     // 15: vws.iam.v1.ListPolicyVersionsRequest
+	(*ListPolicyVersionsResponse)(nil),    // 16: vws.iam.v1.ListPolicyVersionsResponse
+	(*CreatePolicyVersionRequest)(nil),    // 17: vws.iam.v1.CreatePolicyVersionRequest
+	(*DeletePolicyVersionRequest)(nil),    // 18: vws.iam.v1.DeletePolicyVersionRequest
+	(*Tag)(nil),                           // 19: vws.iam.v1.Tag
+	(*TagPolicyRequest)(nil),              // 20: vws.iam.v1.TagPolicyRequest
+	(*UntagPolicyRequest)(nil),            // 21: vws.iam.v1.UntagPolicyRequest
+	(*ListPolicyTagsRequest)(nil),         // 22: vws.iam.v1.ListPolicyTagsRequest
+	(*ListPolicyTagsResponse)(nil),        // 23: vws.iam.v1.ListPolicyTagsResponse
+	(*ListEntitiesForPolicyRequest)(nil),  // 24: vws.iam.v1.ListEntitiesForPolicyRequest
+	(*ListEntitiesForPolicyResponse)(nil), // 25: vws.iam.v1.ListEntitiesForPolicyResponse
+	(*PolicyEntity)(nil),                  // 26: vws.iam.v1.PolicyEntity
+	nil,                                   // 27: vws.iam.v1.Policy.LabelsEntry
+	nil,                                   // 28: vws.iam.v1.PolicyVersion.LabelsEntry
+	(*timestamppb.Timestamp)(nil),         // 29: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),              // 30: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),         // 31: google.protobuf.FieldMask
+	(*longrunningpb.Operation)(nil),       // 32: google.longrunning.Operation
 }
 var file_vws_iam_v1_policy_proto_depIdxs = []int32{
-	22, // 0: vws.iam.v1.Policy.labels:type_name -> vws.iam.v1.Policy.LabelsEntry
-	1,  // 1: vws.iam.v1.Policy.spec:type_name -> vws.iam.v1.PolicySpec
-	2,  // 2: vws.iam.v1.Policy.status:type_name -> vws.iam.v1.PolicyStatus
-	24, // 3: vws.iam.v1.Policy.create_time:type_name -> google.protobuf.Timestamp
-	24, // 4: vws.iam.v1.Policy.update_time:type_name -> google.protobuf.Timestamp
-	24, // 5: vws.iam.v1.Policy.delete_time:type_name -> google.protobuf.Timestamp
-	25, // 6: vws.iam.v1.PolicyStatus.observed:type_name -> vws.common.v1.ObservedState
-	23, // 7: vws.iam.v1.PolicyVersion.labels:type_name -> vws.iam.v1.PolicyVersion.LabelsEntry
-	4,  // 8: vws.iam.v1.PolicyVersion.spec:type_name -> vws.iam.v1.PolicyVersionSpec
-	5,  // 9: vws.iam.v1.PolicyVersion.status:type_name -> vws.iam.v1.PolicyVersionStatus
-	24, // 10: vws.iam.v1.PolicyVersion.create_time:type_name -> google.protobuf.Timestamp
-	24, // 11: vws.iam.v1.PolicyVersion.update_time:type_name -> google.protobuf.Timestamp
-	24, // 12: vws.iam.v1.PolicyVersion.delete_time:type_name -> google.protobuf.Timestamp
-	25, // 13: vws.iam.v1.PolicyVersionStatus.observed:type_name -> vws.common.v1.ObservedState
-	0,  // 14: vws.iam.v1.ListPoliciesResponse.policies:type_name -> vws.iam.v1.Policy
-	0,  // 15: vws.iam.v1.CreatePolicyRequest.policy:type_name -> vws.iam.v1.Policy
-	0,  // 16: vws.iam.v1.UpdatePolicyRequest.policy:type_name -> vws.iam.v1.Policy
-	26, // 17: vws.iam.v1.UpdatePolicyRequest.update_mask:type_name -> google.protobuf.FieldMask
-	3,  // 18: vws.iam.v1.ListPolicyVersionsResponse.policy_versions:type_name -> vws.iam.v1.PolicyVersion
-	3,  // 19: vws.iam.v1.CreatePolicyVersionRequest.policy_version:type_name -> vws.iam.v1.PolicyVersion
-	17, // 20: vws.iam.v1.TagPolicyRequest.tags:type_name -> vws.iam.v1.Tag
-	17, // 21: vws.iam.v1.ListPolicyTagsResponse.tags:type_name -> vws.iam.v1.Tag
-	6,  // 22: vws.iam.v1.PolicyService.GetPolicy:input_type -> vws.iam.v1.GetPolicyRequest
-	7,  // 23: vws.iam.v1.PolicyService.ListPolicies:input_type -> vws.iam.v1.ListPoliciesRequest
-	9,  // 24: vws.iam.v1.PolicyService.CreatePolicy:input_type -> vws.iam.v1.CreatePolicyRequest
-	10, // 25: vws.iam.v1.PolicyService.UpdatePolicy:input_type -> vws.iam.v1.UpdatePolicyRequest
-	11, // 26: vws.iam.v1.PolicyService.DeletePolicy:input_type -> vws.iam.v1.DeletePolicyRequest
-	12, // 27: vws.iam.v1.PolicyService.GetPolicyVersion:input_type -> vws.iam.v1.GetPolicyVersionRequest
-	13, // 28: vws.iam.v1.PolicyService.ListPolicyVersions:input_type -> vws.iam.v1.ListPolicyVersionsRequest
-	15, // 29: vws.iam.v1.PolicyService.CreatePolicyVersion:input_type -> vws.iam.v1.CreatePolicyVersionRequest
-	16, // 30: vws.iam.v1.PolicyService.DeletePolicyVersion:input_type -> vws.iam.v1.DeletePolicyVersionRequest
-	18, // 31: vws.iam.v1.PolicyService.TagPolicy:input_type -> vws.iam.v1.TagPolicyRequest
-	19, // 32: vws.iam.v1.PolicyService.UntagPolicy:input_type -> vws.iam.v1.UntagPolicyRequest
-	20, // 33: vws.iam.v1.PolicyService.ListPolicyTags:input_type -> vws.iam.v1.ListPolicyTagsRequest
-	0,  // 34: vws.iam.v1.PolicyService.GetPolicy:output_type -> vws.iam.v1.Policy
-	8,  // 35: vws.iam.v1.PolicyService.ListPolicies:output_type -> vws.iam.v1.ListPoliciesResponse
-	27, // 36: vws.iam.v1.PolicyService.CreatePolicy:output_type -> google.longrunning.Operation
-	27, // 37: vws.iam.v1.PolicyService.UpdatePolicy:output_type -> google.longrunning.Operation
-	27, // 38: vws.iam.v1.PolicyService.DeletePolicy:output_type -> google.longrunning.Operation
-	3,  // 39: vws.iam.v1.PolicyService.GetPolicyVersion:output_type -> vws.iam.v1.PolicyVersion
-	14, // 40: vws.iam.v1.PolicyService.ListPolicyVersions:output_type -> vws.iam.v1.ListPolicyVersionsResponse
-	27, // 41: vws.iam.v1.PolicyService.CreatePolicyVersion:output_type -> google.longrunning.Operation
-	27, // 42: vws.iam.v1.PolicyService.DeletePolicyVersion:output_type -> google.longrunning.Operation
-	27, // 43: vws.iam.v1.PolicyService.TagPolicy:output_type -> google.longrunning.Operation
-	27, // 44: vws.iam.v1.PolicyService.UntagPolicy:output_type -> google.longrunning.Operation
-	21, // 45: vws.iam.v1.PolicyService.ListPolicyTags:output_type -> vws.iam.v1.ListPolicyTagsResponse
-	34, // [34:46] is the sub-list for method output_type
-	22, // [22:34] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	27, // 0: vws.iam.v1.Policy.labels:type_name -> vws.iam.v1.Policy.LabelsEntry
+	3,  // 1: vws.iam.v1.Policy.spec:type_name -> vws.iam.v1.PolicySpec
+	4,  // 2: vws.iam.v1.Policy.status:type_name -> vws.iam.v1.PolicyStatus
+	29, // 3: vws.iam.v1.Policy.create_time:type_name -> google.protobuf.Timestamp
+	29, // 4: vws.iam.v1.Policy.update_time:type_name -> google.protobuf.Timestamp
+	29, // 5: vws.iam.v1.Policy.delete_time:type_name -> google.protobuf.Timestamp
+	30, // 6: vws.iam.v1.PolicyStatus.observed:type_name -> vws.common.v1.ObservedState
+	28, // 7: vws.iam.v1.PolicyVersion.labels:type_name -> vws.iam.v1.PolicyVersion.LabelsEntry
+	6,  // 8: vws.iam.v1.PolicyVersion.spec:type_name -> vws.iam.v1.PolicyVersionSpec
+	7,  // 9: vws.iam.v1.PolicyVersion.status:type_name -> vws.iam.v1.PolicyVersionStatus
+	29, // 10: vws.iam.v1.PolicyVersion.create_time:type_name -> google.protobuf.Timestamp
+	29, // 11: vws.iam.v1.PolicyVersion.update_time:type_name -> google.protobuf.Timestamp
+	29, // 12: vws.iam.v1.PolicyVersion.delete_time:type_name -> google.protobuf.Timestamp
+	30, // 13: vws.iam.v1.PolicyVersionStatus.observed:type_name -> vws.common.v1.ObservedState
+	2,  // 14: vws.iam.v1.ListPoliciesResponse.policies:type_name -> vws.iam.v1.Policy
+	2,  // 15: vws.iam.v1.CreatePolicyRequest.policy:type_name -> vws.iam.v1.Policy
+	2,  // 16: vws.iam.v1.UpdatePolicyRequest.policy:type_name -> vws.iam.v1.Policy
+	31, // 17: vws.iam.v1.UpdatePolicyRequest.update_mask:type_name -> google.protobuf.FieldMask
+	5,  // 18: vws.iam.v1.ListPolicyVersionsResponse.policy_versions:type_name -> vws.iam.v1.PolicyVersion
+	5,  // 19: vws.iam.v1.CreatePolicyVersionRequest.policy_version:type_name -> vws.iam.v1.PolicyVersion
+	19, // 20: vws.iam.v1.TagPolicyRequest.tags:type_name -> vws.iam.v1.Tag
+	19, // 21: vws.iam.v1.ListPolicyTagsResponse.tags:type_name -> vws.iam.v1.Tag
+	0,  // 22: vws.iam.v1.ListEntitiesForPolicyRequest.entity_filter:type_name -> vws.iam.v1.PolicyEntityFilter
+	1,  // 23: vws.iam.v1.ListEntitiesForPolicyRequest.policy_usage_filter:type_name -> vws.iam.v1.PolicyUsageFilter
+	26, // 24: vws.iam.v1.ListEntitiesForPolicyResponse.policy_groups:type_name -> vws.iam.v1.PolicyEntity
+	26, // 25: vws.iam.v1.ListEntitiesForPolicyResponse.policy_roles:type_name -> vws.iam.v1.PolicyEntity
+	26, // 26: vws.iam.v1.ListEntitiesForPolicyResponse.policy_users:type_name -> vws.iam.v1.PolicyEntity
+	8,  // 27: vws.iam.v1.PolicyService.GetPolicy:input_type -> vws.iam.v1.GetPolicyRequest
+	9,  // 28: vws.iam.v1.PolicyService.ListPolicies:input_type -> vws.iam.v1.ListPoliciesRequest
+	11, // 29: vws.iam.v1.PolicyService.CreatePolicy:input_type -> vws.iam.v1.CreatePolicyRequest
+	12, // 30: vws.iam.v1.PolicyService.UpdatePolicy:input_type -> vws.iam.v1.UpdatePolicyRequest
+	13, // 31: vws.iam.v1.PolicyService.DeletePolicy:input_type -> vws.iam.v1.DeletePolicyRequest
+	14, // 32: vws.iam.v1.PolicyService.GetPolicyVersion:input_type -> vws.iam.v1.GetPolicyVersionRequest
+	15, // 33: vws.iam.v1.PolicyService.ListPolicyVersions:input_type -> vws.iam.v1.ListPolicyVersionsRequest
+	17, // 34: vws.iam.v1.PolicyService.CreatePolicyVersion:input_type -> vws.iam.v1.CreatePolicyVersionRequest
+	18, // 35: vws.iam.v1.PolicyService.DeletePolicyVersion:input_type -> vws.iam.v1.DeletePolicyVersionRequest
+	20, // 36: vws.iam.v1.PolicyService.TagPolicy:input_type -> vws.iam.v1.TagPolicyRequest
+	21, // 37: vws.iam.v1.PolicyService.UntagPolicy:input_type -> vws.iam.v1.UntagPolicyRequest
+	22, // 38: vws.iam.v1.PolicyService.ListPolicyTags:input_type -> vws.iam.v1.ListPolicyTagsRequest
+	24, // 39: vws.iam.v1.PolicyService.ListEntitiesForPolicy:input_type -> vws.iam.v1.ListEntitiesForPolicyRequest
+	2,  // 40: vws.iam.v1.PolicyService.GetPolicy:output_type -> vws.iam.v1.Policy
+	10, // 41: vws.iam.v1.PolicyService.ListPolicies:output_type -> vws.iam.v1.ListPoliciesResponse
+	32, // 42: vws.iam.v1.PolicyService.CreatePolicy:output_type -> google.longrunning.Operation
+	32, // 43: vws.iam.v1.PolicyService.UpdatePolicy:output_type -> google.longrunning.Operation
+	32, // 44: vws.iam.v1.PolicyService.DeletePolicy:output_type -> google.longrunning.Operation
+	5,  // 45: vws.iam.v1.PolicyService.GetPolicyVersion:output_type -> vws.iam.v1.PolicyVersion
+	16, // 46: vws.iam.v1.PolicyService.ListPolicyVersions:output_type -> vws.iam.v1.ListPolicyVersionsResponse
+	32, // 47: vws.iam.v1.PolicyService.CreatePolicyVersion:output_type -> google.longrunning.Operation
+	32, // 48: vws.iam.v1.PolicyService.DeletePolicyVersion:output_type -> google.longrunning.Operation
+	32, // 49: vws.iam.v1.PolicyService.TagPolicy:output_type -> google.longrunning.Operation
+	32, // 50: vws.iam.v1.PolicyService.UntagPolicy:output_type -> google.longrunning.Operation
+	23, // 51: vws.iam.v1.PolicyService.ListPolicyTags:output_type -> vws.iam.v1.ListPolicyTagsResponse
+	25, // 52: vws.iam.v1.PolicyService.ListEntitiesForPolicy:output_type -> vws.iam.v1.ListEntitiesForPolicyResponse
+	40, // [40:53] is the sub-list for method output_type
+	27, // [27:40] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_policy_proto_init() }
@@ -1799,13 +2194,14 @@ func file_vws_iam_v1_policy_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_policy_proto_rawDesc), len(file_vws_iam_v1_policy_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   24,
+			NumEnums:      2,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_vws_iam_v1_policy_proto_goTypes,
 		DependencyIndexes: file_vws_iam_v1_policy_proto_depIdxs,
+		EnumInfos:         file_vws_iam_v1_policy_proto_enumTypes,
 		MessageInfos:      file_vws_iam_v1_policy_proto_msgTypes,
 	}.Build()
 	File_vws_iam_v1_policy_proto = out.File

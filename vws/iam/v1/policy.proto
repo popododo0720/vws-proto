@@ -144,6 +144,23 @@ service PolicyService {
   rpc ListPolicyTags(ListPolicyTagsRequest) returns (ListPolicyTagsResponse) {
     option (google.api.http) = {get: "/v1/{name=projects/*/policies/*}:tags"};
   }
+
+  // ListEntitiesForPolicy is AWS ListEntitiesForPolicy. It lists the
+  // groups, roles and users of the parent project that hold the managed
+  // policy, in that order, each by case-folded name, in pages. It only
+  // reads.
+  // A length, pattern or enum fault is INVALID_ARGUMENT / INVALID_SPEC
+  // (AWS ValidationError). A policy_arn that is not a managed policy ARN,
+  // or a well-formed marker this RPC did not return, is INVALID_ARGUMENT /
+  // INVALID_SPEC (InvalidInput). All of these are checked before any
+  // store access. A policy that is not a managed policy of the project
+  // (path included) is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+  // LocalManagedPolicy and AWSManagedPolicy select nothing. Any other
+  // failure is INTERNAL (ServiceFailure).
+  // Authorization (iam:ListEntitiesForPolicy) is console-api's.
+  rpc ListEntitiesForPolicy(ListEntitiesForPolicyRequest) returns (ListEntitiesForPolicyResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}:listEntitiesForPolicy"};
+  }
 }
 
 // Policy is a customer managed policy.
@@ -411,4 +428,66 @@ message ListPolicyTagsRequest {
 message ListPolicyTagsResponse {
   repeated Tag tags = 1;
   string next_page_token = 2;
+}
+
+// PolicyEntityFilter is AWS EntityFilter. UNSPECIFIED means not set (all
+// users, groups and roles that hold the policy).
+enum PolicyEntityFilter {
+  POLICY_ENTITY_FILTER_UNSPECIFIED = 0;
+  POLICY_ENTITY_FILTER_USER = 1; // AWS User
+  POLICY_ENTITY_FILTER_ROLE = 2; // AWS Role
+  POLICY_ENTITY_FILTER_GROUP = 3; // AWS Group
+  // Selects nothing: these are not users, groups or roles.
+  POLICY_ENTITY_FILTER_LOCAL_MANAGED_POLICY = 4; // AWS LocalManagedPolicy
+  POLICY_ENTITY_FILTER_AWS_MANAGED_POLICY = 5; // AWS AWSManagedPolicy
+}
+
+// PolicyUsageFilter is AWS PolicyUsageFilter. UNSPECIFIED means not set
+// (both a permissions policy and a permissions boundary count).
+enum PolicyUsageFilter {
+  POLICY_USAGE_FILTER_UNSPECIFIED = 0;
+  POLICY_USAGE_FILTER_PERMISSIONS_POLICY = 1; // AWS PermissionsPolicy
+  POLICY_USAGE_FILTER_PERMISSIONS_BOUNDARY = 2; // AWS PermissionsBoundary
+}
+
+// ListEntitiesForPolicy is AWS ListEntitiesForPolicy.
+message ListEntitiesForPolicyRequest {
+  // projects/{project}.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS PolicyArn, 20-2048 characters, a managed policy ARN of the
+  // parent project.
+  string policy_arn = 2 [(google.api.field_behavior) = REQUIRED];
+  // AWS EntityFilter. UNSPECIFIED means not set.
+  PolicyEntityFilter entity_filter = 3;
+  // AWS PathPrefix. Empty means not set: "/", every path. Otherwise /
+  // or 1-512 characters of [\u0021-\u007E] that start and end with /.
+  string path_prefix = 4;
+  // AWS PolicyUsageFilter. UNSPECIFIED means not set.
+  PolicyUsageFilter policy_usage_filter = 5;
+  // AWS Marker, 1-320 characters of [\u0020-\u00FF]. Only a marker this
+  // RPC returned.
+  string marker = 6;
+  // AWS MaxItems, 1-1000. 0 means not set: the server default is 100, as
+  // in AWS. console-api answers an explicit MaxItems=0 as ValidationError
+  // itself, since 0 cannot be told apart from unset here.
+  int32 max_items = 7;
+}
+
+message ListEntitiesForPolicyResponse {
+  // Groups, roles and users of this page, each ordered by case-folded
+  // name. The listing order is groups, then roles, then users.
+  repeated PolicyEntity policy_groups = 1;
+  repeated PolicyEntity policy_roles = 2;
+  repeated PolicyEntity policy_users = 3;
+  // AWS IsTruncated.
+  bool is_truncated = 4;
+  // AWS Marker. Set exactly when is_truncated is true.
+  string marker = 5;
+}
+
+// PolicyEntity is one group, role or user that holds the policy: AWS
+// GroupName/GroupId, RoleName/RoleId or UserName/UserId.
+message PolicyEntity {
+  string name = 1;
+  string id = 2;
 }
