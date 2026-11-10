@@ -9,6 +9,7 @@ import "google/api/resource.proto";
 import "google/longrunning/operations.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
+import "google/rpc/status.proto";
 import "vws/common/v1/resource.proto";
 
 option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/storage/v1;storagev1";
@@ -30,6 +31,13 @@ service VolumeService {
 
   rpc ListVolumes(ListVolumesRequest) returns (ListVolumesResponse) {
     option (google.api.http) = {get: "/v1/{parent=projects/*/zones/*}/volumes"};
+  }
+
+  // Lists modifications of one volume, as in EC2 DescribeVolumesModifications.
+  // Only size, type, IOPS, and throughput changes are included, not labels-only
+  // or no-op updates. Original and target values are captured at admission.
+  rpc ListVolumeModifications(ListVolumeModificationsRequest) returns (ListVolumeModificationsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*/zones/*/volumes/*}/modifications"};
   }
 
   // AIP-151: every mutation returns google.longrunning.Operation.
@@ -248,4 +256,63 @@ message ReportVolumeStatusRequest {
 
 message ReportVolumeStatusResponse {
   Volume volume = 1;
+}
+
+// VolumeShape is the size and performance of a volume at modification admission.
+// Values use the same units as VolumeSpec. A legacy modification recorded before
+// original values were stored may have an absent original shape.
+message VolumeShape {
+  int64 size_gib = 1;
+  VolumeType type = 2;
+  int64 iops = 3;
+  int64 throughput_mibps = 4;
+}
+
+// VolumeModification is a read-only history entry derived from an operation.
+// Its fields correspond to EC2 VolumeModification original and target values,
+// modificationState, startTime, endTime, and failure statusMessage.
+// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_VolumeModification.html
+message VolumeModification {
+  enum State {
+    STATE_UNSPECIFIED = 0;
+    STATE_MODIFYING = 1;
+    STATE_COMPLETED = 2;
+    STATE_FAILED = 3;
+    STATE_OPTIMIZING = 4;
+  }
+
+  // Full name of the operation that performs this modification.
+  string operation = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string volume = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference).type = "vws.storage/Volume"
+  ];
+  VolumeShape original = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  VolumeShape target = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  State state = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp start_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Completion or failure time. Unset while modifying or optimizing.
+  google.protobuf.Timestamp end_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Set only when state is STATE_FAILED. The message describes the failure.
+  google.rpc.Status error = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ListVolumeModificationsRequest {
+  // Full volume name. A missing or foreign volume is NOT_FOUND.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.storage/Volume"
+  ];
+  // Zero uses 50. Negative values are INVALID_ARGUMENT; values above 1000
+  // are coerced to 1000. A page may contain fewer results than requested.
+  int32 page_size = 2;
+  // Opaque continuation from an earlier response for this same parent.
+  // Empty starts a new listing. Invalid or mismatched tokens are INVALID_ARGUMENT.
+  string page_token = 3;
+}
+
+message ListVolumeModificationsResponse {
+  repeated VolumeModification volume_modifications = 1;
+  // Empty when no further results remain. Send with the same parent to continue.
+  string next_page_token = 2;
 }

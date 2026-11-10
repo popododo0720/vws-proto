@@ -101,3 +101,23 @@ The minimum inputs server repos put in their tests:
 
 - Field numbers are never reused. Removing or changing one fails `buf breaking` (FILE), and CI blocks it on the PR. Only when needed, write the narrowest exception in the PR body with its reason.
 - A PR that changes proto states in its body whether it is breaking and its downstream impact (PR template).
+
+## Volume modification history
+
+`ListVolumeModificationsRequest.parent` is a full volume name
+`projects/{project}/zones/{zone}/volumes/{volume}`, with ResourceId segments.
+Malformed names, negative page sizes, and invalid or cross-parent page tokens
+are `INVALID_ARGUMENT`. Zero page size uses 50 and values above 1000 use 1000.
+A missing volume or a volume outside the caller's project is `NOT_FOUND`.
+The opaque next-page token is reused only with the same parent.
+
+History entries are output only. They preserve the original and target size,
+type, IOPS, and throughput from admission, including after service restart.
+Labels-only and no-op updates do not add an entry. Entries of a deleted volume
+are not returned for a new volume that reuses its ID. Legacy operations without
+original values may omit the original shape. End time is absent until completion
+or failure; error is present only for failed modifications.
+
+Consumers must handle all four EC2 modification states, including optimizing.
+The source is the official
+[EC2 VolumeModification reference](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_VolumeModification.html).

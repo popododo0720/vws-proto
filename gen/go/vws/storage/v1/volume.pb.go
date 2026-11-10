@@ -10,6 +10,7 @@ import (
 	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	v1 "github.com/popododo0720/vws-proto/gen/go/vws/common/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	status "google.golang.org/genproto/googleapis/rpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -105,6 +106,61 @@ func (x VolumeType) Number() protoreflect.EnumNumber {
 // Deprecated: Use VolumeType.Descriptor instead.
 func (VolumeType) EnumDescriptor() ([]byte, []int) {
 	return file_vws_storage_v1_volume_proto_rawDescGZIP(), []int{0}
+}
+
+type VolumeModification_State int32
+
+const (
+	VolumeModification_STATE_UNSPECIFIED VolumeModification_State = 0
+	VolumeModification_STATE_MODIFYING   VolumeModification_State = 1
+	VolumeModification_STATE_COMPLETED   VolumeModification_State = 2
+	VolumeModification_STATE_FAILED      VolumeModification_State = 3
+	VolumeModification_STATE_OPTIMIZING  VolumeModification_State = 4
+)
+
+// Enum value maps for VolumeModification_State.
+var (
+	VolumeModification_State_name = map[int32]string{
+		0: "STATE_UNSPECIFIED",
+		1: "STATE_MODIFYING",
+		2: "STATE_COMPLETED",
+		3: "STATE_FAILED",
+		4: "STATE_OPTIMIZING",
+	}
+	VolumeModification_State_value = map[string]int32{
+		"STATE_UNSPECIFIED": 0,
+		"STATE_MODIFYING":   1,
+		"STATE_COMPLETED":   2,
+		"STATE_FAILED":      3,
+		"STATE_OPTIMIZING":  4,
+	}
+)
+
+func (x VolumeModification_State) Enum() *VolumeModification_State {
+	p := new(VolumeModification_State)
+	*p = x
+	return p
+}
+
+func (x VolumeModification_State) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (VolumeModification_State) Descriptor() protoreflect.EnumDescriptor {
+	return file_vws_storage_v1_volume_proto_enumTypes[1].Descriptor()
+}
+
+func (VolumeModification_State) Type() protoreflect.EnumType {
+	return &file_vws_storage_v1_volume_proto_enumTypes[1]
+}
+
+func (x VolumeModification_State) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use VolumeModification_State.Descriptor instead.
+func (VolumeModification_State) EnumDescriptor() ([]byte, []int) {
+	return file_vws_storage_v1_volume_proto_rawDescGZIP(), []int{12, 0}
 }
 
 // Volume is a zonal block device.
@@ -925,11 +981,307 @@ func (x *ReportVolumeStatusResponse) GetVolume() *Volume {
 	return nil
 }
 
+// VolumeShape is the size and performance of a volume at modification admission.
+// Values use the same units as VolumeSpec. A legacy modification recorded before
+// original values were stored may have an absent original shape.
+type VolumeShape struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	SizeGib         int64                  `protobuf:"varint,1,opt,name=size_gib,json=sizeGib,proto3" json:"size_gib,omitempty"`
+	Type            VolumeType             `protobuf:"varint,2,opt,name=type,proto3,enum=vws.storage.v1.VolumeType" json:"type,omitempty"`
+	Iops            int64                  `protobuf:"varint,3,opt,name=iops,proto3" json:"iops,omitempty"`
+	ThroughputMibps int64                  `protobuf:"varint,4,opt,name=throughput_mibps,json=throughputMibps,proto3" json:"throughput_mibps,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *VolumeShape) Reset() {
+	*x = VolumeShape{}
+	mi := &file_vws_storage_v1_volume_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VolumeShape) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VolumeShape) ProtoMessage() {}
+
+func (x *VolumeShape) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_storage_v1_volume_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VolumeShape.ProtoReflect.Descriptor instead.
+func (*VolumeShape) Descriptor() ([]byte, []int) {
+	return file_vws_storage_v1_volume_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *VolumeShape) GetSizeGib() int64 {
+	if x != nil {
+		return x.SizeGib
+	}
+	return 0
+}
+
+func (x *VolumeShape) GetType() VolumeType {
+	if x != nil {
+		return x.Type
+	}
+	return VolumeType_VOLUME_TYPE_UNSPECIFIED
+}
+
+func (x *VolumeShape) GetIops() int64 {
+	if x != nil {
+		return x.Iops
+	}
+	return 0
+}
+
+func (x *VolumeShape) GetThroughputMibps() int64 {
+	if x != nil {
+		return x.ThroughputMibps
+	}
+	return 0
+}
+
+// VolumeModification is a read-only history entry derived from an operation.
+// Its fields correspond to EC2 VolumeModification original and target values,
+// modificationState, startTime, endTime, and failure statusMessage.
+// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_VolumeModification.html
+type VolumeModification struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Full name of the operation that performs this modification.
+	Operation string                   `protobuf:"bytes,1,opt,name=operation,proto3" json:"operation,omitempty"`
+	Volume    string                   `protobuf:"bytes,2,opt,name=volume,proto3" json:"volume,omitempty"`
+	Original  *VolumeShape             `protobuf:"bytes,3,opt,name=original,proto3" json:"original,omitempty"`
+	Target    *VolumeShape             `protobuf:"bytes,4,opt,name=target,proto3" json:"target,omitempty"`
+	State     VolumeModification_State `protobuf:"varint,5,opt,name=state,proto3,enum=vws.storage.v1.VolumeModification_State" json:"state,omitempty"`
+	StartTime *timestamppb.Timestamp   `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	// Completion or failure time. Unset while modifying or optimizing.
+	EndTime *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
+	// Set only when state is STATE_FAILED. The message describes the failure.
+	Error         *status.Status `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VolumeModification) Reset() {
+	*x = VolumeModification{}
+	mi := &file_vws_storage_v1_volume_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VolumeModification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VolumeModification) ProtoMessage() {}
+
+func (x *VolumeModification) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_storage_v1_volume_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VolumeModification.ProtoReflect.Descriptor instead.
+func (*VolumeModification) Descriptor() ([]byte, []int) {
+	return file_vws_storage_v1_volume_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *VolumeModification) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *VolumeModification) GetVolume() string {
+	if x != nil {
+		return x.Volume
+	}
+	return ""
+}
+
+func (x *VolumeModification) GetOriginal() *VolumeShape {
+	if x != nil {
+		return x.Original
+	}
+	return nil
+}
+
+func (x *VolumeModification) GetTarget() *VolumeShape {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *VolumeModification) GetState() VolumeModification_State {
+	if x != nil {
+		return x.State
+	}
+	return VolumeModification_STATE_UNSPECIFIED
+}
+
+func (x *VolumeModification) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
+func (x *VolumeModification) GetEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.EndTime
+	}
+	return nil
+}
+
+func (x *VolumeModification) GetError() *status.Status {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+type ListVolumeModificationsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Full volume name. A missing or foreign volume is NOT_FOUND.
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// Zero uses 50. Negative values are INVALID_ARGUMENT; values above 1000
+	// are coerced to 1000. A page may contain fewer results than requested.
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// Opaque continuation from an earlier response for this same parent.
+	// Empty starts a new listing. Invalid or mismatched tokens are INVALID_ARGUMENT.
+	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVolumeModificationsRequest) Reset() {
+	*x = ListVolumeModificationsRequest{}
+	mi := &file_vws_storage_v1_volume_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVolumeModificationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVolumeModificationsRequest) ProtoMessage() {}
+
+func (x *ListVolumeModificationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_storage_v1_volume_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVolumeModificationsRequest.ProtoReflect.Descriptor instead.
+func (*ListVolumeModificationsRequest) Descriptor() ([]byte, []int) {
+	return file_vws_storage_v1_volume_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListVolumeModificationsRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *ListVolumeModificationsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListVolumeModificationsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListVolumeModificationsResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	VolumeModifications []*VolumeModification  `protobuf:"bytes,1,rep,name=volume_modifications,json=volumeModifications,proto3" json:"volume_modifications,omitempty"`
+	// Empty when no further results remain. Send with the same parent to continue.
+	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListVolumeModificationsResponse) Reset() {
+	*x = ListVolumeModificationsResponse{}
+	mi := &file_vws_storage_v1_volume_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListVolumeModificationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListVolumeModificationsResponse) ProtoMessage() {}
+
+func (x *ListVolumeModificationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_storage_v1_volume_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListVolumeModificationsResponse.ProtoReflect.Descriptor instead.
+func (*ListVolumeModificationsResponse) Descriptor() ([]byte, []int) {
+	return file_vws_storage_v1_volume_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListVolumeModificationsResponse) GetVolumeModifications() []*VolumeModification {
+	if x != nil {
+		return x.VolumeModifications
+	}
+	return nil
+}
+
+func (x *ListVolumeModificationsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
 var File_vws_storage_v1_volume_proto protoreflect.FileDescriptor
 
 const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"\n" +
-	"\x1bvws/storage/v1/volume.proto\x12\x0evws.storage.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cvws/common/v1/resource.proto\"\x92\x06\n" +
+	"\x1bvws/storage/v1/volume.proto\x12\x0evws.storage.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/rpc/status.proto\x1a\x1cvws/common/v1/resource.proto\"\x92\x06\n" +
 	"\x06Volume\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1d\n" +
 	"\x03uid\x18\x02 \x01(\tB\v\xe0A\x03\xe2\x8c\xcf\xd7\b\x02\b\x01R\x03uid\x12#\n" +
@@ -1015,7 +1367,38 @@ const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"L\n" +
 	"\x1aReportVolumeStatusResponse\x12.\n" +
-	"\x06volume\x18\x01 \x01(\v2\x16.vws.storage.v1.VolumeR\x06volume*\xda\x01\n" +
+	"\x06volume\x18\x01 \x01(\v2\x16.vws.storage.v1.VolumeR\x06volume\"\x97\x01\n" +
+	"\vVolumeShape\x12\x19\n" +
+	"\bsize_gib\x18\x01 \x01(\x03R\asizeGib\x12.\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x1a.vws.storage.v1.VolumeTypeR\x04type\x12\x12\n" +
+	"\x04iops\x18\x03 \x01(\x03R\x04iops\x12)\n" +
+	"\x10throughput_mibps\x18\x04 \x01(\x03R\x0fthroughputMibps\"\xc5\x04\n" +
+	"\x12VolumeModification\x12!\n" +
+	"\toperation\x18\x01 \x01(\tB\x03\xe0A\x03R\toperation\x122\n" +
+	"\x06volume\x18\x02 \x01(\tB\x1a\xe0A\x03\xfaA\x14\n" +
+	"\x12vws.storage/VolumeR\x06volume\x12<\n" +
+	"\boriginal\x18\x03 \x01(\v2\x1b.vws.storage.v1.VolumeShapeB\x03\xe0A\x03R\boriginal\x128\n" +
+	"\x06target\x18\x04 \x01(\v2\x1b.vws.storage.v1.VolumeShapeB\x03\xe0A\x03R\x06target\x12C\n" +
+	"\x05state\x18\x05 \x01(\x0e2(.vws.storage.v1.VolumeModification.StateB\x03\xe0A\x03R\x05state\x12>\n" +
+	"\n" +
+	"start_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\tstartTime\x12:\n" +
+	"\bend_time\x18\a \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\aendTime\x12-\n" +
+	"\x05error\x18\b \x01(\v2\x12.google.rpc.StatusB\x03\xe0A\x03R\x05error\"p\n" +
+	"\x05State\x12\x15\n" +
+	"\x11STATE_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fSTATE_MODIFYING\x10\x01\x12\x13\n" +
+	"\x0fSTATE_COMPLETED\x10\x02\x12\x10\n" +
+	"\fSTATE_FAILED\x10\x03\x12\x14\n" +
+	"\x10STATE_OPTIMIZING\x10\x04\"\x90\x01\n" +
+	"\x1eListVolumeModificationsRequest\x122\n" +
+	"\x06parent\x18\x01 \x01(\tB\x1a\xe0A\x02\xfaA\x14\n" +
+	"\x12vws.storage/VolumeR\x06parent\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"\xa0\x01\n" +
+	"\x1fListVolumeModificationsResponse\x12U\n" +
+	"\x14volume_modifications\x18\x01 \x03(\v2\".vws.storage.v1.VolumeModificationR\x13volumeModifications\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken*\xda\x01\n" +
 	"\n" +
 	"VolumeType\x12\x1b\n" +
 	"\x17VOLUME_TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
@@ -1026,10 +1409,11 @@ const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"\x0fVOLUME_TYPE_IO1\x10\x05\x12\x13\n" +
 	"\x0fVOLUME_TYPE_IO2\x10\x06\x12\x13\n" +
 	"\x0fVOLUME_TYPE_ST1\x10\a\x12\x13\n" +
-	"\x0fVOLUME_TYPE_SC1\x10\b2\x9a\b\n" +
+	"\x0fVOLUME_TYPE_SC1\x10\b2\xd8\t\n" +
 	"\rVolumeService\x12v\n" +
 	"\tGetVolume\x12 .vws.storage.v1.GetVolumeRequest\x1a\x16.vws.storage.v1.Volume\"/\x82\xd3\xe4\x93\x02)\x12'/v1/{name=projects/*/zones/*/volumes/*}\x12\x87\x01\n" +
-	"\vListVolumes\x12\".vws.storage.v1.ListVolumesRequest\x1a#.vws.storage.v1.ListVolumesResponse\"/\x82\xd3\xe4\x93\x02)\x12'/v1/{parent=projects/*/zones/*}/volumes\x12\xc6\x01\n" +
+	"\vListVolumes\x12\".vws.storage.v1.ListVolumesRequest\x1a#.vws.storage.v1.ListVolumesResponse\"/\x82\xd3\xe4\x93\x02)\x12'/v1/{parent=projects/*/zones/*}/volumes\x12\xbb\x01\n" +
+	"\x17ListVolumeModifications\x12..vws.storage.v1.ListVolumeModificationsRequest\x1a/.vws.storage.v1.ListVolumeModificationsResponse\"?\x82\xd3\xe4\x93\x029\x127/v1/{parent=projects/*/zones/*/volumes/*}/modifications\x12\xc6\x01\n" +
 	"\fCreateVolume\x12#.vws.storage.v1.CreateVolumeRequest\x1a\x1d.google.longrunning.Operation\"r\xcaA8\n" +
 	"\x15vws.storage.v1.Volume\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x021:\x06volume\"'/v1/{parent=projects/*/zones/*}/volumes\x12\xcd\x01\n" +
 	"\fUpdateVolume\x12#.vws.storage.v1.UpdateVolumeRequest\x1a\x1d.google.longrunning.Operation\"y\xcaA8\n" +
@@ -1051,61 +1435,77 @@ func file_vws_storage_v1_volume_proto_rawDescGZIP() []byte {
 	return file_vws_storage_v1_volume_proto_rawDescData
 }
 
-var file_vws_storage_v1_volume_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_vws_storage_v1_volume_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_vws_storage_v1_volume_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_vws_storage_v1_volume_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_vws_storage_v1_volume_proto_goTypes = []any{
-	(VolumeType)(0),                    // 0: vws.storage.v1.VolumeType
-	(*Volume)(nil),                     // 1: vws.storage.v1.Volume
-	(*VolumeSpec)(nil),                 // 2: vws.storage.v1.VolumeSpec
-	(*VolumeStatus)(nil),               // 3: vws.storage.v1.VolumeStatus
-	(*GetVolumeRequest)(nil),           // 4: vws.storage.v1.GetVolumeRequest
-	(*ListVolumesRequest)(nil),         // 5: vws.storage.v1.ListVolumesRequest
-	(*ListVolumesResponse)(nil),        // 6: vws.storage.v1.ListVolumesResponse
-	(*CreateVolumeRequest)(nil),        // 7: vws.storage.v1.CreateVolumeRequest
-	(*UpdateVolumeRequest)(nil),        // 8: vws.storage.v1.UpdateVolumeRequest
-	(*DeleteVolumeRequest)(nil),        // 9: vws.storage.v1.DeleteVolumeRequest
-	(*ReportVolumeStatusRequest)(nil),  // 10: vws.storage.v1.ReportVolumeStatusRequest
-	(*ReportVolumeStatusResponse)(nil), // 11: vws.storage.v1.ReportVolumeStatusResponse
-	nil,                                // 12: vws.storage.v1.Volume.LabelsEntry
-	nil,                                // 13: vws.storage.v1.Volume.AnnotationsEntry
-	(*timestamppb.Timestamp)(nil),      // 14: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),           // 15: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),      // 16: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil),    // 17: google.longrunning.Operation
+	(VolumeType)(0),                         // 0: vws.storage.v1.VolumeType
+	(VolumeModification_State)(0),           // 1: vws.storage.v1.VolumeModification.State
+	(*Volume)(nil),                          // 2: vws.storage.v1.Volume
+	(*VolumeSpec)(nil),                      // 3: vws.storage.v1.VolumeSpec
+	(*VolumeStatus)(nil),                    // 4: vws.storage.v1.VolumeStatus
+	(*GetVolumeRequest)(nil),                // 5: vws.storage.v1.GetVolumeRequest
+	(*ListVolumesRequest)(nil),              // 6: vws.storage.v1.ListVolumesRequest
+	(*ListVolumesResponse)(nil),             // 7: vws.storage.v1.ListVolumesResponse
+	(*CreateVolumeRequest)(nil),             // 8: vws.storage.v1.CreateVolumeRequest
+	(*UpdateVolumeRequest)(nil),             // 9: vws.storage.v1.UpdateVolumeRequest
+	(*DeleteVolumeRequest)(nil),             // 10: vws.storage.v1.DeleteVolumeRequest
+	(*ReportVolumeStatusRequest)(nil),       // 11: vws.storage.v1.ReportVolumeStatusRequest
+	(*ReportVolumeStatusResponse)(nil),      // 12: vws.storage.v1.ReportVolumeStatusResponse
+	(*VolumeShape)(nil),                     // 13: vws.storage.v1.VolumeShape
+	(*VolumeModification)(nil),              // 14: vws.storage.v1.VolumeModification
+	(*ListVolumeModificationsRequest)(nil),  // 15: vws.storage.v1.ListVolumeModificationsRequest
+	(*ListVolumeModificationsResponse)(nil), // 16: vws.storage.v1.ListVolumeModificationsResponse
+	nil,                                     // 17: vws.storage.v1.Volume.LabelsEntry
+	nil,                                     // 18: vws.storage.v1.Volume.AnnotationsEntry
+	(*timestamppb.Timestamp)(nil),           // 19: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),                // 20: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),           // 21: google.protobuf.FieldMask
+	(*status.Status)(nil),                   // 22: google.rpc.Status
+	(*longrunningpb.Operation)(nil),         // 23: google.longrunning.Operation
 }
 var file_vws_storage_v1_volume_proto_depIdxs = []int32{
-	12, // 0: vws.storage.v1.Volume.labels:type_name -> vws.storage.v1.Volume.LabelsEntry
-	2,  // 1: vws.storage.v1.Volume.spec:type_name -> vws.storage.v1.VolumeSpec
-	3,  // 2: vws.storage.v1.Volume.status:type_name -> vws.storage.v1.VolumeStatus
-	14, // 3: vws.storage.v1.Volume.create_time:type_name -> google.protobuf.Timestamp
-	14, // 4: vws.storage.v1.Volume.update_time:type_name -> google.protobuf.Timestamp
-	14, // 5: vws.storage.v1.Volume.delete_time:type_name -> google.protobuf.Timestamp
-	13, // 6: vws.storage.v1.Volume.annotations:type_name -> vws.storage.v1.Volume.AnnotationsEntry
+	17, // 0: vws.storage.v1.Volume.labels:type_name -> vws.storage.v1.Volume.LabelsEntry
+	3,  // 1: vws.storage.v1.Volume.spec:type_name -> vws.storage.v1.VolumeSpec
+	4,  // 2: vws.storage.v1.Volume.status:type_name -> vws.storage.v1.VolumeStatus
+	19, // 3: vws.storage.v1.Volume.create_time:type_name -> google.protobuf.Timestamp
+	19, // 4: vws.storage.v1.Volume.update_time:type_name -> google.protobuf.Timestamp
+	19, // 5: vws.storage.v1.Volume.delete_time:type_name -> google.protobuf.Timestamp
+	18, // 6: vws.storage.v1.Volume.annotations:type_name -> vws.storage.v1.Volume.AnnotationsEntry
 	0,  // 7: vws.storage.v1.VolumeSpec.type:type_name -> vws.storage.v1.VolumeType
-	15, // 8: vws.storage.v1.VolumeStatus.observed:type_name -> vws.common.v1.ObservedState
-	1,  // 9: vws.storage.v1.ListVolumesResponse.volumes:type_name -> vws.storage.v1.Volume
-	1,  // 10: vws.storage.v1.CreateVolumeRequest.volume:type_name -> vws.storage.v1.Volume
-	1,  // 11: vws.storage.v1.UpdateVolumeRequest.volume:type_name -> vws.storage.v1.Volume
-	16, // 12: vws.storage.v1.UpdateVolumeRequest.update_mask:type_name -> google.protobuf.FieldMask
-	3,  // 13: vws.storage.v1.ReportVolumeStatusRequest.status:type_name -> vws.storage.v1.VolumeStatus
-	1,  // 14: vws.storage.v1.ReportVolumeStatusResponse.volume:type_name -> vws.storage.v1.Volume
-	4,  // 15: vws.storage.v1.VolumeService.GetVolume:input_type -> vws.storage.v1.GetVolumeRequest
-	5,  // 16: vws.storage.v1.VolumeService.ListVolumes:input_type -> vws.storage.v1.ListVolumesRequest
-	7,  // 17: vws.storage.v1.VolumeService.CreateVolume:input_type -> vws.storage.v1.CreateVolumeRequest
-	8,  // 18: vws.storage.v1.VolumeService.UpdateVolume:input_type -> vws.storage.v1.UpdateVolumeRequest
-	9,  // 19: vws.storage.v1.VolumeService.DeleteVolume:input_type -> vws.storage.v1.DeleteVolumeRequest
-	10, // 20: vws.storage.v1.VolumeService.ReportVolumeStatus:input_type -> vws.storage.v1.ReportVolumeStatusRequest
-	1,  // 21: vws.storage.v1.VolumeService.GetVolume:output_type -> vws.storage.v1.Volume
-	6,  // 22: vws.storage.v1.VolumeService.ListVolumes:output_type -> vws.storage.v1.ListVolumesResponse
-	17, // 23: vws.storage.v1.VolumeService.CreateVolume:output_type -> google.longrunning.Operation
-	17, // 24: vws.storage.v1.VolumeService.UpdateVolume:output_type -> google.longrunning.Operation
-	17, // 25: vws.storage.v1.VolumeService.DeleteVolume:output_type -> google.longrunning.Operation
-	11, // 26: vws.storage.v1.VolumeService.ReportVolumeStatus:output_type -> vws.storage.v1.ReportVolumeStatusResponse
-	21, // [21:27] is the sub-list for method output_type
-	15, // [15:21] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	20, // 8: vws.storage.v1.VolumeStatus.observed:type_name -> vws.common.v1.ObservedState
+	2,  // 9: vws.storage.v1.ListVolumesResponse.volumes:type_name -> vws.storage.v1.Volume
+	2,  // 10: vws.storage.v1.CreateVolumeRequest.volume:type_name -> vws.storage.v1.Volume
+	2,  // 11: vws.storage.v1.UpdateVolumeRequest.volume:type_name -> vws.storage.v1.Volume
+	21, // 12: vws.storage.v1.UpdateVolumeRequest.update_mask:type_name -> google.protobuf.FieldMask
+	4,  // 13: vws.storage.v1.ReportVolumeStatusRequest.status:type_name -> vws.storage.v1.VolumeStatus
+	2,  // 14: vws.storage.v1.ReportVolumeStatusResponse.volume:type_name -> vws.storage.v1.Volume
+	0,  // 15: vws.storage.v1.VolumeShape.type:type_name -> vws.storage.v1.VolumeType
+	13, // 16: vws.storage.v1.VolumeModification.original:type_name -> vws.storage.v1.VolumeShape
+	13, // 17: vws.storage.v1.VolumeModification.target:type_name -> vws.storage.v1.VolumeShape
+	1,  // 18: vws.storage.v1.VolumeModification.state:type_name -> vws.storage.v1.VolumeModification.State
+	19, // 19: vws.storage.v1.VolumeModification.start_time:type_name -> google.protobuf.Timestamp
+	19, // 20: vws.storage.v1.VolumeModification.end_time:type_name -> google.protobuf.Timestamp
+	22, // 21: vws.storage.v1.VolumeModification.error:type_name -> google.rpc.Status
+	14, // 22: vws.storage.v1.ListVolumeModificationsResponse.volume_modifications:type_name -> vws.storage.v1.VolumeModification
+	5,  // 23: vws.storage.v1.VolumeService.GetVolume:input_type -> vws.storage.v1.GetVolumeRequest
+	6,  // 24: vws.storage.v1.VolumeService.ListVolumes:input_type -> vws.storage.v1.ListVolumesRequest
+	15, // 25: vws.storage.v1.VolumeService.ListVolumeModifications:input_type -> vws.storage.v1.ListVolumeModificationsRequest
+	8,  // 26: vws.storage.v1.VolumeService.CreateVolume:input_type -> vws.storage.v1.CreateVolumeRequest
+	9,  // 27: vws.storage.v1.VolumeService.UpdateVolume:input_type -> vws.storage.v1.UpdateVolumeRequest
+	10, // 28: vws.storage.v1.VolumeService.DeleteVolume:input_type -> vws.storage.v1.DeleteVolumeRequest
+	11, // 29: vws.storage.v1.VolumeService.ReportVolumeStatus:input_type -> vws.storage.v1.ReportVolumeStatusRequest
+	2,  // 30: vws.storage.v1.VolumeService.GetVolume:output_type -> vws.storage.v1.Volume
+	7,  // 31: vws.storage.v1.VolumeService.ListVolumes:output_type -> vws.storage.v1.ListVolumesResponse
+	16, // 32: vws.storage.v1.VolumeService.ListVolumeModifications:output_type -> vws.storage.v1.ListVolumeModificationsResponse
+	23, // 33: vws.storage.v1.VolumeService.CreateVolume:output_type -> google.longrunning.Operation
+	23, // 34: vws.storage.v1.VolumeService.UpdateVolume:output_type -> google.longrunning.Operation
+	23, // 35: vws.storage.v1.VolumeService.DeleteVolume:output_type -> google.longrunning.Operation
+	12, // 36: vws.storage.v1.VolumeService.ReportVolumeStatus:output_type -> vws.storage.v1.ReportVolumeStatusResponse
+	30, // [30:37] is the sub-list for method output_type
+	23, // [23:30] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_vws_storage_v1_volume_proto_init() }
@@ -1122,8 +1522,8 @@ func file_vws_storage_v1_volume_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_storage_v1_volume_proto_rawDesc), len(file_vws_storage_v1_volume_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   13,
+			NumEnums:      2,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -20,12 +20,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VolumeService_GetVolume_FullMethodName          = "/vws.storage.v1.VolumeService/GetVolume"
-	VolumeService_ListVolumes_FullMethodName        = "/vws.storage.v1.VolumeService/ListVolumes"
-	VolumeService_CreateVolume_FullMethodName       = "/vws.storage.v1.VolumeService/CreateVolume"
-	VolumeService_UpdateVolume_FullMethodName       = "/vws.storage.v1.VolumeService/UpdateVolume"
-	VolumeService_DeleteVolume_FullMethodName       = "/vws.storage.v1.VolumeService/DeleteVolume"
-	VolumeService_ReportVolumeStatus_FullMethodName = "/vws.storage.v1.VolumeService/ReportVolumeStatus"
+	VolumeService_GetVolume_FullMethodName               = "/vws.storage.v1.VolumeService/GetVolume"
+	VolumeService_ListVolumes_FullMethodName             = "/vws.storage.v1.VolumeService/ListVolumes"
+	VolumeService_ListVolumeModifications_FullMethodName = "/vws.storage.v1.VolumeService/ListVolumeModifications"
+	VolumeService_CreateVolume_FullMethodName            = "/vws.storage.v1.VolumeService/CreateVolume"
+	VolumeService_UpdateVolume_FullMethodName            = "/vws.storage.v1.VolumeService/UpdateVolume"
+	VolumeService_DeleteVolume_FullMethodName            = "/vws.storage.v1.VolumeService/DeleteVolume"
+	VolumeService_ReportVolumeStatus_FullMethodName      = "/vws.storage.v1.VolumeService/ReportVolumeStatus"
 )
 
 // VolumeServiceClient is the client API for VolumeService service.
@@ -42,6 +43,10 @@ type VolumeServiceClient interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	GetVolume(ctx context.Context, in *GetVolumeRequest, opts ...grpc.CallOption) (*Volume, error)
 	ListVolumes(ctx context.Context, in *ListVolumesRequest, opts ...grpc.CallOption) (*ListVolumesResponse, error)
+	// Lists modifications of one volume, as in EC2 DescribeVolumesModifications.
+	// Only size, type, IOPS, and throughput changes are included, not labels-only
+	// or no-op updates. Original and target values are captured at admission.
+	ListVolumeModifications(ctx context.Context, in *ListVolumeModificationsRequest, opts ...grpc.CallOption) (*ListVolumeModificationsResponse, error)
 	// AIP-151: every mutation returns google.longrunning.Operation.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
@@ -78,6 +83,16 @@ func (c *volumeServiceClient) ListVolumes(ctx context.Context, in *ListVolumesRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListVolumesResponse)
 	err := c.cc.Invoke(ctx, VolumeService_ListVolumes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *volumeServiceClient) ListVolumeModifications(ctx context.Context, in *ListVolumeModificationsRequest, opts ...grpc.CallOption) (*ListVolumeModificationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListVolumeModificationsResponse)
+	err := c.cc.Invoke(ctx, VolumeService_ListVolumeModifications_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +153,10 @@ type VolumeServiceServer interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	GetVolume(context.Context, *GetVolumeRequest) (*Volume, error)
 	ListVolumes(context.Context, *ListVolumesRequest) (*ListVolumesResponse, error)
+	// Lists modifications of one volume, as in EC2 DescribeVolumesModifications.
+	// Only size, type, IOPS, and throughput changes are included, not labels-only
+	// or no-op updates. Original and target values are captured at admission.
+	ListVolumeModifications(context.Context, *ListVolumeModificationsRequest) (*ListVolumeModificationsResponse, error)
 	// AIP-151: every mutation returns google.longrunning.Operation.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
@@ -165,6 +184,9 @@ func (UnimplementedVolumeServiceServer) GetVolume(context.Context, *GetVolumeReq
 }
 func (UnimplementedVolumeServiceServer) ListVolumes(context.Context, *ListVolumesRequest) (*ListVolumesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListVolumes not implemented")
+}
+func (UnimplementedVolumeServiceServer) ListVolumeModifications(context.Context, *ListVolumeModificationsRequest) (*ListVolumeModificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListVolumeModifications not implemented")
 }
 func (UnimplementedVolumeServiceServer) CreateVolume(context.Context, *CreateVolumeRequest) (*longrunningpb.Operation, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateVolume not implemented")
@@ -231,6 +253,24 @@ func _VolumeService_ListVolumes_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(VolumeServiceServer).ListVolumes(ctx, req.(*ListVolumesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VolumeService_ListVolumeModifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVolumeModificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServiceServer).ListVolumeModifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VolumeService_ListVolumeModifications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServiceServer).ListVolumeModifications(ctx, req.(*ListVolumeModificationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -321,6 +361,10 @@ var VolumeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListVolumes",
 			Handler:    _VolumeService_ListVolumes_Handler,
+		},
+		{
+			MethodName: "ListVolumeModifications",
+			Handler:    _VolumeService_ListVolumeModifications_Handler,
 		},
 		{
 			MethodName: "CreateVolume",
