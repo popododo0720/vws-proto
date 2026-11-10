@@ -81,11 +81,20 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 
 ## MFA device tags (#77, #78, #79)
 
-- `MfaDeviceService.TagMFADevice`, `UntagMFADevice` and `ListMFADeviceTags` carry AWS virtual MFA device tags. The requests name the device by its resource name; console-api resolves the AWS `SerialNumber` (the device ARN) to that name, and a device that does not exist is `NoSuchEntity`.
+- `MfaDeviceService.TagMFADevice`, `UntagMFADevice` and `ListMFADeviceTags` carry AWS virtual MFA device tags. The requests name the device by its resource name; console-api resolves the AWS `SerialNumber` (the device ARN) to that name, and a device that does not exist is `NoSuchEntity`. `CreateVirtualMfaDevice` also takes `tags` and writes them in the same transaction as the device (#129).
 - The tag rules are the same as for a policy: a tag is a `tags` map on the stored device, not an envelope label; 50 tags per device, key 1-128 and value 0-256 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, no key or value beginning with `aws:`; key case significant, so a differently cased key is a second tag.
 - Invalid input is `INVALID_ARGUMENT / INVALID_SPEC`; the 51st tag is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED`. A later `TagMFADevice` overwrites the value of a key it names. `UntagMFADevice` ignores a key that is not attached.
 - A tag change does not change any timestamp of the device: AWS has no update time for a virtual MFA device, so `create_time`, `update_time` and `status.enable_time` stay as they were.
 - `TagMFADevice` and `UntagMFADevice` are operations (AIP-151) and idempotent by `request_id`. `ListMFADeviceTags` sorts by key and pages.
+
+## Create virtual MFA device (#129)
+
+- `MfaDeviceService.CreateVirtualMfaDevice` is AWS `CreateVirtualMFADevice`. It creates a virtual TOTP device and returns `base32_string_seed` and `otpauth_uri` only on this call. It is not an operation, because the response carries a secret.
+- `tags` is AWS `Tags` (at most 50; empty means none). Tags are validated like `TagMFADevice`: key 1-128 and value 0-256 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, not beginning with `aws:`, case sensitive. A key that repeats within one request keeps the last value. They are written in the same store transaction as the device. If one tag is invalid, or the request has more than 50 tags, the entire request fails and the device is not created, as AWS documents.
+- `request_id` is an optional UUID4, remembered for 24 hours, with the same replay rule as the other IAM mutations. A repeat of the same `request_id` with the same request returns the first response, including the same `base32_string_seed` and `otpauth_uri`, and writes nothing, so a retry after a lost response does not lose the seed. The same `request_id` with a different request is `ABORTED / IDEMPOTENCY_CONFLICT`. Omitting `request_id` keeps the non-replayed behavior: a retry after a lost response is `ALREADY_EXISTS` (`EntityAlreadyExists`) and the seed is not returned again.
+- Errors: a parent or `mfa_device_id` length or pattern fault, or an invalid tag, is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError` or, for a tag, the same invalid-tag error as `TagMFADevice`). More than 50 tags is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED`. A name already taken in the project, ignoring case, is `ALREADY_EXISTS / ALREADY_EXISTS` (`EntityAlreadyExists`), except on a `request_id` replay as above.
+- The seed and URI are `debug_redact` and never logged, including on a replay.
+- Authorization (`iam:CreateVirtualMFADevice`) is console-api's.
 
 ## MFA device resync (#113)
 
