@@ -1,0 +1,187 @@
+syntax = "proto3";
+
+package vws.iam.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "vws/common/v1/resource.proto";
+
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
+option java_multiple_files = true;
+option java_outer_classname = "ConsoleSessionProto";
+option java_package = "dev.vws.iam.v1";
+
+// ConsoleSessionService keeps console sign-in sessions in the IAM store, so
+// every console-api instance sees the same sessions and a restart does not
+// sign anyone out.
+// No session token or password appears in a message. console-api creates the
+// token, keeps it in the cookie and sends only its SHA-256 digest; vws-iam
+// stores the digest and compares digests (ValidateSession and Logout take the
+// token as before).
+// Projects are not bound here: the project of a session is the parent.
+// No node reconciles IAM, so every operation of this service is returned done.
+service ConsoleSessionService {
+  // AIP-131: the Get response is the resource.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc GetConsoleSession(GetConsoleSessionRequest) returns (ConsoleSession) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/consoleSessions/*}"};
+  }
+
+  // ListConsoleSessions lists the sessions of one user, expired and revoked
+  // ones included until the server removes them.
+  rpc ListConsoleSessions(ListConsoleSessionsRequest) returns (ListConsoleSessionsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}/consoleSessions"};
+  }
+
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc CreateConsoleSession(CreateConsoleSessionRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}/consoleSessions"
+      body: "console_session"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.ConsoleSession"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // RevokeConsoleSession ends a session at once. Revoking a revoked or
+  // expired session succeeds and keeps the first revoke_time.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc RevokeConsoleSession(RevokeConsoleSessionRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/consoleSessions/*}:revoke"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.ConsoleSession"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+}
+
+// ConsoleSession is one console sign-in. The final path segment is chosen by
+// console-api (ResourceId) and is not the token.
+// Fields 1-10 are the shared resource envelope.
+message ConsoleSession {
+  option (google.api.resource) = {
+    type: "vws.iam/ConsoleSession"
+    pattern: "projects/{project}/consoleSessions/{console_session}"
+    plural: "consoleSessions"
+    singular: "consoleSession"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = UUID4
+  ];
+  int64 generation = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string etag = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  map<string, string> labels = 5;
+  ConsoleSessionSpec spec = 6 [(google.api.field_behavior) = REQUIRED];
+  ConsoleSessionStatus status = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp delete_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ConsoleSessionSpec {
+  // The signed-in user, projects/{project}/users/{user}, or
+  // projects/{project}/users/root for the account root user.
+  string user = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
+  // SHA-256 of the session token, 32 bytes. Not returned by Get, List or
+  // the operation response.
+  bytes token_digest = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY,
+    (google.api.field_behavior) = IMMUTABLE,
+    debug_redact = true
+  ];
+  // The session ends at this time whatever its activity. Must be after the
+  // request time.
+  google.protobuf.Timestamp expire_time = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+  // The session ends after this long without ValidateSession. Zero means no
+  // idle timeout.
+  google.protobuf.Duration idle_timeout = 4 [(google.api.field_behavior) = IMMUTABLE];
+  // Client address for aws:SourceIp and audit.
+  string source_ip = 5 [(google.api.field_behavior) = IMMUTABLE];
+  // The user signed in with an MFA code (aws:MultiFactorAuthPresent).
+  bool mfa_authenticated = 6 [(google.api.field_behavior) = IMMUTABLE];
+}
+
+message ConsoleSessionStatus {
+  vws.common.v1.ObservedState observed = 1;
+  // Last successful ValidateSession. Unset until the first one.
+  google.protobuf.Timestamp last_active_time = 2;
+  // Set by RevokeConsoleSession or Logout. Unset while the session lives.
+  google.protobuf.Timestamp revoke_time = 3;
+}
+
+message GetConsoleSessionRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/ConsoleSession"
+  ];
+}
+
+message ListConsoleSessionsRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/ConsoleSession"
+  ];
+  // projects/{project}/users/{user}. The sessions of this user are listed.
+  string user = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
+  // Server default is 50. Values above 1000 are coerced to 1000.
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListConsoleSessionsResponse {
+  repeated ConsoleSession console_sessions = 1;
+  string next_page_token = 2;
+}
+
+message CreateConsoleSessionRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/ConsoleSession"
+  ];
+  // Final path segment, ResourceId. An existing id with the same spec is the
+  // same session; with another spec it is ALREADY_EXISTS.
+  string console_session_id = 2 [(google.api.field_behavior) = REQUIRED];
+  ConsoleSession console_session = 3 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 4 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message RevokeConsoleSessionRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/ConsoleSession"
+  ];
+  string request_id = 2 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
