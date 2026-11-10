@@ -1,5 +1,8 @@
 syntax = "proto3";
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
 package vws.network.v1;
 
 import "google/api/annotations.proto";
@@ -42,6 +45,8 @@ option java_package = "dev.vws.network.v1";
 // INVALID_ARGUMENT / INVALID_SPEC. The address being updated is excluded.
 // Rows with delete_time set still count until they are removed.
 service AddressService {
+  option deprecated = true;
+
   // AIP-131: the Get response is the resource.
   // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
   rpc GetAddress(GetAddressRequest) returns (Address) {

@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/storage/v1/bucket.proto
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package storagev1
 
 import (
@@ -876,7 +880,7 @@ const file_vws_storage_v1_bucket_proto_rawDesc = "" +
 	"\x0fBucketNamespace\x12 \n" +
 	"\x1cBUCKET_NAMESPACE_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17BUCKET_NAMESPACE_GLOBAL\x10\x01\x12%\n" +
-	"!BUCKET_NAMESPACE_ACCOUNT_REGIONAL\x10\x022\xe9\a\n" +
+	"!BUCKET_NAMESPACE_ACCOUNT_REGIONAL\x10\x022\xee\a\n" +
 	"\rBucketService\x12n\n" +
 	"\tGetBucket\x12 .vws.storage.v1.GetBucketRequest\x1a\x16.vws.storage.v1.Bucket\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{name=projects/*/buckets/*}\x12\x7f\n" +
 	"\vListBuckets\x12\".vws.storage.v1.ListBucketsRequest\x1a#.vws.storage.v1.ListBucketsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/{parent=projects/*}/buckets\x12\xbe\x01\n" +
@@ -886,7 +890,7 @@ const file_vws_storage_v1_bucket_proto_rawDesc = "" +
 	"\x15vws.storage.v1.Bucket\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x020:\x06bucket2&/v1/{bucket.name=projects/*/buckets/*}\x12\xb6\x01\n" +
 	"\fDeleteBucket\x12#.vws.storage.v1.DeleteBucketRequest\x1a\x1d.google.longrunning.Operation\"b\xcaA8\n" +
 	"\x15vws.storage.v1.Bucket\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02!*\x1f/v1/{name=projects/*/buckets/*}\x12\xa4\x01\n" +
-	"\x12ReportBucketStatus\x12).vws.storage.v1.ReportBucketStatusRequest\x1a*.vws.storage.v1.ReportBucketStatusResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/buckets/*}:reportStatusBf\n" +
+	"\x12ReportBucketStatus\x12).vws.storage.v1.ReportBucketStatusRequest\x1a*.vws.storage.v1.ReportBucketStatusResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/buckets/*}:reportStatus\x1a\x03\x88\x02\x01Bf\n" +
 	"\x12dev.vws.storage.v1B\vBucketProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/storage/v1;storagev1b\x06proto3"
 
 var (

@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/storage/v1/object.proto
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package storagev1
 
 import (
@@ -1126,7 +1130,7 @@ const file_vws_storage_v1_object_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x05 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rvalidate_only\x18\x06 \x01(\bB\x03\xe0A\x01R\fvalidateOnlyB\v\n" +
-	"\t_contents2\xf4\n" +
+	"\t_contents2\xf9\n" +
 	"\n" +
 	"\rObjectService\x12x\n" +
 	"\tGetObject\x12 .vws.storage.v1.GetObjectRequest\x1a\x16.vws.storage.v1.Object\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{name=projects/*/buckets/*/objects/*}\x12\x89\x01\n" +
@@ -1141,7 +1145,7 @@ const file_vws_storage_v1_object_proto_rawDesc = "" +
 	"ReadObject\x12!.vws.storage.v1.ReadObjectRequest\x1a\".vws.storage.v1.ReadObjectResponse\"6\x82\xd3\xe4\x93\x020\x12./v1/{name=projects/*/buckets/*/objects/*}:read\x12\xc7\x01\n" +
 	"\vWriteObject\x12\".vws.storage.v1.WriteObjectRequest\x1a\x1d.google.longrunning.Operation\"u\xcaA8\n" +
 	"\x15vws.storage.v1.Object\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x024:\x01*\"//v1/{name=projects/*/buckets/*/objects/*}:write\x12\xae\x01\n" +
-	"\x12ReportObjectStatus\x12).vws.storage.v1.ReportObjectStatusRequest\x1a*.vws.storage.v1.ReportObjectStatusResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{name=projects/*/buckets/*/objects/*}:reportStatusBf\n" +
+	"\x12ReportObjectStatus\x12).vws.storage.v1.ReportObjectStatusRequest\x1a*.vws.storage.v1.ReportObjectStatusResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{name=projects/*/buckets/*/objects/*}:reportStatus\x1a\x03\x88\x02\x01Bf\n" +
 	"\x12dev.vws.storage.v1B\vObjectProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/storage/v1;storagev1b\x06proto3"
 
 var (

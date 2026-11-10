@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/network/v1/vpc.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -811,7 +815,7 @@ const file_vws_network_v1_vpc_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"@\n" +
 	"\x17ReportVpcStatusResponse\x12%\n" +
-	"\x03vpc\x18\x01 \x01(\v2\x13.vws.network.v1.VpcR\x03vpc2\xd1\a\n" +
+	"\x03vpc\x18\x01 \x01(\v2\x13.vws.network.v1.VpcR\x03vpc2\xd6\a\n" +
 	"\n" +
 	"VpcService\x12l\n" +
 	"\x06GetVpc\x12\x1d.vws.network.v1.GetVpcRequest\x1a\x13.vws.network.v1.Vpc\".\x82\xd3\xe4\x93\x02(\x12&/v1/{name=projects/*/regions/*/vpcs/*}\x12}\n" +
@@ -822,7 +826,7 @@ const file_vws_network_v1_vpc_proto_rawDesc = "" +
 	"\x12vws.network.v1.Vpc\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x021:\x03vpc2*/v1/{vpc.name=projects/*/regions/*/vpcs/*}\x12\xb4\x01\n" +
 	"\tDeleteVpc\x12 .vws.network.v1.DeleteVpcRequest\x1a\x1d.google.longrunning.Operation\"f\xcaA5\n" +
 	"\x12vws.network.v1.Vpc\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02(*&/v1/{name=projects/*/regions/*/vpcs/*}\x12\xa2\x01\n" +
-	"\x0fReportVpcStatus\x12&.vws.network.v1.ReportVpcStatusRequest\x1a'.vws.network.v1.ReportVpcStatusResponse\">\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{name=projects/*/regions/*/vpcs/*}:reportStatusBc\n" +
+	"\x0fReportVpcStatus\x12&.vws.network.v1.ReportVpcStatusRequest\x1a'.vws.network.v1.ReportVpcStatusResponse\">\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{name=projects/*/regions/*/vpcs/*}:reportStatus\x1a\x03\x88\x02\x01Bc\n" +
 	"\x12dev.vws.network.v1B\bVpcProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/network/v1;networkv1b\x06proto3"
 
 var (

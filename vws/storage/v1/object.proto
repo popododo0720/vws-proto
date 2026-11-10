@@ -1,5 +1,8 @@
 syntax = "proto3";
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
 package vws.storage.v1;
 
 import "google/api/annotations.proto";
@@ -27,6 +30,8 @@ option java_package = "dev.vws.storage.v1";
 // Clients of ReadObject accept responses of at least 8MiB.
 // The limit is on decoded bytes. JSON base64 is larger and is not the limit.
 service ObjectService {
+  option deprecated = true;
+
   // AIP-131: the Get response is the resource. The payload is not included.
   // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
   rpc GetObject(GetObjectRequest) returns (Object) {

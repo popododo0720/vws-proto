@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/network/v1/address.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -57,6 +61,8 @@ const (
 // this region whose association names the same instance and device_name is
 // INVALID_ARGUMENT / INVALID_SPEC. The address being updated is excluded.
 // Rows with delete_time set still count until they are removed.
+//
+// Deprecated: Do not use.
 type AddressServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -80,6 +86,7 @@ type addressServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewAddressServiceClient(cc grpc.ClientConnInterface) AddressServiceClient {
 	return &addressServiceClient{cc}
 }
@@ -173,6 +180,8 @@ func (c *addressServiceClient) ReportAddressStatus(ctx context.Context, in *Repo
 // this region whose association names the same instance and device_name is
 // INVALID_ARGUMENT / INVALID_SPEC. The address being updated is excluded.
 // Rows with delete_time set still count until they are removed.
+//
+// Deprecated: Do not use.
 type AddressServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -228,6 +237,7 @@ type UnsafeAddressServiceServer interface {
 	mustEmbedUnimplementedAddressServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterAddressServiceServer(s grpc.ServiceRegistrar, srv AddressServiceServer) {
 	// If the following call panics, it indicates UnimplementedAddressServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

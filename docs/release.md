@@ -38,6 +38,12 @@ The annotated tag message is the release note. It holds:
 
 `git log --oneline <previous>..vX.Y.Z` lists the PRs and `buf breaking --against .git#tag=<previous>` gives the breaking result.
 
+## Next minor release
+
+Deprecate the `vws.compute.v1`, `vws.network.v1`, and `vws.storage.v1` services as
+the Proxmox hybrid design replaces them. Consumers should migrate to the Proxmox
+backend; `vws.iam.v1` remains supported.
+
 ## Consumers
 
 A consumer requires the tag as a Go module (`go get github.com/popododo0720/vws-proto@vX.Y.Z`, setup in `README.md`). `go.mod` and `go.sum` record the version and its checksum, so this repo has no `VERSION` file.

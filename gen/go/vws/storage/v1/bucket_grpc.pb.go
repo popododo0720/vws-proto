@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/storage/v1/bucket.proto
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package storagev1
 
 import (
@@ -34,6 +38,8 @@ const (
 //
 // BucketService stores desired state for an object bucket.
 // Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
+//
+// Deprecated: Do not use.
 type BucketServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -57,6 +63,7 @@ type bucketServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewBucketServiceClient(cc grpc.ClientConnInterface) BucketServiceClient {
 	return &bucketServiceClient{cc}
 }
@@ -127,6 +134,8 @@ func (c *bucketServiceClient) ReportBucketStatus(ctx context.Context, in *Report
 //
 // BucketService stores desired state for an object bucket.
 // Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
+//
+// Deprecated: Do not use.
 type BucketServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -182,6 +191,7 @@ type UnsafeBucketServiceServer interface {
 	mustEmbedUnimplementedBucketServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterBucketServiceServer(s grpc.ServiceRegistrar, srv BucketServiceServer) {
 	// If the following call panics, it indicates UnimplementedBucketServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

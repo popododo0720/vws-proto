@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/compute/v1/key_pair.proto
 
+// Package vws.compute.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package computev1
 
 import (
@@ -40,6 +44,8 @@ const (
 // Create, Get, List, and the finished Create operation all return that field.
 // There is no Describe RPC. GetKeyPair is the read. UpdateKeyPair with
 // allow_missing creates through the CreateKeyPair rules, including the fingerprint.
+//
+// Deprecated: Do not use.
 type KeyPairServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -64,6 +70,7 @@ type keyPairServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewKeyPairServiceClient(cc grpc.ClientConnInterface) KeyPairServiceClient {
 	return &keyPairServiceClient{cc}
 }
@@ -140,6 +147,8 @@ func (c *keyPairServiceClient) ReportKeyPairStatus(ctx context.Context, in *Repo
 // Create, Get, List, and the finished Create operation all return that field.
 // There is no Describe RPC. GetKeyPair is the read. UpdateKeyPair with
 // allow_missing creates through the CreateKeyPair rules, including the fingerprint.
+//
+// Deprecated: Do not use.
 type KeyPairServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -196,6 +205,7 @@ type UnsafeKeyPairServiceServer interface {
 	mustEmbedUnimplementedKeyPairServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterKeyPairServiceServer(s grpc.ServiceRegistrar, srv KeyPairServiceServer) {
 	// If the following call panics, it indicates UnimplementedKeyPairServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

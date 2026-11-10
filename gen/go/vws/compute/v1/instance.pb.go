@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/compute/v1/instance.proto
 
+// Package vws.compute.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package computev1
 
 import (
@@ -1475,7 +1479,7 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\rInstancePower\x12\x1e\n" +
 	"\x1aINSTANCE_POWER_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16INSTANCE_POWER_RUNNING\x10\x01\x12\x1a\n" +
-	"\x16INSTANCE_POWER_STOPPED\x10\x022\xa6\n" +
+	"\x16INSTANCE_POWER_STOPPED\x10\x022\xab\n" +
 	"\n" +
 	"\x0fInstanceService\x12~\n" +
 	"\vGetInstance\x12\".vws.compute.v1.GetInstanceRequest\x1a\x18.vws.compute.v1.Instance\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{name=projects/*/zones/*/instances/*}\x12\x8f\x01\n" +
@@ -1488,7 +1492,7 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\x17vws.compute.v1.Instance\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02+*)/v1/{name=projects/*/zones/*/instances/*}\x12\xd0\x01\n" +
 	"\x0eRebootInstance\x12%.vws.compute.v1.RebootInstanceRequest\x1a\x1d.google.longrunning.Operation\"x\xcaA:\n" +
 	"\x17vws.compute.v1.Instance\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x025:\x01*\"0/v1/{name=projects/*/zones/*/instances/*}:reboot\x12\xb4\x01\n" +
-	"\x14ReportInstanceStatus\x12+.vws.compute.v1.ReportInstanceStatusRequest\x1a,.vws.compute.v1.ReportInstanceStatusResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{name=projects/*/zones/*/instances/*}:reportStatusBh\n" +
+	"\x14ReportInstanceStatus\x12+.vws.compute.v1.ReportInstanceStatusRequest\x1a,.vws.compute.v1.ReportInstanceStatusResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/v1/{name=projects/*/zones/*/instances/*}:reportStatus\x1a\x03\x88\x02\x01Bh\n" +
 	"\x12dev.vws.compute.v1B\rInstanceProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/compute/v1;computev1b\x06proto3"
 
 var (

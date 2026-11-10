@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/storage/v1/snapshot.proto
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package storagev1
 
 import (
@@ -1070,7 +1074,7 @@ const file_vws_storage_v1_snapshot_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\n" +
 	"\x14vws.storage/SnapshotR\x04name\"\x85\x01\n" +
 	"!GetCreateVolumePermissionResponse\x12`\n" +
-	"\x18create_volume_permission\x18\x01 \x01(\v2&.vws.storage.v1.CreateVolumePermissionR\x16createVolumePermission2\xc8\f\n" +
+	"\x18create_volume_permission\x18\x01 \x01(\v2&.vws.storage.v1.CreateVolumePermissionR\x16createVolumePermission2\xcd\f\n" +
 	"\x0fSnapshotService\x12\x80\x01\n" +
 	"\vGetSnapshot\x12\".vws.storage.v1.GetSnapshotRequest\x1a\x18.vws.storage.v1.Snapshot\"3\x82\xd3\xe4\x93\x02-\x12+/v1/{name=projects/*/regions/*/snapshots/*}\x12\x91\x01\n" +
 	"\rListSnapshots\x12$.vws.storage.v1.ListSnapshotsRequest\x1a%.vws.storage.v1.ListSnapshotsResponse\"3\x82\xd3\xe4\x93\x02-\x12+/v1/{parent=projects/*/regions/*}/snapshots\x12\xd2\x01\n" +
@@ -1083,7 +1087,7 @@ const file_vws_storage_v1_snapshot_proto_rawDesc = "" +
 	"\x1cModifyCreateVolumePermission\x123.vws.storage.v1.ModifyCreateVolumePermissionRequest\x1a\x1d.google.longrunning.Operation\"\x9e\x01\xcaAH\n" +
 	"%vws.storage.v1.CreateVolumePermission\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02M:\x01*\"H/v1/{name=projects/*/regions/*/snapshots/*}:modifyCreateVolumePermission\x12\xcf\x01\n" +
 	"\x19GetCreateVolumePermission\x120.vws.storage.v1.GetCreateVolumePermissionRequest\x1a1.vws.storage.v1.GetCreateVolumePermissionResponse\"M\x82\xd3\xe4\x93\x02G\x12E/v1/{name=projects/*/regions/*/snapshots/*}:getCreateVolumePermission\x12\xb6\x01\n" +
-	"\x14ReportSnapshotStatus\x12+.vws.storage.v1.ReportSnapshotStatusRequest\x1a,.vws.storage.v1.ReportSnapshotStatusResponse\"C\x82\xd3\xe4\x93\x02=:\x01*\"8/v1/{name=projects/*/regions/*/snapshots/*}:reportStatusBh\n" +
+	"\x14ReportSnapshotStatus\x12+.vws.storage.v1.ReportSnapshotStatusRequest\x1a,.vws.storage.v1.ReportSnapshotStatusResponse\"C\x82\xd3\xe4\x93\x02=:\x01*\"8/v1/{name=projects/*/regions/*/snapshots/*}:reportStatus\x1a\x03\x88\x02\x01Bh\n" +
 	"\x12dev.vws.storage.v1B\rSnapshotProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/storage/v1;storagev1b\x06proto3"
 
 var (

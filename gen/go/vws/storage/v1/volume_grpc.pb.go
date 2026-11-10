@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/storage/v1/volume.proto
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package storagev1
 
 import (
@@ -37,6 +41,8 @@ const (
 // Attachment is owned by Instance.spec, not by this spec.
 // Delete is rejected with DEPENDENCY_MISSING while an instance spec references
 // this volume, or a not-yet-ready image or snapshot is still copying it.
+//
+// Deprecated: Do not use.
 type VolumeServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -60,6 +66,7 @@ type volumeServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewVolumeServiceClient(cc grpc.ClientConnInterface) VolumeServiceClient {
 	return &volumeServiceClient{cc}
 }
@@ -133,6 +140,8 @@ func (c *volumeServiceClient) ReportVolumeStatus(ctx context.Context, in *Report
 // Attachment is owned by Instance.spec, not by this spec.
 // Delete is rejected with DEPENDENCY_MISSING while an instance spec references
 // this volume, or a not-yet-ready image or snapshot is still copying it.
+//
+// Deprecated: Do not use.
 type VolumeServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -188,6 +197,7 @@ type UnsafeVolumeServiceServer interface {
 	mustEmbedUnimplementedVolumeServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterVolumeServiceServer(s grpc.ServiceRegistrar, srv VolumeServiceServer) {
 	// If the following call panics, it indicates UnimplementedVolumeServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

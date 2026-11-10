@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/network/v1/internet_gateway.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -57,6 +61,8 @@ const (
 // state is not DETACHED. The attach RPCs, when added, store the desired VPC in
 // spec, and delete is then also rejected while spec names a VPC. That check and
 // setting delete_time are one store write.
+//
+// Deprecated: Do not use.
 type InternetGatewayServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -77,6 +83,7 @@ type internetGatewayServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewInternetGatewayServiceClient(cc grpc.ClientConnInterface) InternetGatewayServiceClient {
 	return &internetGatewayServiceClient{cc}
 }
@@ -161,6 +168,8 @@ func (c *internetGatewayServiceClient) ReportInternetGatewayStatus(ctx context.C
 // state is not DETACHED. The attach RPCs, when added, store the desired VPC in
 // spec, and delete is then also rejected while spec names a VPC. That check and
 // setting delete_time are one store write.
+//
+// Deprecated: Do not use.
 type InternetGatewayServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -211,6 +220,7 @@ type UnsafeInternetGatewayServiceServer interface {
 	mustEmbedUnimplementedInternetGatewayServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterInternetGatewayServiceServer(s grpc.ServiceRegistrar, srv InternetGatewayServiceServer) {
 	// If the following call panics, it indicates UnimplementedInternetGatewayServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

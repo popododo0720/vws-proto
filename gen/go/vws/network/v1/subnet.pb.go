@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/network/v1/subnet.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -822,7 +826,7 @@ const file_vws_network_v1_subnet_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"L\n" +
 	"\x1aReportSubnetStatusResponse\x12.\n" +
-	"\x06subnet\x18\x01 \x01(\v2\x16.vws.network.v1.SubnetR\x06subnet2\xd1\b\n" +
+	"\x06subnet\x18\x01 \x01(\v2\x16.vws.network.v1.SubnetR\x06subnet2\xd6\b\n" +
 	"\rSubnetService\x12\x7f\n" +
 	"\tGetSubnet\x12 .vws.network.v1.GetSubnetRequest\x1a\x16.vws.network.v1.Subnet\"8\x82\xd3\xe4\x93\x022\x120/v1/{name=projects/*/regions/*/vpcs/*/subnets/*}\x12\x90\x01\n" +
 	"\vListSubnets\x12\".vws.network.v1.ListSubnetsRequest\x1a#.vws.network.v1.ListSubnetsResponse\"8\x82\xd3\xe4\x93\x022\x120/v1/{parent=projects/*/regions/*/vpcs/*}/subnets\x12\xcf\x01\n" +
@@ -832,7 +836,7 @@ const file_vws_network_v1_subnet_proto_rawDesc = "" +
 	"\x15vws.network.v1.Subnet\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02A:\x06subnet27/v1/{subnet.name=projects/*/regions/*/vpcs/*/subnets/*}\x12\xc7\x01\n" +
 	"\fDeleteSubnet\x12#.vws.network.v1.DeleteSubnetRequest\x1a\x1d.google.longrunning.Operation\"s\xcaA8\n" +
 	"\x15vws.network.v1.Subnet\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x022*0/v1/{name=projects/*/regions/*/vpcs/*/subnets/*}\x12\xb5\x01\n" +
-	"\x12ReportSubnetStatus\x12).vws.network.v1.ReportSubnetStatusRequest\x1a*.vws.network.v1.ReportSubnetStatusResponse\"H\x82\xd3\xe4\x93\x02B:\x01*\"=/v1/{name=projects/*/regions/*/vpcs/*/subnets/*}:reportStatusBf\n" +
+	"\x12ReportSubnetStatus\x12).vws.network.v1.ReportSubnetStatusRequest\x1a*.vws.network.v1.ReportSubnetStatusResponse\"H\x82\xd3\xe4\x93\x02B:\x01*\"=/v1/{name=projects/*/regions/*/vpcs/*/subnets/*}:reportStatus\x1a\x03\x88\x02\x01Bf\n" +
 	"\x12dev.vws.network.v1B\vSubnetProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/network/v1;networkv1b\x06proto3"
 
 var (

@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/compute/v1/image.proto
 
+// Package vws.compute.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package computev1
 
 import (
@@ -37,6 +41,8 @@ const (
 // A ready image is a copy. Later writes to the source do not change it.
 // A copy interrupted by a restart is retried until the image is complete.
 // Delete is rejected with DEPENDENCY_MISSING while a Volume spec sources this image.
+//
+// Deprecated: Do not use.
 type ImageServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -60,6 +66,7 @@ type imageServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewImageServiceClient(cc grpc.ClientConnInterface) ImageServiceClient {
 	return &imageServiceClient{cc}
 }
@@ -133,6 +140,8 @@ func (c *imageServiceClient) ReportImageStatus(ctx context.Context, in *ReportIm
 // A ready image is a copy. Later writes to the source do not change it.
 // A copy interrupted by a restart is retried until the image is complete.
 // Delete is rejected with DEPENDENCY_MISSING while a Volume spec sources this image.
+//
+// Deprecated: Do not use.
 type ImageServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -188,6 +197,7 @@ type UnsafeImageServiceServer interface {
 	mustEmbedUnimplementedImageServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterImageServiceServer(s grpc.ServiceRegistrar, srv ImageServiceServer) {
 	// If the following call panics, it indicates UnimplementedImageServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

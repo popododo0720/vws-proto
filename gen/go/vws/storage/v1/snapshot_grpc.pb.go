@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/storage/v1/snapshot.proto
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package storagev1
 
 import (
@@ -39,6 +43,8 @@ const (
 // A ready snapshot does not change when the source volume changes later.
 // A copy interrupted by a restart is retried until the snapshot is complete.
 // Delete is rejected with DEPENDENCY_MISSING while a Volume spec sources this snapshot.
+//
+// Deprecated: Do not use.
 type SnapshotServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -75,6 +81,7 @@ type snapshotServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewSnapshotServiceClient(cc grpc.ClientConnInterface) SnapshotServiceClient {
 	return &snapshotServiceClient{cc}
 }
@@ -168,6 +175,8 @@ func (c *snapshotServiceClient) ReportSnapshotStatus(ctx context.Context, in *Re
 // A ready snapshot does not change when the source volume changes later.
 // A copy interrupted by a restart is retried until the snapshot is complete.
 // Delete is rejected with DEPENDENCY_MISSING while a Volume spec sources this snapshot.
+//
+// Deprecated: Do not use.
 type SnapshotServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -242,6 +251,7 @@ type UnsafeSnapshotServiceServer interface {
 	mustEmbedUnimplementedSnapshotServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterSnapshotServiceServer(s grpc.ServiceRegistrar, srv SnapshotServiceServer) {
 	// If the following call panics, it indicates UnimplementedSnapshotServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

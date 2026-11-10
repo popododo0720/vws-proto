@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/compute/v1/operation_lookup.proto
 
+// Package vws.compute.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package computev1
 
 import (
@@ -43,6 +47,8 @@ const (
 //   - An unset or malformed request_id is INVALID_ARGUMENT / INVALID_SPEC.
 //     A malformed parent is INVALID_ARGUMENT / INVALID_SPEC.
 //   - The lookup is read-only. It never creates, resumes, or cancels an operation.
+//
+// Deprecated: Do not use.
 type OperationLookupServiceClient interface {
 	LookupOperation(ctx context.Context, in *LookupOperationRequest, opts ...grpc.CallOption) (*LookupOperationResponse, error)
 }
@@ -51,6 +57,7 @@ type operationLookupServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewOperationLookupServiceClient(cc grpc.ClientConnInterface) OperationLookupServiceClient {
 	return &operationLookupServiceClient{cc}
 }
@@ -86,6 +93,8 @@ func (c *operationLookupServiceClient) LookupOperation(ctx context.Context, in *
 //   - An unset or malformed request_id is INVALID_ARGUMENT / INVALID_SPEC.
 //     A malformed parent is INVALID_ARGUMENT / INVALID_SPEC.
 //   - The lookup is read-only. It never creates, resumes, or cancels an operation.
+//
+// Deprecated: Do not use.
 type OperationLookupServiceServer interface {
 	LookupOperation(context.Context, *LookupOperationRequest) (*LookupOperationResponse, error)
 	mustEmbedUnimplementedOperationLookupServiceServer()
@@ -112,6 +121,7 @@ type UnsafeOperationLookupServiceServer interface {
 	mustEmbedUnimplementedOperationLookupServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterOperationLookupServiceServer(s grpc.ServiceRegistrar, srv OperationLookupServiceServer) {
 	// If the following call panics, it indicates UnimplementedOperationLookupServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

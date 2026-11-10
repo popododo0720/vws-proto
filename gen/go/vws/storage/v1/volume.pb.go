@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/storage/v1/volume.proto
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package storagev1
 
 import (
@@ -1026,7 +1030,7 @@ const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"\x0fVOLUME_TYPE_IO1\x10\x05\x12\x13\n" +
 	"\x0fVOLUME_TYPE_IO2\x10\x06\x12\x13\n" +
 	"\x0fVOLUME_TYPE_ST1\x10\a\x12\x13\n" +
-	"\x0fVOLUME_TYPE_SC1\x10\b2\x9a\b\n" +
+	"\x0fVOLUME_TYPE_SC1\x10\b2\x9f\b\n" +
 	"\rVolumeService\x12v\n" +
 	"\tGetVolume\x12 .vws.storage.v1.GetVolumeRequest\x1a\x16.vws.storage.v1.Volume\"/\x82\xd3\xe4\x93\x02)\x12'/v1/{name=projects/*/zones/*/volumes/*}\x12\x87\x01\n" +
 	"\vListVolumes\x12\".vws.storage.v1.ListVolumesRequest\x1a#.vws.storage.v1.ListVolumesResponse\"/\x82\xd3\xe4\x93\x02)\x12'/v1/{parent=projects/*/zones/*}/volumes\x12\xc6\x01\n" +
@@ -1036,7 +1040,7 @@ const file_vws_storage_v1_volume_proto_rawDesc = "" +
 	"\x15vws.storage.v1.Volume\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x028:\x06volume2./v1/{volume.name=projects/*/zones/*/volumes/*}\x12\xbe\x01\n" +
 	"\fDeleteVolume\x12#.vws.storage.v1.DeleteVolumeRequest\x1a\x1d.google.longrunning.Operation\"j\xcaA8\n" +
 	"\x15vws.storage.v1.Volume\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02)*'/v1/{name=projects/*/zones/*/volumes/*}\x12\xac\x01\n" +
-	"\x12ReportVolumeStatus\x12).vws.storage.v1.ReportVolumeStatusRequest\x1a*.vws.storage.v1.ReportVolumeStatusResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{name=projects/*/zones/*/volumes/*}:reportStatusBf\n" +
+	"\x12ReportVolumeStatus\x12).vws.storage.v1.ReportVolumeStatusRequest\x1a*.vws.storage.v1.ReportVolumeStatusResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{name=projects/*/zones/*/volumes/*}:reportStatus\x1a\x03\x88\x02\x01Bf\n" +
 	"\x12dev.vws.storage.v1B\vVolumeProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/storage/v1;storagev1b\x06proto3"
 
 var (

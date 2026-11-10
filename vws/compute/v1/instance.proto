@@ -1,5 +1,8 @@
 syntax = "proto3";
 
+// Package vws.compute.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
 package vws.compute.v1;
 
 import "google/api/annotations.proto";
@@ -27,6 +30,8 @@ option java_package = "dev.vws.compute.v1";
 // An update that changes or removes a network interface device_name named by
 // an Address association returns INVALID_ARGUMENT / INVALID_SPEC and writes nothing.
 service InstanceService {
+  option deprecated = true;
+
   // AIP-131: the Get response is the resource.
   // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
   rpc GetInstance(GetInstanceRequest) returns (Instance) {
@@ -221,7 +226,7 @@ message InstanceStatus {
   vws.common.v1.ObservedState observed = 1;
   InstancePower power = 2;
   repeated ObservedNetworkInterface network_interfaces = 3;
-  // Placement moved to the Kubernetes scheduler. The field is removed.
+  // Placement is handled by the Proxmox scheduler. The field is removed.
   reserved 4;
   reserved "assigned_node";
   // One entry per volume the node has seen in spec.volumes or is still

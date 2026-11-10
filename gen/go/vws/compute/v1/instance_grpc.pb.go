@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/compute/v1/instance.proto
 
+// Package vws.compute.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package computev1
 
 import (
@@ -43,6 +47,8 @@ const (
 // UpdateInstance with allow_missing creates through the CreateInstance rules.
 // An update that changes or removes a network interface device_name named by
 // an Address association returns INVALID_ARGUMENT / INVALID_SPEC and writes nothing.
+//
+// Deprecated: Do not use.
 type InstanceServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -91,6 +97,7 @@ type instanceServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewInstanceServiceClient(cc grpc.ClientConnInterface) InstanceServiceClient {
 	return &instanceServiceClient{cc}
 }
@@ -179,6 +186,8 @@ func (c *instanceServiceClient) ReportInstanceStatus(ctx context.Context, in *Re
 // UpdateInstance with allow_missing creates through the CreateInstance rules.
 // An update that changes or removes a network interface device_name named by
 // an Address association returns INVALID_ARGUMENT / INVALID_SPEC and writes nothing.
+//
+// Deprecated: Do not use.
 type InstanceServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -262,6 +271,7 @@ type UnsafeInstanceServiceServer interface {
 	mustEmbedUnimplementedInstanceServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterInstanceServiceServer(s grpc.ServiceRegistrar, srv InstanceServiceServer) {
 	// If the following call panics, it indicates UnimplementedInstanceServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
