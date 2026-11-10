@@ -129,6 +129,26 @@ service AccountService {
       body: "*"
     };
   }
+
+  // DeleteAccountPasswordPolicy is AWS DeleteAccountPasswordPolicy. It
+  // deletes the project's custom password policy. It is synchronous and
+  // not an operation, as the AWS call is: one store write, returned once
+  // stored.
+  // A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+  // before any store access. A project without a custom policy is
+  // NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity: "The Password Policy
+  // with domain name <project> cannot be found."), so a repeat after
+  // success is NoSuchEntity, as in AWS. A policy that keeps changing
+  // between read and delete is ABORTED / GENERATION_CONFLICT
+  // (ConcurrentModification). LimitExceeded never applies to a delete.
+  // Any other failure is INTERNAL (ServiceFailure).
+  // Authorization (iam:DeleteAccountPasswordPolicy) is console-api's.
+  rpc DeleteAccountPasswordPolicy(DeleteAccountPasswordPolicyRequest) returns (DeleteAccountPasswordPolicyResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}:deleteAccountPasswordPolicy"
+      body: "*"
+    };
+  }
 }
 
 message GetAccountAuthorizationDetailsRequest {
@@ -392,3 +412,13 @@ message UpdateAccountPasswordPolicyRequest {
 // UpdateAccountPasswordPolicyResponse is empty, as AWS returns only
 // ResponseMetadata.
 message UpdateAccountPasswordPolicyResponse {}
+
+message DeleteAccountPasswordPolicyRequest {
+  // projects/{project}. The project id follows ResourceId. AWS
+  // DeleteAccountPasswordPolicy has no other request parameters.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DeleteAccountPasswordPolicyResponse is empty, as AWS returns only
+// ResponseMetadata.
+message DeleteAccountPasswordPolicyResponse {}

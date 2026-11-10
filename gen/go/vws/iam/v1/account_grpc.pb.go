@@ -25,6 +25,7 @@ const (
 	AccountService_CreateAccountAlias_FullMethodName             = "/vws.iam.v1.AccountService/CreateAccountAlias"
 	AccountService_DeleteAccountAlias_FullMethodName             = "/vws.iam.v1.AccountService/DeleteAccountAlias"
 	AccountService_UpdateAccountPasswordPolicy_FullMethodName    = "/vws.iam.v1.AccountService/UpdateAccountPasswordPolicy"
+	AccountService_DeleteAccountPasswordPolicy_FullMethodName    = "/vws.iam.v1.AccountService/DeleteAccountPasswordPolicy"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -114,6 +115,20 @@ type AccountServiceClient interface {
 	// succeeds, so a retry after a lost response succeeds.
 	// Authorization (iam:UpdateAccountPasswordPolicy) is console-api's.
 	UpdateAccountPasswordPolicy(ctx context.Context, in *UpdateAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*UpdateAccountPasswordPolicyResponse, error)
+	// DeleteAccountPasswordPolicy is AWS DeleteAccountPasswordPolicy. It
+	// deletes the project's custom password policy. It is synchronous and
+	// not an operation, as the AWS call is: one store write, returned once
+	// stored.
+	// A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+	// before any store access. A project without a custom policy is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity: "The Password Policy
+	// with domain name <project> cannot be found."), so a repeat after
+	// success is NoSuchEntity, as in AWS. A policy that keeps changing
+	// between read and delete is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification). LimitExceeded never applies to a delete.
+	// Any other failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:DeleteAccountPasswordPolicy) is console-api's.
+	DeleteAccountPasswordPolicy(ctx context.Context, in *DeleteAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*DeleteAccountPasswordPolicyResponse, error)
 }
 
 type accountServiceClient struct {
@@ -178,6 +193,16 @@ func (c *accountServiceClient) UpdateAccountPasswordPolicy(ctx context.Context, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateAccountPasswordPolicyResponse)
 	err := c.cc.Invoke(ctx, AccountService_UpdateAccountPasswordPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) DeleteAccountPasswordPolicy(ctx context.Context, in *DeleteAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*DeleteAccountPasswordPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAccountPasswordPolicyResponse)
+	err := c.cc.Invoke(ctx, AccountService_DeleteAccountPasswordPolicy_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -271,6 +296,20 @@ type AccountServiceServer interface {
 	// succeeds, so a retry after a lost response succeeds.
 	// Authorization (iam:UpdateAccountPasswordPolicy) is console-api's.
 	UpdateAccountPasswordPolicy(context.Context, *UpdateAccountPasswordPolicyRequest) (*UpdateAccountPasswordPolicyResponse, error)
+	// DeleteAccountPasswordPolicy is AWS DeleteAccountPasswordPolicy. It
+	// deletes the project's custom password policy. It is synchronous and
+	// not an operation, as the AWS call is: one store write, returned once
+	// stored.
+	// A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+	// before any store access. A project without a custom policy is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity: "The Password Policy
+	// with domain name <project> cannot be found."), so a repeat after
+	// success is NoSuchEntity, as in AWS. A policy that keeps changing
+	// between read and delete is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification). LimitExceeded never applies to a delete.
+	// Any other failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:DeleteAccountPasswordPolicy) is console-api's.
+	DeleteAccountPasswordPolicy(context.Context, *DeleteAccountPasswordPolicyRequest) (*DeleteAccountPasswordPolicyResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -298,6 +337,9 @@ func (UnimplementedAccountServiceServer) DeleteAccountAlias(context.Context, *De
 }
 func (UnimplementedAccountServiceServer) UpdateAccountPasswordPolicy(context.Context, *UpdateAccountPasswordPolicyRequest) (*UpdateAccountPasswordPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateAccountPasswordPolicy not implemented")
+}
+func (UnimplementedAccountServiceServer) DeleteAccountPasswordPolicy(context.Context, *DeleteAccountPasswordPolicyRequest) (*DeleteAccountPasswordPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteAccountPasswordPolicy not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -428,6 +470,24 @@ func _AccountService_UpdateAccountPasswordPolicy_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_DeleteAccountPasswordPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAccountPasswordPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).DeleteAccountPasswordPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_DeleteAccountPasswordPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).DeleteAccountPasswordPolicy(ctx, req.(*DeleteAccountPasswordPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -458,6 +518,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateAccountPasswordPolicy",
 			Handler:    _AccountService_UpdateAccountPasswordPolicy_Handler,
+		},
+		{
+			MethodName: "DeleteAccountPasswordPolicy",
+			Handler:    _AccountService_DeleteAccountPasswordPolicy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
