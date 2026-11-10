@@ -23,6 +23,7 @@ const (
 	AccountService_GetAccountSummary_FullMethodName              = "/vws.iam.v1.AccountService/GetAccountSummary"
 	AccountService_GetAccountPasswordPolicy_FullMethodName       = "/vws.iam.v1.AccountService/GetAccountPasswordPolicy"
 	AccountService_CreateAccountAlias_FullMethodName             = "/vws.iam.v1.AccountService/CreateAccountAlias"
+	AccountService_DeleteAccountAlias_FullMethodName             = "/vws.iam.v1.AccountService/DeleteAccountAlias"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -31,7 +32,7 @@ const (
 //
 // AccountService holds account-level IAM reads and writes that are not
 // tied to one user, group, role or policy resource. Later account-level
-// actions (account summary, password policy, and list/delete of this
+// actions (account summary, password policy, and create/list/delete of this
 // account alias) belong on this service.
 type AccountServiceClient interface {
 	// GetAccountAuthorizationDetails is AWS GetAccountAuthorizationDetails.
@@ -81,6 +82,20 @@ type AccountServiceClient interface {
 	// failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:CreateAccountAlias) is console-api's.
 	CreateAccountAlias(ctx context.Context, in *CreateAccountAliasRequest, opts ...grpc.CallOption) (*CreateAccountAliasResponse, error)
+	// DeleteAccountAlias is AWS DeleteAccountAlias. It deletes the
+	// project's account alias. It is synchronous and not an operation,
+	// as the AWS call is: one store write, returned once stored.
+	// A bad parent or account_alias is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError), before any store access. An alias the
+	// project does not hold (also one held by another project) is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity); a repeat after
+	// success is NoSuchEntity, as in AWS. The delete is conditional on
+	// the stored version and retried a bounded number of times;
+	// persistent contention is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification). LimitExceeded never applies to a
+	// delete. Any other failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:DeleteAccountAlias) is console-api's.
+	DeleteAccountAlias(ctx context.Context, in *DeleteAccountAliasRequest, opts ...grpc.CallOption) (*DeleteAccountAliasResponse, error)
 }
 
 type accountServiceClient struct {
@@ -131,13 +146,23 @@ func (c *accountServiceClient) CreateAccountAlias(ctx context.Context, in *Creat
 	return out, nil
 }
 
+func (c *accountServiceClient) DeleteAccountAlias(ctx context.Context, in *DeleteAccountAliasRequest, opts ...grpc.CallOption) (*DeleteAccountAliasResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAccountAliasResponse)
+	err := c.cc.Invoke(ctx, AccountService_DeleteAccountAlias_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AccountServiceServer is the server API for AccountService service.
 // All implementations must embed UnimplementedAccountServiceServer
 // for forward compatibility.
 //
 // AccountService holds account-level IAM reads and writes that are not
 // tied to one user, group, role or policy resource. Later account-level
-// actions (account summary, password policy, and list/delete of this
+// actions (account summary, password policy, and create/list/delete of this
 // account alias) belong on this service.
 type AccountServiceServer interface {
 	// GetAccountAuthorizationDetails is AWS GetAccountAuthorizationDetails.
@@ -187,6 +212,20 @@ type AccountServiceServer interface {
 	// failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:CreateAccountAlias) is console-api's.
 	CreateAccountAlias(context.Context, *CreateAccountAliasRequest) (*CreateAccountAliasResponse, error)
+	// DeleteAccountAlias is AWS DeleteAccountAlias. It deletes the
+	// project's account alias. It is synchronous and not an operation,
+	// as the AWS call is: one store write, returned once stored.
+	// A bad parent or account_alias is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError), before any store access. An alias the
+	// project does not hold (also one held by another project) is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity); a repeat after
+	// success is NoSuchEntity, as in AWS. The delete is conditional on
+	// the stored version and retried a bounded number of times;
+	// persistent contention is ABORTED / GENERATION_CONFLICT
+	// (ConcurrentModification). LimitExceeded never applies to a
+	// delete. Any other failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:DeleteAccountAlias) is console-api's.
+	DeleteAccountAlias(context.Context, *DeleteAccountAliasRequest) (*DeleteAccountAliasResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -208,6 +247,9 @@ func (UnimplementedAccountServiceServer) GetAccountPasswordPolicy(context.Contex
 }
 func (UnimplementedAccountServiceServer) CreateAccountAlias(context.Context, *CreateAccountAliasRequest) (*CreateAccountAliasResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateAccountAlias not implemented")
+}
+func (UnimplementedAccountServiceServer) DeleteAccountAlias(context.Context, *DeleteAccountAliasRequest) (*DeleteAccountAliasResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteAccountAlias not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -302,6 +344,24 @@ func _AccountService_CreateAccountAlias_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_DeleteAccountAlias_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAccountAliasRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).DeleteAccountAlias(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_DeleteAccountAlias_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).DeleteAccountAlias(ctx, req.(*DeleteAccountAliasRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -324,6 +384,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateAccountAlias",
 			Handler:    _AccountService_CreateAccountAlias_Handler,
+		},
+		{
+			MethodName: "DeleteAccountAlias",
+			Handler:    _AccountService_DeleteAccountAlias_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

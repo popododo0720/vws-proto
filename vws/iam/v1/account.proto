@@ -14,7 +14,7 @@ option java_package = "dev.vws.iam.v1";
 
 // AccountService holds account-level IAM reads and writes that are not
 // tied to one user, group, role or policy resource. Later account-level
-// actions (account summary, password policy, and list/delete of this
+// actions (account summary, password policy, and create/list/delete of this
 // account alias) belong on this service.
 service AccountService {
   // GetAccountAuthorizationDetails is AWS GetAccountAuthorizationDetails.
@@ -79,6 +79,26 @@ service AccountService {
   rpc CreateAccountAlias(CreateAccountAliasRequest) returns (CreateAccountAliasResponse) {
     option (google.api.http) = {
       post: "/v1/{parent=projects/*}:createAccountAlias"
+      body: "*"
+    };
+  }
+
+  // DeleteAccountAlias is AWS DeleteAccountAlias. It deletes the
+  // project's account alias. It is synchronous and not an operation,
+  // as the AWS call is: one store write, returned once stored.
+  // A bad parent or account_alias is INVALID_ARGUMENT / INVALID_SPEC
+  // (AWS ValidationError), before any store access. An alias the
+  // project does not hold (also one held by another project) is
+  // NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity); a repeat after
+  // success is NoSuchEntity, as in AWS. The delete is conditional on
+  // the stored version and retried a bounded number of times;
+  // persistent contention is ABORTED / GENERATION_CONFLICT
+  // (ConcurrentModification). LimitExceeded never applies to a
+  // delete. Any other failure is INTERNAL (ServiceFailure).
+  // Authorization (iam:DeleteAccountAlias) is console-api's.
+  rpc DeleteAccountAlias(DeleteAccountAliasRequest) returns (DeleteAccountAliasResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}:deleteAccountAlias"
       body: "*"
     };
   }
@@ -305,3 +325,16 @@ message CreateAccountAliasRequest {
 // CreateAccountAliasResponse is empty, as AWS returns only
 // ResponseMetadata.
 message CreateAccountAliasResponse {}
+
+message DeleteAccountAliasRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS AccountAlias, 3-63 characters of
+  // ^[a-z0-9]([a-z0-9]|-(?!-)){1,61}[a-z0-9]$. The alias the project
+  // currently holds; a value the project does not hold is NoSuchEntity.
+  string account_alias = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DeleteAccountAliasResponse is empty, as AWS returns only
+// ResponseMetadata.
+message DeleteAccountAliasResponse {}

@@ -1539,6 +1539,100 @@ func (*CreateAccountAliasResponse) Descriptor() ([]byte, []int) {
 	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{19}
 }
 
+type DeleteAccountAliasRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}. The project id follows ResourceId.
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// AWS AccountAlias, 3-63 characters of
+	// ^[a-z0-9]([a-z0-9]|-(?!-)){1,61}[a-z0-9]$. The alias the project
+	// currently holds; a value the project does not hold is NoSuchEntity.
+	AccountAlias  string `protobuf:"bytes,2,opt,name=account_alias,json=accountAlias,proto3" json:"account_alias,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAccountAliasRequest) Reset() {
+	*x = DeleteAccountAliasRequest{}
+	mi := &file_vws_iam_v1_account_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAccountAliasRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAccountAliasRequest) ProtoMessage() {}
+
+func (x *DeleteAccountAliasRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_account_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAccountAliasRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAccountAliasRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *DeleteAccountAliasRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *DeleteAccountAliasRequest) GetAccountAlias() string {
+	if x != nil {
+		return x.AccountAlias
+	}
+	return ""
+}
+
+// DeleteAccountAliasResponse is empty, as AWS returns only
+// ResponseMetadata.
+type DeleteAccountAliasResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAccountAliasResponse) Reset() {
+	*x = DeleteAccountAliasResponse{}
+	mi := &file_vws_iam_v1_account_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAccountAliasResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAccountAliasResponse) ProtoMessage() {}
+
+func (x *DeleteAccountAliasResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_account_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAccountAliasResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAccountAliasResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{21}
+}
+
 var File_vws_iam_v1_account_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_account_proto_rawDesc = "" +
@@ -1683,12 +1777,17 @@ const file_vws_iam_v1_account_proto_rawDesc = "" +
 	"\x19CreateAccountAliasRequest\x12\x1b\n" +
 	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\x12(\n" +
 	"\raccount_alias\x18\x02 \x01(\tB\x03\xe0A\x02R\faccountAlias\"\x1c\n" +
-	"\x1aCreateAccountAliasResponse2\xbf\x05\n" +
+	"\x1aCreateAccountAliasResponse\"b\n" +
+	"\x19DeleteAccountAliasRequest\x12\x1b\n" +
+	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\x12(\n" +
+	"\raccount_alias\x18\x02 \x01(\tB\x03\xe0A\x02R\faccountAlias\"\x1c\n" +
+	"\x1aDeleteAccountAliasResponse2\xdc\x06\n" +
 	"\x0eAccountService\x12\xc7\x01\n" +
 	"\x1eGetAccountAuthorizationDetails\x121.vws.iam.v1.GetAccountAuthorizationDetailsRequest\x1a2.vws.iam.v1.GetAccountAuthorizationDetailsResponse\">\x82\xd3\xe4\x93\x028\x126/v1/{parent=projects/*}:getAccountAuthorizationDetails\x12\x93\x01\n" +
 	"\x11GetAccountSummary\x12$.vws.iam.v1.GetAccountSummaryRequest\x1a%.vws.iam.v1.GetAccountSummaryResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{parent=projects/*}:getAccountSummary\x12\xaf\x01\n" +
 	"\x18GetAccountPasswordPolicy\x12+.vws.iam.v1.GetAccountPasswordPolicyRequest\x1a,.vws.iam.v1.GetAccountPasswordPolicyResponse\"8\x82\xd3\xe4\x93\x022\x120/v1/{parent=projects/*}:getAccountPasswordPolicy\x12\x9a\x01\n" +
-	"\x12CreateAccountAlias\x12%.vws.iam.v1.CreateAccountAliasRequest\x1a&.vws.iam.v1.CreateAccountAliasResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\"*/v1/{parent=projects/*}:createAccountAliasB[\n" +
+	"\x12CreateAccountAlias\x12%.vws.iam.v1.CreateAccountAliasRequest\x1a&.vws.iam.v1.CreateAccountAliasResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\"*/v1/{parent=projects/*}:createAccountAlias\x12\x9a\x01\n" +
+	"\x12DeleteAccountAlias\x12%.vws.iam.v1.DeleteAccountAliasRequest\x1a&.vws.iam.v1.DeleteAccountAliasResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\"*/v1/{parent=projects/*}:deleteAccountAliasB[\n" +
 	"\x0edev.vws.iam.v1B\fAccountProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -1703,7 +1802,7 @@ func file_vws_iam_v1_account_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_account_proto_rawDescData
 }
 
-var file_vws_iam_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_vws_iam_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_vws_iam_v1_account_proto_goTypes = []any{
 	(*GetAccountAuthorizationDetailsRequest)(nil),  // 0: vws.iam.v1.GetAccountAuthorizationDetailsRequest
 	(*GetAccountAuthorizationDetailsResponse)(nil), // 1: vws.iam.v1.GetAccountAuthorizationDetailsResponse
@@ -1725,50 +1824,54 @@ var file_vws_iam_v1_account_proto_goTypes = []any{
 	(*PasswordPolicy)(nil),                   // 17: vws.iam.v1.PasswordPolicy
 	(*CreateAccountAliasRequest)(nil),        // 18: vws.iam.v1.CreateAccountAliasRequest
 	(*CreateAccountAliasResponse)(nil),       // 19: vws.iam.v1.CreateAccountAliasResponse
-	nil,                                      // 20: vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
-	(*timestamppb.Timestamp)(nil),            // 21: google.protobuf.Timestamp
-	(*Tag)(nil),                              // 22: vws.iam.v1.Tag
+	(*DeleteAccountAliasRequest)(nil),        // 20: vws.iam.v1.DeleteAccountAliasRequest
+	(*DeleteAccountAliasResponse)(nil),       // 21: vws.iam.v1.DeleteAccountAliasResponse
+	nil,                                      // 22: vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
+	(*timestamppb.Timestamp)(nil),            // 23: google.protobuf.Timestamp
+	(*Tag)(nil),                              // 24: vws.iam.v1.Tag
 }
 var file_vws_iam_v1_account_proto_depIdxs = []int32{
 	2,  // 0: vws.iam.v1.GetAccountAuthorizationDetailsResponse.user_detail_list:type_name -> vws.iam.v1.UserDetail
 	3,  // 1: vws.iam.v1.GetAccountAuthorizationDetailsResponse.group_detail_list:type_name -> vws.iam.v1.GroupDetail
 	4,  // 2: vws.iam.v1.GetAccountAuthorizationDetailsResponse.role_detail_list:type_name -> vws.iam.v1.RoleDetail
 	5,  // 3: vws.iam.v1.GetAccountAuthorizationDetailsResponse.policies:type_name -> vws.iam.v1.ManagedPolicyDetail
-	21, // 4: vws.iam.v1.UserDetail.create_time:type_name -> google.protobuf.Timestamp
+	23, // 4: vws.iam.v1.UserDetail.create_time:type_name -> google.protobuf.Timestamp
 	6,  // 5: vws.iam.v1.UserDetail.user_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 6: vws.iam.v1.UserDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
 	8,  // 7: vws.iam.v1.UserDetail.permissions_boundary:type_name -> vws.iam.v1.AttachedPermissionsBoundary
-	22, // 8: vws.iam.v1.UserDetail.tags:type_name -> vws.iam.v1.Tag
-	21, // 9: vws.iam.v1.GroupDetail.create_time:type_name -> google.protobuf.Timestamp
+	24, // 8: vws.iam.v1.UserDetail.tags:type_name -> vws.iam.v1.Tag
+	23, // 9: vws.iam.v1.GroupDetail.create_time:type_name -> google.protobuf.Timestamp
 	6,  // 10: vws.iam.v1.GroupDetail.group_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 11: vws.iam.v1.GroupDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
-	21, // 12: vws.iam.v1.RoleDetail.create_time:type_name -> google.protobuf.Timestamp
+	23, // 12: vws.iam.v1.RoleDetail.create_time:type_name -> google.protobuf.Timestamp
 	10, // 13: vws.iam.v1.RoleDetail.instance_profile_list:type_name -> vws.iam.v1.AuthorizationInstanceProfile
 	6,  // 14: vws.iam.v1.RoleDetail.role_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 15: vws.iam.v1.RoleDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
 	8,  // 16: vws.iam.v1.RoleDetail.permissions_boundary:type_name -> vws.iam.v1.AttachedPermissionsBoundary
-	22, // 17: vws.iam.v1.RoleDetail.tags:type_name -> vws.iam.v1.Tag
+	24, // 17: vws.iam.v1.RoleDetail.tags:type_name -> vws.iam.v1.Tag
 	9,  // 18: vws.iam.v1.RoleDetail.role_last_used:type_name -> vws.iam.v1.RoleLastUsed
-	21, // 19: vws.iam.v1.ManagedPolicyDetail.create_time:type_name -> google.protobuf.Timestamp
-	21, // 20: vws.iam.v1.ManagedPolicyDetail.update_time:type_name -> google.protobuf.Timestamp
+	23, // 19: vws.iam.v1.ManagedPolicyDetail.create_time:type_name -> google.protobuf.Timestamp
+	23, // 20: vws.iam.v1.ManagedPolicyDetail.update_time:type_name -> google.protobuf.Timestamp
 	12, // 21: vws.iam.v1.ManagedPolicyDetail.policy_version_list:type_name -> vws.iam.v1.AuthorizationPolicyVersion
-	21, // 22: vws.iam.v1.RoleLastUsed.last_used_time:type_name -> google.protobuf.Timestamp
-	21, // 23: vws.iam.v1.AuthorizationInstanceProfile.create_time:type_name -> google.protobuf.Timestamp
+	23, // 22: vws.iam.v1.RoleLastUsed.last_used_time:type_name -> google.protobuf.Timestamp
+	23, // 23: vws.iam.v1.AuthorizationInstanceProfile.create_time:type_name -> google.protobuf.Timestamp
 	11, // 24: vws.iam.v1.AuthorizationInstanceProfile.roles:type_name -> vws.iam.v1.AuthorizationRole
-	21, // 25: vws.iam.v1.AuthorizationRole.create_time:type_name -> google.protobuf.Timestamp
-	21, // 26: vws.iam.v1.AuthorizationPolicyVersion.create_time:type_name -> google.protobuf.Timestamp
-	20, // 27: vws.iam.v1.GetAccountSummaryResponse.summary_map:type_name -> vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
+	23, // 25: vws.iam.v1.AuthorizationRole.create_time:type_name -> google.protobuf.Timestamp
+	23, // 26: vws.iam.v1.AuthorizationPolicyVersion.create_time:type_name -> google.protobuf.Timestamp
+	22, // 27: vws.iam.v1.GetAccountSummaryResponse.summary_map:type_name -> vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
 	17, // 28: vws.iam.v1.GetAccountPasswordPolicyResponse.password_policy:type_name -> vws.iam.v1.PasswordPolicy
 	0,  // 29: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:input_type -> vws.iam.v1.GetAccountAuthorizationDetailsRequest
 	13, // 30: vws.iam.v1.AccountService.GetAccountSummary:input_type -> vws.iam.v1.GetAccountSummaryRequest
 	14, // 31: vws.iam.v1.AccountService.GetAccountPasswordPolicy:input_type -> vws.iam.v1.GetAccountPasswordPolicyRequest
 	18, // 32: vws.iam.v1.AccountService.CreateAccountAlias:input_type -> vws.iam.v1.CreateAccountAliasRequest
-	1,  // 33: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:output_type -> vws.iam.v1.GetAccountAuthorizationDetailsResponse
-	15, // 34: vws.iam.v1.AccountService.GetAccountSummary:output_type -> vws.iam.v1.GetAccountSummaryResponse
-	16, // 35: vws.iam.v1.AccountService.GetAccountPasswordPolicy:output_type -> vws.iam.v1.GetAccountPasswordPolicyResponse
-	19, // 36: vws.iam.v1.AccountService.CreateAccountAlias:output_type -> vws.iam.v1.CreateAccountAliasResponse
-	33, // [33:37] is the sub-list for method output_type
-	29, // [29:33] is the sub-list for method input_type
+	20, // 33: vws.iam.v1.AccountService.DeleteAccountAlias:input_type -> vws.iam.v1.DeleteAccountAliasRequest
+	1,  // 34: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:output_type -> vws.iam.v1.GetAccountAuthorizationDetailsResponse
+	15, // 35: vws.iam.v1.AccountService.GetAccountSummary:output_type -> vws.iam.v1.GetAccountSummaryResponse
+	16, // 36: vws.iam.v1.AccountService.GetAccountPasswordPolicy:output_type -> vws.iam.v1.GetAccountPasswordPolicyResponse
+	19, // 37: vws.iam.v1.AccountService.CreateAccountAlias:output_type -> vws.iam.v1.CreateAccountAliasResponse
+	21, // 38: vws.iam.v1.AccountService.DeleteAccountAlias:output_type -> vws.iam.v1.DeleteAccountAliasResponse
+	34, // [34:39] is the sub-list for method output_type
+	29, // [29:34] is the sub-list for method input_type
 	29, // [29:29] is the sub-list for extension type_name
 	29, // [29:29] is the sub-list for extension extendee
 	0,  // [0:29] is the sub-list for field type_name
@@ -1787,7 +1890,7 @@ func file_vws_iam_v1_account_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_account_proto_rawDesc), len(file_vws_iam_v1_account_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
