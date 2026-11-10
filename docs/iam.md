@@ -42,7 +42,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 
 ## Not in Phase 1
 
-- Write tag RPCs on resources other than a managed policy and a virtual MFA device (`TagUser` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice`, `ListMFADeviceTags`, `TagRole`, `UntagRole` and `ListRoleTags` are in).
+- Write tag RPCs on resources other than a managed policy, a virtual MFA device, a user and a role (`TagInstanceProfile` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice`, `ListMFADeviceTags`, `TagUser`, `UntagUser`, `ListUserTags`, `TagRole`, `UntagRole` and `ListRoleTags` are in).
 - AssumeRole session policies (`Policy`/`PolicyArns`), and session tags on any STS call.
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
 - `SimulateCustomPolicy`.
@@ -115,6 +115,14 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: a role name length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). An unknown role is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A service-linked role is `FAILED_PRECONDITION / UNMODIFIABLE_ENTITY` (`UnmodifiableEntity`). A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`).
 - Retry: a role with no boundary succeeds without a write, so a retry after a lost response succeeds.
 - Authorization (`iam:DeleteRolePermissionsBoundary`) is console-api's.
+
+## User tags (#262)
+
+- `UserService.TagUser`, `UntagUser` and `ListUserTags` are AWS `TagUser`, `UntagUser` and `ListUserTags`. `name` is `projects/{project}/users/{user}`; the user id is AWS `UserName`.
+- A tag is not an envelope label: it is a `tags` map on the stored user, with the same rules as a policy: 50 tags, key 1-128 and value 0-256 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, no key or value beginning with `aws:`; key case significant. A key repeated in one `TagUser` keeps the last value; a later `TagUser` overwrites the value of a key it names. `UntagUser` ignores a key that is not attached.
+- Errors: invalid input is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`, or `ValidationError` for a bad `UserName`); the 51st tag is `RESOURCE_EXHAUSTED / QUOTA_EXCEEDED` (`LimitExceeded`); an unknown user is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A rejected request stores nothing.
+- `TagUser` and `UntagUser` are operations (AIP-151) returning the `User`, and idempotent: the same tags again change nothing, a `request_id` replay returns the original operation. `ListUserTags` is a read RPC: sorted by key, `page_size` is AWS `MaxItems` (1-1000, 0 is unset, default 100), `page_token` is AWS `Marker`.
+- Authorization (`iam:TagUser`, `iam:UntagUser`, `iam:ListUserTags`) is console-api's.
 
 ## Role tags (#139)
 

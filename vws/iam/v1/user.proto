@@ -10,6 +10,7 @@ import "google/longrunning/operations.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "vws/common/v1/resource.proto";
+import "vws/iam/v1/policy.proto";
 
 option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
 option java_multiple_files = true;
@@ -151,6 +152,53 @@ service UserService {
       post: "/v1/{name=projects/*/users/*}:deletePermissionsBoundary"
       body: "*"
     };
+  }
+
+  // TagUser is AWS TagUser. It adds or overwrites tags on the user. The
+  // whole request fails and stores nothing when a tag is invalid, the request
+  // has more than 50 tags, or the user would keep more than 50 tags.
+  // Invalid input is INVALID_ARGUMENT / INVALID_SPEC (AWS InvalidInput), more
+  // than 50 tags is RESOURCE_EXHAUSTED / QUOTA_EXCEEDED (LimitExceeded) and an
+  // unknown user is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). The
+  // response is the User. Re-running with the same tags changes nothing, and
+  // a request_id replay returns the original operation.
+  // Authorization (iam:TagUser) is console-api's.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc TagUser(TagUserRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/users/*}:tag"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.User"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // UntagUser is AWS UntagUser. It removes the named keys from the user. A
+  // key that is not attached is ignored, so a retry succeeds. Errors are as
+  // for TagUser. Authorization (iam:UntagUser) is console-api's.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc UntagUser(UntagUserRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/users/*}:untag"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.User"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // ListUserTags is AWS ListUserTags. It lists the user's tags sorted by key,
+  // in pages. It only reads. A bad user name or page_size is INVALID_ARGUMENT /
+  // INVALID_SPEC (ValidationError) and an unknown user is NOT_FOUND /
+  // RESOURCE_NOT_FOUND (NoSuchEntity). Authorization (iam:ListUserTags) is
+  // console-api's.
+  rpc ListUserTags(ListUserTagsRequest) returns (ListUserTagsResponse) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/users/*}:tags"};
   }
 }
 
@@ -451,3 +499,56 @@ message DeleteUserPermissionsBoundaryRequest {
 // DeleteUserPermissionsBoundaryResponse is empty, as AWS returns only a
 // request id. GetUser reads the user back.
 message DeleteUserPermissionsBoundaryResponse {}
+
+// TagUser adds or overwrites tags on a user. The tag rules are those of
+// TagPolicy: key 1-128 and value 0-256 characters, no aws: prefix, 50 tags.
+message TagUserRequest {
+  // projects/{project}/users/{user}. The user id is AWS UserName.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
+  // 1-50 tags. A tag whose key already exists on the user overwrites it.
+  // A key that repeats within one request keeps the last value.
+  repeated Tag tags = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// UntagUser removes the named keys from a user. A key that is not attached is
+// ignored.
+message UntagUserRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
+  // 1-50 keys, 1-128 characters each, same alphabet as Tag.key.
+  repeated string tag_keys = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// ListUserTags lists a user's tags sorted by key.
+message ListUserTagsRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
+  // AWS MaxItems, 1-1000. 0 means not set: the server default is 100.
+  int32 page_size = 2;
+  // AWS Marker. Only a next_page_token this RPC returned.
+  string page_token = 3;
+}
+
+message ListUserTagsResponse {
+  // Existing vws.iam.v1.Tag (key, value), sorted by key.
+  repeated Tag tags = 1;
+  // AWS Marker. Set exactly when the result is truncated (AWS IsTruncated).
+  string next_page_token = 2;
+}

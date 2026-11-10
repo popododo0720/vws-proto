@@ -31,6 +31,9 @@ const (
 	UserService_ChangePassword_FullMethodName                = "/vws.iam.v1.UserService/ChangePassword"
 	UserService_PutUserPermissionsBoundary_FullMethodName    = "/vws.iam.v1.UserService/PutUserPermissionsBoundary"
 	UserService_DeleteUserPermissionsBoundary_FullMethodName = "/vws.iam.v1.UserService/DeleteUserPermissionsBoundary"
+	UserService_TagUser_FullMethodName                       = "/vws.iam.v1.UserService/TagUser"
+	UserService_UntagUser_FullMethodName                     = "/vws.iam.v1.UserService/UntagUser"
+	UserService_ListUserTags_FullMethodName                  = "/vws.iam.v1.UserService/ListUserTags"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -104,6 +107,30 @@ type UserServiceClient interface {
 	// lost response succeeds.
 	// Authorization (iam:DeleteUserPermissionsBoundary) is console-api's.
 	DeleteUserPermissionsBoundary(ctx context.Context, in *DeleteUserPermissionsBoundaryRequest, opts ...grpc.CallOption) (*DeleteUserPermissionsBoundaryResponse, error)
+	// TagUser is AWS TagUser. It adds or overwrites tags on the user. The
+	// whole request fails and stores nothing when a tag is invalid, the request
+	// has more than 50 tags, or the user would keep more than 50 tags.
+	// Invalid input is INVALID_ARGUMENT / INVALID_SPEC (AWS InvalidInput), more
+	// than 50 tags is RESOURCE_EXHAUSTED / QUOTA_EXCEEDED (LimitExceeded) and an
+	// unknown user is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). The
+	// response is the User. Re-running with the same tags changes nothing, and
+	// a request_id replay returns the original operation.
+	// Authorization (iam:TagUser) is console-api's.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	TagUser(ctx context.Context, in *TagUserRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	// UntagUser is AWS UntagUser. It removes the named keys from the user. A
+	// key that is not attached is ignored, so a retry succeeds. Errors are as
+	// for TagUser. Authorization (iam:UntagUser) is console-api's.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	UntagUser(ctx context.Context, in *UntagUserRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	// ListUserTags is AWS ListUserTags. It lists the user's tags sorted by key,
+	// in pages. It only reads. A bad user name or page_size is INVALID_ARGUMENT /
+	// INVALID_SPEC (ValidationError) and an unknown user is NOT_FOUND /
+	// RESOURCE_NOT_FOUND (NoSuchEntity). Authorization (iam:ListUserTags) is
+	// console-api's.
+	ListUserTags(ctx context.Context, in *ListUserTagsRequest, opts ...grpc.CallOption) (*ListUserTagsResponse, error)
 }
 
 type userServiceClient struct {
@@ -224,6 +251,36 @@ func (c *userServiceClient) DeleteUserPermissionsBoundary(ctx context.Context, i
 	return out, nil
 }
 
+func (c *userServiceClient) TagUser(ctx context.Context, in *TagUserRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, UserService_TagUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UntagUser(ctx context.Context, in *UntagUserRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(longrunningpb.Operation)
+	err := c.cc.Invoke(ctx, UserService_UntagUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListUserTags(ctx context.Context, in *ListUserTagsRequest, opts ...grpc.CallOption) (*ListUserTagsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUserTagsResponse)
+	err := c.cc.Invoke(ctx, UserService_ListUserTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -295,6 +352,30 @@ type UserServiceServer interface {
 	// lost response succeeds.
 	// Authorization (iam:DeleteUserPermissionsBoundary) is console-api's.
 	DeleteUserPermissionsBoundary(context.Context, *DeleteUserPermissionsBoundaryRequest) (*DeleteUserPermissionsBoundaryResponse, error)
+	// TagUser is AWS TagUser. It adds or overwrites tags on the user. The
+	// whole request fails and stores nothing when a tag is invalid, the request
+	// has more than 50 tags, or the user would keep more than 50 tags.
+	// Invalid input is INVALID_ARGUMENT / INVALID_SPEC (AWS InvalidInput), more
+	// than 50 tags is RESOURCE_EXHAUSTED / QUOTA_EXCEEDED (LimitExceeded) and an
+	// unknown user is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). The
+	// response is the User. Re-running with the same tags changes nothing, and
+	// a request_id replay returns the original operation.
+	// Authorization (iam:TagUser) is console-api's.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	TagUser(context.Context, *TagUserRequest) (*longrunningpb.Operation, error)
+	// UntagUser is AWS UntagUser. It removes the named keys from the user. A
+	// key that is not attached is ignored, so a retry succeeds. Errors are as
+	// for TagUser. Authorization (iam:UntagUser) is console-api's.
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	UntagUser(context.Context, *UntagUserRequest) (*longrunningpb.Operation, error)
+	// ListUserTags is AWS ListUserTags. It lists the user's tags sorted by key,
+	// in pages. It only reads. A bad user name or page_size is INVALID_ARGUMENT /
+	// INVALID_SPEC (ValidationError) and an unknown user is NOT_FOUND /
+	// RESOURCE_NOT_FOUND (NoSuchEntity). Authorization (iam:ListUserTags) is
+	// console-api's.
+	ListUserTags(context.Context, *ListUserTagsRequest) (*ListUserTagsResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -337,6 +418,15 @@ func (UnimplementedUserServiceServer) PutUserPermissionsBoundary(context.Context
 }
 func (UnimplementedUserServiceServer) DeleteUserPermissionsBoundary(context.Context, *DeleteUserPermissionsBoundaryRequest) (*DeleteUserPermissionsBoundaryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUserPermissionsBoundary not implemented")
+}
+func (UnimplementedUserServiceServer) TagUser(context.Context, *TagUserRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method TagUser not implemented")
+}
+func (UnimplementedUserServiceServer) UntagUser(context.Context, *UntagUserRequest) (*longrunningpb.Operation, error) {
+	return nil, status.Error(codes.Unimplemented, "method UntagUser not implemented")
+}
+func (UnimplementedUserServiceServer) ListUserTags(context.Context, *ListUserTagsRequest) (*ListUserTagsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListUserTags not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -557,6 +647,60 @@ func _UserService_DeleteUserPermissionsBoundary_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_TagUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TagUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).TagUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_TagUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).TagUser(ctx, req.(*TagUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UntagUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UntagUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UntagUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UntagUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UntagUser(ctx, req.(*UntagUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListUserTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListUserTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListUserTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListUserTags(ctx, req.(*ListUserTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -607,6 +751,18 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteUserPermissionsBoundary",
 			Handler:    _UserService_DeleteUserPermissionsBoundary_Handler,
+		},
+		{
+			MethodName: "TagUser",
+			Handler:    _UserService_TagUser_Handler,
+		},
+		{
+			MethodName: "UntagUser",
+			Handler:    _UserService_UntagUser_Handler,
+		},
+		{
+			MethodName: "ListUserTags",
+			Handler:    _UserService_ListUserTags_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

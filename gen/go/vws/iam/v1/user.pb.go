@@ -1411,12 +1411,273 @@ func (*DeleteUserPermissionsBoundaryResponse) Descriptor() ([]byte, []int) {
 	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{19}
 }
 
+// TagUser adds or overwrites tags on a user. The tag rules are those of
+// TagPolicy: key 1-128 and value 0-256 characters, no aws: prefix, 50 tags.
+type TagUserRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}/users/{user}. The user id is AWS UserName.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 1-50 tags. A tag whose key already exists on the user overwrites it.
+	// A key that repeats within one request keeps the last value.
+	Tags          []*Tag `protobuf:"bytes,2,rep,name=tags,proto3" json:"tags,omitempty"`
+	RequestId     string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly  bool   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TagUserRequest) Reset() {
+	*x = TagUserRequest{}
+	mi := &file_vws_iam_v1_user_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TagUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TagUserRequest) ProtoMessage() {}
+
+func (x *TagUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_user_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TagUserRequest.ProtoReflect.Descriptor instead.
+func (*TagUserRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *TagUserRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *TagUserRequest) GetTags() []*Tag {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *TagUserRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *TagUserRequest) GetValidateOnly() bool {
+	if x != nil {
+		return x.ValidateOnly
+	}
+	return false
+}
+
+// UntagUser removes the named keys from a user. A key that is not attached is
+// ignored.
+type UntagUserRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// 1-50 keys, 1-128 characters each, same alphabet as Tag.key.
+	TagKeys       []string `protobuf:"bytes,2,rep,name=tag_keys,json=tagKeys,proto3" json:"tag_keys,omitempty"`
+	RequestId     string   `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly  bool     `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UntagUserRequest) Reset() {
+	*x = UntagUserRequest{}
+	mi := &file_vws_iam_v1_user_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UntagUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UntagUserRequest) ProtoMessage() {}
+
+func (x *UntagUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_user_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UntagUserRequest.ProtoReflect.Descriptor instead.
+func (*UntagUserRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UntagUserRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UntagUserRequest) GetTagKeys() []string {
+	if x != nil {
+		return x.TagKeys
+	}
+	return nil
+}
+
+func (x *UntagUserRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *UntagUserRequest) GetValidateOnly() bool {
+	if x != nil {
+		return x.ValidateOnly
+	}
+	return false
+}
+
+// ListUserTags lists a user's tags sorted by key.
+type ListUserTagsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// AWS MaxItems, 1-1000. 0 means not set: the server default is 100.
+	PageSize int32 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// AWS Marker. Only a next_page_token this RPC returned.
+	PageToken     string `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUserTagsRequest) Reset() {
+	*x = ListUserTagsRequest{}
+	mi := &file_vws_iam_v1_user_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUserTagsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUserTagsRequest) ProtoMessage() {}
+
+func (x *ListUserTagsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_user_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUserTagsRequest.ProtoReflect.Descriptor instead.
+func (*ListUserTagsRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListUserTagsRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ListUserTagsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListUserTagsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListUserTagsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Existing vws.iam.v1.Tag (key, value), sorted by key.
+	Tags []*Tag `protobuf:"bytes,1,rep,name=tags,proto3" json:"tags,omitempty"`
+	// AWS Marker. Set exactly when the result is truncated (AWS IsTruncated).
+	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUserTagsResponse) Reset() {
+	*x = ListUserTagsResponse{}
+	mi := &file_vws_iam_v1_user_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUserTagsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUserTagsResponse) ProtoMessage() {}
+
+func (x *ListUserTagsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_user_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUserTagsResponse.ProtoReflect.Descriptor instead.
+func (*ListUserTagsResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_user_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ListUserTagsResponse) GetTags() []*Tag {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *ListUserTagsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
 var File_vws_iam_v1_user_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"\x15vws/iam/v1/user.proto\x12\n" +
-	"vws.iam.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cvws/common/v1/resource.proto\"\xd8\x04\n" +
+	"vws.iam.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\x1a#google/longrunning/operations.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cvws/common/v1/resource.proto\x1a\x17vws/iam/v1/policy.proto\"\xd8\x04\n" +
 	"\x04User\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1d\n" +
 	"\x03uid\x18\x02 \x01(\tB\v\xe0A\x03\xe2\x8c\xcf\xd7\b\x02\b\x01R\x03uid\x12#\n" +
@@ -1528,12 +1789,35 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"$DeleteUserPermissionsBoundaryRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\"'\n" +
-	"%DeleteUserPermissionsBoundaryResponse*\xb9\x01\n" +
+	"%DeleteUserPermissionsBoundaryResponse\"\xba\x01\n" +
+	"\x0eTagUserRequest\x12(\n" +
+	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
+	"\fvws.iam/UserR\x04name\x12(\n" +
+	"\x04tags\x18\x02 \x03(\v2\x0f.vws.iam.v1.TagB\x03\xe0A\x02R\x04tags\x12*\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
+	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\xb2\x01\n" +
+	"\x10UntagUserRequest\x12(\n" +
+	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
+	"\fvws.iam/UserR\x04name\x12\x1e\n" +
+	"\btag_keys\x18\x02 \x03(\tB\x03\xe0A\x02R\atagKeys\x12*\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
+	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"{\n" +
+	"\x13ListUserTagsRequest\x12(\n" +
+	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
+	"\fvws.iam/UserR\x04name\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"c\n" +
+	"\x14ListUserTagsResponse\x12#\n" +
+	"\x04tags\x18\x01 \x03(\v2\x0f.vws.iam.v1.TagR\x04tags\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken*\xb9\x01\n" +
 	"\x15LoginProfileWriteMode\x12(\n" +
 	"$LOGIN_PROFILE_WRITE_MODE_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fLOGIN_PROFILE_WRITE_MODE_UPSERT\x10\x01\x12(\n" +
 	"$LOGIN_PROFILE_WRITE_MODE_CREATE_ONLY\x10\x02\x12'\n" +
-	"#LOGIN_PROFILE_WRITE_MODE_MUST_EXIST\x10\x032\x89\x0e\n" +
+	"#LOGIN_PROFILE_WRITE_MODE_MUST_EXIST\x10\x032\xe2\x11\n" +
 	"\vUserService\x12^\n" +
 	"\aGetUser\x12\x1a.vws.iam.v1.GetUserRequest\x1a\x10.vws.iam.v1.User\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{name=projects/*/users/*}\x12o\n" +
 	"\tListUsers\x12\x1c.vws.iam.v1.ListUsersRequest\x1a\x1d.vws.iam.v1.ListUsersResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/v1/{parent=projects/*}/users\x12\xac\x01\n" +
@@ -1552,7 +1836,12 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\x12DeleteLoginProfile\x12%.vws.iam.v1.DeleteLoginProfileRequest\x1a&.vws.iam.v1.DeleteLoginProfileResponse\"8\x82\xd3\xe4\x93\x022\"0/v1/{name=projects/*/users/*}:deleteLoginProfile\x12\x90\x01\n" +
 	"\x0eChangePassword\x12!.vws.iam.v1.ChangePasswordRequest\x1a\".vws.iam.v1.ChangePasswordResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/v1/{name=projects/*/users/*}:changePassword\x12\xbc\x01\n" +
 	"\x1aPutUserPermissionsBoundary\x12-.vws.iam.v1.PutUserPermissionsBoundaryRequest\x1a..vws.iam.v1.PutUserPermissionsBoundaryResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/v1/{name=projects/*/users/*}:putPermissionsBoundary\x12\xc8\x01\n" +
-	"\x1dDeleteUserPermissionsBoundary\x120.vws.iam.v1.DeleteUserPermissionsBoundaryRequest\x1a1.vws.iam.v1.DeleteUserPermissionsBoundaryResponse\"B\x82\xd3\xe4\x93\x02<:\x01*\"7/v1/{name=projects/*/users/*}:deletePermissionsBoundaryBX\n" +
+	"\x1dDeleteUserPermissionsBoundary\x120.vws.iam.v1.DeleteUserPermissionsBoundaryRequest\x1a1.vws.iam.v1.DeleteUserPermissionsBoundaryResponse\"B\x82\xd3\xe4\x93\x02<:\x01*\"7/v1/{name=projects/*/users/*}:deletePermissionsBoundary\x12\xa7\x01\n" +
+	"\aTagUser\x12\x1a.vws.iam.v1.TagUserRequest\x1a\x1d.google.longrunning.Operation\"a\xcaA2\n" +
+	"\x0fvws.iam.v1.User\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02&:\x01*\"!/v1/{name=projects/*/users/*}:tag\x12\xad\x01\n" +
+	"\tUntagUser\x12\x1c.vws.iam.v1.UntagUserRequest\x1a\x1d.google.longrunning.Operation\"c\xcaA2\n" +
+	"\x0fvws.iam.v1.User\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/{name=projects/*/users/*}:untag\x12}\n" +
+	"\fListUserTags\x12\x1f.vws.iam.v1.ListUserTagsRequest\x1a .vws.iam.v1.ListUserTagsResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/v1/{name=projects/*/users/*}:tagsBX\n" +
 	"\x0edev.vws.iam.v1B\tUserProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -1568,7 +1857,7 @@ func file_vws_iam_v1_user_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_iam_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_vws_iam_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_vws_iam_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_vws_iam_v1_user_proto_goTypes = []any{
 	(LoginProfileWriteMode)(0),                    // 0: vws.iam.v1.LoginProfileWriteMode
 	(*User)(nil),                                  // 1: vws.iam.v1.User
@@ -1591,56 +1880,69 @@ var file_vws_iam_v1_user_proto_goTypes = []any{
 	(*PutUserPermissionsBoundaryResponse)(nil),    // 18: vws.iam.v1.PutUserPermissionsBoundaryResponse
 	(*DeleteUserPermissionsBoundaryRequest)(nil),  // 19: vws.iam.v1.DeleteUserPermissionsBoundaryRequest
 	(*DeleteUserPermissionsBoundaryResponse)(nil), // 20: vws.iam.v1.DeleteUserPermissionsBoundaryResponse
-	nil,                             // 21: vws.iam.v1.User.LabelsEntry
-	nil,                             // 22: vws.iam.v1.UserSpec.InlinePoliciesEntry
-	(*timestamppb.Timestamp)(nil),   // 23: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),        // 24: vws.common.v1.ObservedState
-	(*fieldmaskpb.FieldMask)(nil),   // 25: google.protobuf.FieldMask
-	(*longrunningpb.Operation)(nil), // 26: google.longrunning.Operation
+	(*TagUserRequest)(nil),                        // 21: vws.iam.v1.TagUserRequest
+	(*UntagUserRequest)(nil),                      // 22: vws.iam.v1.UntagUserRequest
+	(*ListUserTagsRequest)(nil),                   // 23: vws.iam.v1.ListUserTagsRequest
+	(*ListUserTagsResponse)(nil),                  // 24: vws.iam.v1.ListUserTagsResponse
+	nil,                                           // 25: vws.iam.v1.User.LabelsEntry
+	nil,                                           // 26: vws.iam.v1.UserSpec.InlinePoliciesEntry
+	(*timestamppb.Timestamp)(nil),                 // 27: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),                      // 28: vws.common.v1.ObservedState
+	(*fieldmaskpb.FieldMask)(nil),                 // 29: google.protobuf.FieldMask
+	(*Tag)(nil),                                   // 30: vws.iam.v1.Tag
+	(*longrunningpb.Operation)(nil),               // 31: google.longrunning.Operation
 }
 var file_vws_iam_v1_user_proto_depIdxs = []int32{
-	21, // 0: vws.iam.v1.User.labels:type_name -> vws.iam.v1.User.LabelsEntry
+	25, // 0: vws.iam.v1.User.labels:type_name -> vws.iam.v1.User.LabelsEntry
 	2,  // 1: vws.iam.v1.User.spec:type_name -> vws.iam.v1.UserSpec
 	3,  // 2: vws.iam.v1.User.status:type_name -> vws.iam.v1.UserStatus
-	23, // 3: vws.iam.v1.User.create_time:type_name -> google.protobuf.Timestamp
-	23, // 4: vws.iam.v1.User.update_time:type_name -> google.protobuf.Timestamp
-	23, // 5: vws.iam.v1.User.delete_time:type_name -> google.protobuf.Timestamp
-	22, // 6: vws.iam.v1.UserSpec.inline_policies:type_name -> vws.iam.v1.UserSpec.InlinePoliciesEntry
-	24, // 7: vws.iam.v1.UserStatus.observed:type_name -> vws.common.v1.ObservedState
-	23, // 8: vws.iam.v1.UserStatus.password_last_used_time:type_name -> google.protobuf.Timestamp
-	23, // 9: vws.iam.v1.UserStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
+	27, // 3: vws.iam.v1.User.create_time:type_name -> google.protobuf.Timestamp
+	27, // 4: vws.iam.v1.User.update_time:type_name -> google.protobuf.Timestamp
+	27, // 5: vws.iam.v1.User.delete_time:type_name -> google.protobuf.Timestamp
+	26, // 6: vws.iam.v1.UserSpec.inline_policies:type_name -> vws.iam.v1.UserSpec.InlinePoliciesEntry
+	28, // 7: vws.iam.v1.UserStatus.observed:type_name -> vws.common.v1.ObservedState
+	27, // 8: vws.iam.v1.UserStatus.password_last_used_time:type_name -> google.protobuf.Timestamp
+	27, // 9: vws.iam.v1.UserStatus.sessions_revoke_time:type_name -> google.protobuf.Timestamp
 	1,  // 10: vws.iam.v1.ListUsersResponse.users:type_name -> vws.iam.v1.User
 	1,  // 11: vws.iam.v1.CreateUserRequest.user:type_name -> vws.iam.v1.User
 	1,  // 12: vws.iam.v1.UpdateUserRequest.user:type_name -> vws.iam.v1.User
-	25, // 13: vws.iam.v1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
+	29, // 13: vws.iam.v1.UpdateUserRequest.update_mask:type_name -> google.protobuf.FieldMask
 	0,  // 14: vws.iam.v1.SetLoginProfileRequest.mode:type_name -> vws.iam.v1.LoginProfileWriteMode
-	4,  // 15: vws.iam.v1.UserService.GetUser:input_type -> vws.iam.v1.GetUserRequest
-	5,  // 16: vws.iam.v1.UserService.ListUsers:input_type -> vws.iam.v1.ListUsersRequest
-	7,  // 17: vws.iam.v1.UserService.CreateUser:input_type -> vws.iam.v1.CreateUserRequest
-	8,  // 18: vws.iam.v1.UserService.UpdateUser:input_type -> vws.iam.v1.UpdateUserRequest
-	9,  // 19: vws.iam.v1.UserService.DeleteUser:input_type -> vws.iam.v1.DeleteUserRequest
-	16, // 20: vws.iam.v1.UserService.RevokeUserSessions:input_type -> vws.iam.v1.RevokeUserSessionsRequest
-	10, // 21: vws.iam.v1.UserService.SetLoginProfile:input_type -> vws.iam.v1.SetLoginProfileRequest
-	11, // 22: vws.iam.v1.UserService.DeleteLoginProfile:input_type -> vws.iam.v1.DeleteLoginProfileRequest
-	12, // 23: vws.iam.v1.UserService.ChangePassword:input_type -> vws.iam.v1.ChangePasswordRequest
-	17, // 24: vws.iam.v1.UserService.PutUserPermissionsBoundary:input_type -> vws.iam.v1.PutUserPermissionsBoundaryRequest
-	19, // 25: vws.iam.v1.UserService.DeleteUserPermissionsBoundary:input_type -> vws.iam.v1.DeleteUserPermissionsBoundaryRequest
-	1,  // 26: vws.iam.v1.UserService.GetUser:output_type -> vws.iam.v1.User
-	6,  // 27: vws.iam.v1.UserService.ListUsers:output_type -> vws.iam.v1.ListUsersResponse
-	26, // 28: vws.iam.v1.UserService.CreateUser:output_type -> google.longrunning.Operation
-	26, // 29: vws.iam.v1.UserService.UpdateUser:output_type -> google.longrunning.Operation
-	26, // 30: vws.iam.v1.UserService.DeleteUser:output_type -> google.longrunning.Operation
-	26, // 31: vws.iam.v1.UserService.RevokeUserSessions:output_type -> google.longrunning.Operation
-	13, // 32: vws.iam.v1.UserService.SetLoginProfile:output_type -> vws.iam.v1.SetLoginProfileResponse
-	14, // 33: vws.iam.v1.UserService.DeleteLoginProfile:output_type -> vws.iam.v1.DeleteLoginProfileResponse
-	15, // 34: vws.iam.v1.UserService.ChangePassword:output_type -> vws.iam.v1.ChangePasswordResponse
-	18, // 35: vws.iam.v1.UserService.PutUserPermissionsBoundary:output_type -> vws.iam.v1.PutUserPermissionsBoundaryResponse
-	20, // 36: vws.iam.v1.UserService.DeleteUserPermissionsBoundary:output_type -> vws.iam.v1.DeleteUserPermissionsBoundaryResponse
-	26, // [26:37] is the sub-list for method output_type
-	15, // [15:26] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	30, // 15: vws.iam.v1.TagUserRequest.tags:type_name -> vws.iam.v1.Tag
+	30, // 16: vws.iam.v1.ListUserTagsResponse.tags:type_name -> vws.iam.v1.Tag
+	4,  // 17: vws.iam.v1.UserService.GetUser:input_type -> vws.iam.v1.GetUserRequest
+	5,  // 18: vws.iam.v1.UserService.ListUsers:input_type -> vws.iam.v1.ListUsersRequest
+	7,  // 19: vws.iam.v1.UserService.CreateUser:input_type -> vws.iam.v1.CreateUserRequest
+	8,  // 20: vws.iam.v1.UserService.UpdateUser:input_type -> vws.iam.v1.UpdateUserRequest
+	9,  // 21: vws.iam.v1.UserService.DeleteUser:input_type -> vws.iam.v1.DeleteUserRequest
+	16, // 22: vws.iam.v1.UserService.RevokeUserSessions:input_type -> vws.iam.v1.RevokeUserSessionsRequest
+	10, // 23: vws.iam.v1.UserService.SetLoginProfile:input_type -> vws.iam.v1.SetLoginProfileRequest
+	11, // 24: vws.iam.v1.UserService.DeleteLoginProfile:input_type -> vws.iam.v1.DeleteLoginProfileRequest
+	12, // 25: vws.iam.v1.UserService.ChangePassword:input_type -> vws.iam.v1.ChangePasswordRequest
+	17, // 26: vws.iam.v1.UserService.PutUserPermissionsBoundary:input_type -> vws.iam.v1.PutUserPermissionsBoundaryRequest
+	19, // 27: vws.iam.v1.UserService.DeleteUserPermissionsBoundary:input_type -> vws.iam.v1.DeleteUserPermissionsBoundaryRequest
+	21, // 28: vws.iam.v1.UserService.TagUser:input_type -> vws.iam.v1.TagUserRequest
+	22, // 29: vws.iam.v1.UserService.UntagUser:input_type -> vws.iam.v1.UntagUserRequest
+	23, // 30: vws.iam.v1.UserService.ListUserTags:input_type -> vws.iam.v1.ListUserTagsRequest
+	1,  // 31: vws.iam.v1.UserService.GetUser:output_type -> vws.iam.v1.User
+	6,  // 32: vws.iam.v1.UserService.ListUsers:output_type -> vws.iam.v1.ListUsersResponse
+	31, // 33: vws.iam.v1.UserService.CreateUser:output_type -> google.longrunning.Operation
+	31, // 34: vws.iam.v1.UserService.UpdateUser:output_type -> google.longrunning.Operation
+	31, // 35: vws.iam.v1.UserService.DeleteUser:output_type -> google.longrunning.Operation
+	31, // 36: vws.iam.v1.UserService.RevokeUserSessions:output_type -> google.longrunning.Operation
+	13, // 37: vws.iam.v1.UserService.SetLoginProfile:output_type -> vws.iam.v1.SetLoginProfileResponse
+	14, // 38: vws.iam.v1.UserService.DeleteLoginProfile:output_type -> vws.iam.v1.DeleteLoginProfileResponse
+	15, // 39: vws.iam.v1.UserService.ChangePassword:output_type -> vws.iam.v1.ChangePasswordResponse
+	18, // 40: vws.iam.v1.UserService.PutUserPermissionsBoundary:output_type -> vws.iam.v1.PutUserPermissionsBoundaryResponse
+	20, // 41: vws.iam.v1.UserService.DeleteUserPermissionsBoundary:output_type -> vws.iam.v1.DeleteUserPermissionsBoundaryResponse
+	31, // 42: vws.iam.v1.UserService.TagUser:output_type -> google.longrunning.Operation
+	31, // 43: vws.iam.v1.UserService.UntagUser:output_type -> google.longrunning.Operation
+	24, // 44: vws.iam.v1.UserService.ListUserTags:output_type -> vws.iam.v1.ListUserTagsResponse
+	31, // [31:45] is the sub-list for method output_type
+	17, // [17:31] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_user_proto_init() }
@@ -1648,13 +1950,14 @@ func file_vws_iam_v1_user_proto_init() {
 	if File_vws_iam_v1_user_proto != nil {
 		return
 	}
+	file_vws_iam_v1_policy_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_user_proto_rawDesc), len(file_vws_iam_v1_user_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   22,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
