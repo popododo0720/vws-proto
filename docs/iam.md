@@ -42,7 +42,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 
 ## Not in Phase 1
 
-- Tags on resources other than a managed policy and a virtual MFA device (`TagUser`, `TagRole` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice` and `ListMFADeviceTags` are in Phase 1).
+- Write tag RPCs on resources other than a managed policy and a virtual MFA device (`TagUser`, `TagRole`, `UntagRole` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice`, `ListMFADeviceTags` and `ListRoleTags` are in).
 - AssumeRole session policies (`Policy`/`PolicyArns`), and session tags on any STS call.
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
 - `SimulatePrincipalPolicy`, `SimulateCustomPolicy`.
@@ -106,6 +106,14 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: a role name length or pattern fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). An unknown role is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A service-linked role is `FAILED_PRECONDITION / UNMODIFIABLE_ENTITY` (`UnmodifiableEntity`). A write that keeps losing to concurrent writes is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`).
 - Retry: a role with no boundary succeeds without a write, so a retry after a lost response succeeds.
 - Authorization (`iam:DeleteRolePermissionsBoundary`) is console-api's.
+
+## Role tags (#139)
+
+- `RoleService.ListRoleTags` is AWS `ListRoleTags`. `name` is `projects/{project}/roles/{role}`; the role id is AWS `RoleName`. It returns the role's stored tags as `vws.iam.v1.Tag` (key, value), sorted by key, in pages. `page_size` is AWS `MaxItems` (1-1000; 0 is unset, server default 100) and `page_token` and `next_page_token` are AWS `Marker`; `next_page_token` is set exactly when AWS `IsTruncated` is true. It is a read RPC, not an operation.
+- A tag is not an envelope label: the rules are the same as for a policy (50 tags, key 1-128 and value 0-256 characters of `[\p{L}\p{Z}\p{N}_.:/=+\-@]`, no key or value beginning with `aws:`; key case significant). `TagRole` and `UntagRole` are not in this contract yet; this RPC only lists tags vws-iam already stores.
+- Errors: a bad project, a `RoleName` outside the AWS pattern, a `page_size` outside 1-1000 or a `page_token` character outside `[\u0020-\u00FF]` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A well-formed `page_token` the server did not issue is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). All of these are checked before any store access. An unknown role is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`, `The role with name X cannot be found.`). Any other failure is `INTERNAL` (`ServiceFailure`). console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
+- Pages: deterministic in key order. A tag that exists for the whole listing is returned once. The call only reads, so a retry is safe.
+- Authorization (`iam:ListRoleTags`) is console-api's.
 
 ## User permissions boundary (#116, #117)
 
