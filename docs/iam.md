@@ -70,7 +70,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - `UserService.RevokeUserSessions` and `RoleService.RevokeRoleSessions` are the AWS console's "Revoke active sessions". STS sessions issued before that moment (`GetSessionToken` for users, `AssumeRole` for roles) are refused. Credentials issued later are not affected.
 - It is a change to the desired state, so it returns an operation and is idempotent by `request_id`. No secret is exchanged, so it is not an operation exception. The response is the User/Role with `status.sessions_revoke_time` set.
 - The permission is `iam:RevokeUserSessions` / `iam:RevokeRoleSessions` on the target ARN.
-- `Authorize` checks assumed-role revocation from the sealed `Principal.session_context`. An `ASSUMED_ROLE` principal without it is `DENY_IMPLICIT`. For root, `USER` and `GetSessionToken` principals it seals only the credential type, with no session to revoke, so revocation does not apply to them.
+- `Authorize` checks assumed-role revocation from the sealed `Principal.session_context`. An `ASSUMED_ROLE` principal without it is `DENY_IMPLICIT`. A `GetSessionToken` session is not exempt: it is a `USER` principal marked `Principal.credential_type` = `CREDENTIAL_TYPE_SESSION_TOKEN`, and it is refused when it was issued before the user's `status.sessions_revoke_time`, as above. Only root and a plain `USER` long-term access key have no session to revoke, so revocation does not apply to them; for these and for `GetSessionToken` principals `session_context` seals only the credential type.
 
 ## Policy tags (#74, #75, #76)
 
