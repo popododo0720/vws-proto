@@ -23,6 +23,56 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// CredentialType says which credential produced a Principal. Assumed-role and
+// federated-user sessions are already told apart by PrincipalType.
+type CredentialType int32
+
+const (
+	// A long-term access key or a console session.
+	CredentialType_CREDENTIAL_TYPE_UNSPECIFIED CredentialType = 0
+	// A GetSessionToken session of a user or root.
+	CredentialType_CREDENTIAL_TYPE_SESSION_TOKEN CredentialType = 1
+)
+
+// Enum value maps for CredentialType.
+var (
+	CredentialType_name = map[int32]string{
+		0: "CREDENTIAL_TYPE_UNSPECIFIED",
+		1: "CREDENTIAL_TYPE_SESSION_TOKEN",
+	}
+	CredentialType_value = map[string]int32{
+		"CREDENTIAL_TYPE_UNSPECIFIED":   0,
+		"CREDENTIAL_TYPE_SESSION_TOKEN": 1,
+	}
+)
+
+func (x CredentialType) Enum() *CredentialType {
+	p := new(CredentialType)
+	*p = x
+	return p
+}
+
+func (x CredentialType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CredentialType) Descriptor() protoreflect.EnumDescriptor {
+	return file_vws_iam_v1_auth_proto_enumTypes[0].Descriptor()
+}
+
+func (CredentialType) Type() protoreflect.EnumType {
+	return &file_vws_iam_v1_auth_proto_enumTypes[0]
+}
+
+func (x CredentialType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CredentialType.Descriptor instead.
+func (CredentialType) EnumDescriptor() ([]byte, []int) {
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{0}
+}
+
 type PrincipalType int32
 
 const (
@@ -63,11 +113,11 @@ func (x PrincipalType) String() string {
 }
 
 func (PrincipalType) Descriptor() protoreflect.EnumDescriptor {
-	return file_vws_iam_v1_auth_proto_enumTypes[0].Descriptor()
+	return file_vws_iam_v1_auth_proto_enumTypes[1].Descriptor()
 }
 
 func (PrincipalType) Type() protoreflect.EnumType {
-	return &file_vws_iam_v1_auth_proto_enumTypes[0]
+	return &file_vws_iam_v1_auth_proto_enumTypes[1]
 }
 
 func (x PrincipalType) Number() protoreflect.EnumNumber {
@@ -76,7 +126,7 @@ func (x PrincipalType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PrincipalType.Descriptor instead.
 func (PrincipalType) EnumDescriptor() ([]byte, []int) {
-	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{0}
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{1}
 }
 
 type Decision int32
@@ -115,11 +165,11 @@ func (x Decision) String() string {
 }
 
 func (Decision) Descriptor() protoreflect.EnumDescriptor {
-	return file_vws_iam_v1_auth_proto_enumTypes[1].Descriptor()
+	return file_vws_iam_v1_auth_proto_enumTypes[2].Descriptor()
 }
 
 func (Decision) Type() protoreflect.EnumType {
-	return &file_vws_iam_v1_auth_proto_enumTypes[1]
+	return &file_vws_iam_v1_auth_proto_enumTypes[2]
 }
 
 func (x Decision) Number() protoreflect.EnumNumber {
@@ -128,7 +178,7 @@ func (x Decision) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Decision.Descriptor instead.
 func (Decision) EnumDescriptor() ([]byte, []int) {
-	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{1}
+	return file_vws_iam_v1_auth_proto_rawDescGZIP(), []int{2}
 }
 
 // Principal is the authenticated caller, as resolved by vws-iam.
@@ -162,9 +212,22 @@ type Principal struct {
 	// principal's policies and the session policies allow. A principal whose
 	// type is FEDERATED_USER or whose arn is a federated-user ARN, without it,
 	// or with one that does not open, has expired, or is bound to another
-	// arn, unique_id or project, is DENY_IMPLICIT (fail closed). Empty for
-	// root and users. Never log it.
+	// arn, unique_id or project, is DENY_IMPLICIT (fail closed). For a root,
+	// user or GetSessionToken principal it seals only the credential type (no
+	// session policies) and binds it to the access key id that produced it;
+	// without it Authorize answers DENY_IMPLICIT, so a caller that drops
+	// credential_type and session_context loses access instead of gaining it.
+	// Never log it.
 	SessionContext string `protobuf:"bytes,9,opt,name=session_context,json=sessionContext,proto3" json:"session_context,omitempty"`
+	// The kind of credential Authenticate resolved. Unset means a long-term
+	// access key or a console session. Authenticate sets SESSION_TOKEN for a
+	// GetSessionToken session and seals the same fact into session_context;
+	// Authorize opens session_context and answers DENY_IMPLICIT when
+	// credential_type disagrees with it, so a gateway that rewrites the field
+	// cannot turn a session into a long-term caller. Authorize applies the AWS
+	// limits of a GetSessionToken session: no IAM action without MFA, and no
+	// STS action except AssumeRole and GetCallerIdentity.
+	CredentialType CredentialType `protobuf:"varint,10,opt,name=credential_type,json=credentialType,proto3,enum=vws.iam.v1.CredentialType" json:"credential_type,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -260,6 +323,13 @@ func (x *Principal) GetSessionContext() string {
 		return x.SessionContext
 	}
 	return ""
+}
+
+func (x *Principal) GetCredentialType() CredentialType {
+	if x != nil {
+		return x.CredentialType
+	}
+	return CredentialType_CREDENTIAL_TYPE_UNSPECIFIED
 }
 
 // Credentials are temporary STS credentials.
@@ -2566,7 +2636,7 @@ var File_vws_iam_v1_auth_proto protoreflect.FileDescriptor
 const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"\x15vws/iam/v1/auth.proto\x12\n" +
-	"vws.iam.v1\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xde\x02\n" +
+	"vws.iam.v1\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa3\x03\n" +
 	"\tPrincipal\x12-\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x19.vws.iam.v1.PrincipalTypeR\x04type\x12\x10\n" +
 	"\x03arn\x18\x02 \x01(\tR\x03arn\x12\x18\n" +
@@ -2577,7 +2647,9 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\fsession_name\x18\x06 \x01(\tR\vsessionName\x12+\n" +
 	"\x11mfa_authenticated\x18\a \x01(\bR\x10mfaAuthenticated\x127\n" +
 	"\tauth_time\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\bauthTime\x12,\n" +
-	"\x0fsession_context\x18\t \x01(\tB\x03\x80\x01\x01R\x0esessionContext\"\xcf\x01\n" +
+	"\x0fsession_context\x18\t \x01(\tB\x03\x80\x01\x01R\x0esessionContext\x12C\n" +
+	"\x0fcredential_type\x18\n" +
+	" \x01(\x0e2\x1a.vws.iam.v1.CredentialTypeR\x0ecredentialType\"\xcf\x01\n" +
 	"\vCredentials\x12\"\n" +
 	"\raccess_key_id\x18\x01 \x01(\tR\vaccessKeyId\x122\n" +
 	"\x11secret_access_key\x18\x02 \x01(\tB\x06\xe0A\x03\x80\x01\x01R\x0fsecretAccessKey\x12+\n" +
@@ -2738,7 +2810,10 @@ const file_vws_iam_v1_auth_proto_rawDesc = "" +
 	"\baudience\x18\x04 \x01(\tB\x03\xe0A\x03R\baudience\x12\x1f\n" +
 	"\bprovider\x18\x05 \x01(\tB\x03\xe0A\x03R\bprovider\x12I\n" +
 	"\x1fsubject_from_web_identity_token\x18\x06 \x01(\tB\x03\xe0A\x03R\x1bsubjectFromWebIdentityToken\x12,\n" +
-	"\x0fsource_identity\x18\a \x01(\tB\x03\xe0A\x03R\x0esourceIdentity*\xa5\x01\n" +
+	"\x0fsource_identity\x18\a \x01(\tB\x03\xe0A\x03R\x0esourceIdentity*T\n" +
+	"\x0eCredentialType\x12\x1f\n" +
+	"\x1bCREDENTIAL_TYPE_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dCREDENTIAL_TYPE_SESSION_TOKEN\x10\x01*\xa5\x01\n" +
 	"\rPrincipalType\x12\x1e\n" +
 	"\x1aPRINCIPAL_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13PRINCIPAL_TYPE_ROOT\x10\x01\x12\x17\n" +
@@ -2779,102 +2854,104 @@ func file_vws_iam_v1_auth_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_auth_proto_rawDescData
 }
 
-var file_vws_iam_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_vws_iam_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_vws_iam_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_vws_iam_v1_auth_proto_goTypes = []any{
-	(PrincipalType)(0),                         // 0: vws.iam.v1.PrincipalType
-	(Decision)(0),                              // 1: vws.iam.v1.Decision
-	(*Principal)(nil),                          // 2: vws.iam.v1.Principal
-	(*Credentials)(nil),                        // 3: vws.iam.v1.Credentials
-	(*AuthenticateRequest)(nil),                // 4: vws.iam.v1.AuthenticateRequest
-	(*AuthenticateResponse)(nil),               // 5: vws.iam.v1.AuthenticateResponse
-	(*AuthorizeRequest)(nil),                   // 6: vws.iam.v1.AuthorizeRequest
-	(*ContextValues)(nil),                      // 7: vws.iam.v1.ContextValues
-	(*AuthorizeResponse)(nil),                  // 8: vws.iam.v1.AuthorizeResponse
-	(*LoginRequest)(nil),                       // 9: vws.iam.v1.LoginRequest
-	(*LoginResponse)(nil),                      // 10: vws.iam.v1.LoginResponse
-	(*ValidateSessionRequest)(nil),             // 11: vws.iam.v1.ValidateSessionRequest
-	(*ValidateSessionResponse)(nil),            // 12: vws.iam.v1.ValidateSessionResponse
-	(*LogoutRequest)(nil),                      // 13: vws.iam.v1.LogoutRequest
-	(*LogoutResponse)(nil),                     // 14: vws.iam.v1.LogoutResponse
-	(*AssumeRoleRequest)(nil),                  // 15: vws.iam.v1.AssumeRoleRequest
-	(*AssumeRoleResponse)(nil),                 // 16: vws.iam.v1.AssumeRoleResponse
-	(*GetSessionTokenRequest)(nil),             // 17: vws.iam.v1.GetSessionTokenRequest
-	(*GetSessionTokenResponse)(nil),            // 18: vws.iam.v1.GetSessionTokenResponse
-	(*DecodeAuthorizationMessageRequest)(nil),  // 19: vws.iam.v1.DecodeAuthorizationMessageRequest
-	(*DecodeAuthorizationMessageResponse)(nil), // 20: vws.iam.v1.DecodeAuthorizationMessageResponse
-	(*GetAccessKeyInfoRequest)(nil),            // 21: vws.iam.v1.GetAccessKeyInfoRequest
-	(*GetAccessKeyInfoResponse)(nil),           // 22: vws.iam.v1.GetAccessKeyInfoResponse
-	(*GetFederationTokenRequest)(nil),          // 23: vws.iam.v1.GetFederationTokenRequest
-	(*GetFederationTokenResponse)(nil),         // 24: vws.iam.v1.GetFederationTokenResponse
-	(*FederatedUser)(nil),                      // 25: vws.iam.v1.FederatedUser
-	(*AssumeRoleWithSAMLRequest)(nil),          // 26: vws.iam.v1.AssumeRoleWithSAMLRequest
-	(*AssumeRoleWithSAMLResponse)(nil),         // 27: vws.iam.v1.AssumeRoleWithSAMLResponse
-	(*AssumedRoleUser)(nil),                    // 28: vws.iam.v1.AssumedRoleUser
-	(*AssumeRoleWithWebIdentityRequest)(nil),   // 29: vws.iam.v1.AssumeRoleWithWebIdentityRequest
-	(*AssumeRoleWithWebIdentityResponse)(nil),  // 30: vws.iam.v1.AssumeRoleWithWebIdentityResponse
-	nil,                           // 31: vws.iam.v1.AuthorizeRequest.ContextEntry
-	(*timestamppb.Timestamp)(nil), // 32: google.protobuf.Timestamp
+	(CredentialType)(0),                        // 0: vws.iam.v1.CredentialType
+	(PrincipalType)(0),                         // 1: vws.iam.v1.PrincipalType
+	(Decision)(0),                              // 2: vws.iam.v1.Decision
+	(*Principal)(nil),                          // 3: vws.iam.v1.Principal
+	(*Credentials)(nil),                        // 4: vws.iam.v1.Credentials
+	(*AuthenticateRequest)(nil),                // 5: vws.iam.v1.AuthenticateRequest
+	(*AuthenticateResponse)(nil),               // 6: vws.iam.v1.AuthenticateResponse
+	(*AuthorizeRequest)(nil),                   // 7: vws.iam.v1.AuthorizeRequest
+	(*ContextValues)(nil),                      // 8: vws.iam.v1.ContextValues
+	(*AuthorizeResponse)(nil),                  // 9: vws.iam.v1.AuthorizeResponse
+	(*LoginRequest)(nil),                       // 10: vws.iam.v1.LoginRequest
+	(*LoginResponse)(nil),                      // 11: vws.iam.v1.LoginResponse
+	(*ValidateSessionRequest)(nil),             // 12: vws.iam.v1.ValidateSessionRequest
+	(*ValidateSessionResponse)(nil),            // 13: vws.iam.v1.ValidateSessionResponse
+	(*LogoutRequest)(nil),                      // 14: vws.iam.v1.LogoutRequest
+	(*LogoutResponse)(nil),                     // 15: vws.iam.v1.LogoutResponse
+	(*AssumeRoleRequest)(nil),                  // 16: vws.iam.v1.AssumeRoleRequest
+	(*AssumeRoleResponse)(nil),                 // 17: vws.iam.v1.AssumeRoleResponse
+	(*GetSessionTokenRequest)(nil),             // 18: vws.iam.v1.GetSessionTokenRequest
+	(*GetSessionTokenResponse)(nil),            // 19: vws.iam.v1.GetSessionTokenResponse
+	(*DecodeAuthorizationMessageRequest)(nil),  // 20: vws.iam.v1.DecodeAuthorizationMessageRequest
+	(*DecodeAuthorizationMessageResponse)(nil), // 21: vws.iam.v1.DecodeAuthorizationMessageResponse
+	(*GetAccessKeyInfoRequest)(nil),            // 22: vws.iam.v1.GetAccessKeyInfoRequest
+	(*GetAccessKeyInfoResponse)(nil),           // 23: vws.iam.v1.GetAccessKeyInfoResponse
+	(*GetFederationTokenRequest)(nil),          // 24: vws.iam.v1.GetFederationTokenRequest
+	(*GetFederationTokenResponse)(nil),         // 25: vws.iam.v1.GetFederationTokenResponse
+	(*FederatedUser)(nil),                      // 26: vws.iam.v1.FederatedUser
+	(*AssumeRoleWithSAMLRequest)(nil),          // 27: vws.iam.v1.AssumeRoleWithSAMLRequest
+	(*AssumeRoleWithSAMLResponse)(nil),         // 28: vws.iam.v1.AssumeRoleWithSAMLResponse
+	(*AssumedRoleUser)(nil),                    // 29: vws.iam.v1.AssumedRoleUser
+	(*AssumeRoleWithWebIdentityRequest)(nil),   // 30: vws.iam.v1.AssumeRoleWithWebIdentityRequest
+	(*AssumeRoleWithWebIdentityResponse)(nil),  // 31: vws.iam.v1.AssumeRoleWithWebIdentityResponse
+	nil,                           // 32: vws.iam.v1.AuthorizeRequest.ContextEntry
+	(*timestamppb.Timestamp)(nil), // 33: google.protobuf.Timestamp
 }
 var file_vws_iam_v1_auth_proto_depIdxs = []int32{
-	0,  // 0: vws.iam.v1.Principal.type:type_name -> vws.iam.v1.PrincipalType
-	32, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
-	32, // 2: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
-	2,  // 3: vws.iam.v1.AuthenticateResponse.principal:type_name -> vws.iam.v1.Principal
-	32, // 4: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
-	2,  // 5: vws.iam.v1.AuthorizeRequest.principal:type_name -> vws.iam.v1.Principal
-	31, // 6: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
-	1,  // 7: vws.iam.v1.AuthorizeResponse.decision:type_name -> vws.iam.v1.Decision
-	32, // 8: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
-	2,  // 9: vws.iam.v1.LoginResponse.principal:type_name -> vws.iam.v1.Principal
-	2,  // 10: vws.iam.v1.ValidateSessionResponse.principal:type_name -> vws.iam.v1.Principal
-	32, // 11: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
-	2,  // 12: vws.iam.v1.AssumeRoleRequest.caller:type_name -> vws.iam.v1.Principal
-	4,  // 13: vws.iam.v1.AssumeRoleRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
-	3,  // 14: vws.iam.v1.AssumeRoleResponse.credentials:type_name -> vws.iam.v1.Credentials
-	2,  // 15: vws.iam.v1.AssumeRoleResponse.assumed_role_user:type_name -> vws.iam.v1.Principal
-	2,  // 16: vws.iam.v1.GetSessionTokenRequest.caller:type_name -> vws.iam.v1.Principal
-	4,  // 17: vws.iam.v1.GetSessionTokenRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
-	3,  // 18: vws.iam.v1.GetSessionTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
-	4,  // 19: vws.iam.v1.DecodeAuthorizationMessageRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
-	4,  // 20: vws.iam.v1.GetAccessKeyInfoRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
-	4,  // 21: vws.iam.v1.GetFederationTokenRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
-	3,  // 22: vws.iam.v1.GetFederationTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
-	25, // 23: vws.iam.v1.GetFederationTokenResponse.federated_user:type_name -> vws.iam.v1.FederatedUser
-	3,  // 24: vws.iam.v1.AssumeRoleWithSAMLResponse.credentials:type_name -> vws.iam.v1.Credentials
-	28, // 25: vws.iam.v1.AssumeRoleWithSAMLResponse.assumed_role_user:type_name -> vws.iam.v1.AssumedRoleUser
-	3,  // 26: vws.iam.v1.AssumeRoleWithWebIdentityResponse.credentials:type_name -> vws.iam.v1.Credentials
-	28, // 27: vws.iam.v1.AssumeRoleWithWebIdentityResponse.assumed_role_user:type_name -> vws.iam.v1.AssumedRoleUser
-	7,  // 28: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
-	4,  // 29: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
-	6,  // 30: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
-	9,  // 31: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
-	11, // 32: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
-	13, // 33: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
-	15, // 34: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
-	17, // 35: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
-	19, // 36: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
-	21, // 37: vws.iam.v1.TokenService.GetAccessKeyInfo:input_type -> vws.iam.v1.GetAccessKeyInfoRequest
-	23, // 38: vws.iam.v1.TokenService.GetFederationToken:input_type -> vws.iam.v1.GetFederationTokenRequest
-	26, // 39: vws.iam.v1.TokenService.AssumeRoleWithSAML:input_type -> vws.iam.v1.AssumeRoleWithSAMLRequest
-	29, // 40: vws.iam.v1.TokenService.AssumeRoleWithWebIdentity:input_type -> vws.iam.v1.AssumeRoleWithWebIdentityRequest
-	5,  // 41: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
-	8,  // 42: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
-	10, // 43: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
-	12, // 44: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
-	14, // 45: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
-	16, // 46: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
-	18, // 47: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
-	20, // 48: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
-	22, // 49: vws.iam.v1.TokenService.GetAccessKeyInfo:output_type -> vws.iam.v1.GetAccessKeyInfoResponse
-	24, // 50: vws.iam.v1.TokenService.GetFederationToken:output_type -> vws.iam.v1.GetFederationTokenResponse
-	27, // 51: vws.iam.v1.TokenService.AssumeRoleWithSAML:output_type -> vws.iam.v1.AssumeRoleWithSAMLResponse
-	30, // 52: vws.iam.v1.TokenService.AssumeRoleWithWebIdentity:output_type -> vws.iam.v1.AssumeRoleWithWebIdentityResponse
-	41, // [41:53] is the sub-list for method output_type
-	29, // [29:41] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	1,  // 0: vws.iam.v1.Principal.type:type_name -> vws.iam.v1.PrincipalType
+	33, // 1: vws.iam.v1.Principal.auth_time:type_name -> google.protobuf.Timestamp
+	0,  // 2: vws.iam.v1.Principal.credential_type:type_name -> vws.iam.v1.CredentialType
+	33, // 3: vws.iam.v1.Credentials.expire_time:type_name -> google.protobuf.Timestamp
+	3,  // 4: vws.iam.v1.AuthenticateResponse.principal:type_name -> vws.iam.v1.Principal
+	33, // 5: vws.iam.v1.AuthenticateResponse.expire_time:type_name -> google.protobuf.Timestamp
+	3,  // 6: vws.iam.v1.AuthorizeRequest.principal:type_name -> vws.iam.v1.Principal
+	32, // 7: vws.iam.v1.AuthorizeRequest.context:type_name -> vws.iam.v1.AuthorizeRequest.ContextEntry
+	2,  // 8: vws.iam.v1.AuthorizeResponse.decision:type_name -> vws.iam.v1.Decision
+	33, // 9: vws.iam.v1.LoginResponse.expire_time:type_name -> google.protobuf.Timestamp
+	3,  // 10: vws.iam.v1.LoginResponse.principal:type_name -> vws.iam.v1.Principal
+	3,  // 11: vws.iam.v1.ValidateSessionResponse.principal:type_name -> vws.iam.v1.Principal
+	33, // 12: vws.iam.v1.ValidateSessionResponse.expire_time:type_name -> google.protobuf.Timestamp
+	3,  // 13: vws.iam.v1.AssumeRoleRequest.caller:type_name -> vws.iam.v1.Principal
+	5,  // 14: vws.iam.v1.AssumeRoleRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
+	4,  // 15: vws.iam.v1.AssumeRoleResponse.credentials:type_name -> vws.iam.v1.Credentials
+	3,  // 16: vws.iam.v1.AssumeRoleResponse.assumed_role_user:type_name -> vws.iam.v1.Principal
+	3,  // 17: vws.iam.v1.GetSessionTokenRequest.caller:type_name -> vws.iam.v1.Principal
+	5,  // 18: vws.iam.v1.GetSessionTokenRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
+	4,  // 19: vws.iam.v1.GetSessionTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
+	5,  // 20: vws.iam.v1.DecodeAuthorizationMessageRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
+	5,  // 21: vws.iam.v1.GetAccessKeyInfoRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
+	5,  // 22: vws.iam.v1.GetFederationTokenRequest.sigv4:type_name -> vws.iam.v1.AuthenticateRequest
+	4,  // 23: vws.iam.v1.GetFederationTokenResponse.credentials:type_name -> vws.iam.v1.Credentials
+	26, // 24: vws.iam.v1.GetFederationTokenResponse.federated_user:type_name -> vws.iam.v1.FederatedUser
+	4,  // 25: vws.iam.v1.AssumeRoleWithSAMLResponse.credentials:type_name -> vws.iam.v1.Credentials
+	29, // 26: vws.iam.v1.AssumeRoleWithSAMLResponse.assumed_role_user:type_name -> vws.iam.v1.AssumedRoleUser
+	4,  // 27: vws.iam.v1.AssumeRoleWithWebIdentityResponse.credentials:type_name -> vws.iam.v1.Credentials
+	29, // 28: vws.iam.v1.AssumeRoleWithWebIdentityResponse.assumed_role_user:type_name -> vws.iam.v1.AssumedRoleUser
+	8,  // 29: vws.iam.v1.AuthorizeRequest.ContextEntry.value:type_name -> vws.iam.v1.ContextValues
+	5,  // 30: vws.iam.v1.AuthService.Authenticate:input_type -> vws.iam.v1.AuthenticateRequest
+	7,  // 31: vws.iam.v1.AuthService.Authorize:input_type -> vws.iam.v1.AuthorizeRequest
+	10, // 32: vws.iam.v1.AuthService.Login:input_type -> vws.iam.v1.LoginRequest
+	12, // 33: vws.iam.v1.AuthService.ValidateSession:input_type -> vws.iam.v1.ValidateSessionRequest
+	14, // 34: vws.iam.v1.AuthService.Logout:input_type -> vws.iam.v1.LogoutRequest
+	16, // 35: vws.iam.v1.TokenService.AssumeRole:input_type -> vws.iam.v1.AssumeRoleRequest
+	18, // 36: vws.iam.v1.TokenService.GetSessionToken:input_type -> vws.iam.v1.GetSessionTokenRequest
+	20, // 37: vws.iam.v1.TokenService.DecodeAuthorizationMessage:input_type -> vws.iam.v1.DecodeAuthorizationMessageRequest
+	22, // 38: vws.iam.v1.TokenService.GetAccessKeyInfo:input_type -> vws.iam.v1.GetAccessKeyInfoRequest
+	24, // 39: vws.iam.v1.TokenService.GetFederationToken:input_type -> vws.iam.v1.GetFederationTokenRequest
+	27, // 40: vws.iam.v1.TokenService.AssumeRoleWithSAML:input_type -> vws.iam.v1.AssumeRoleWithSAMLRequest
+	30, // 41: vws.iam.v1.TokenService.AssumeRoleWithWebIdentity:input_type -> vws.iam.v1.AssumeRoleWithWebIdentityRequest
+	6,  // 42: vws.iam.v1.AuthService.Authenticate:output_type -> vws.iam.v1.AuthenticateResponse
+	9,  // 43: vws.iam.v1.AuthService.Authorize:output_type -> vws.iam.v1.AuthorizeResponse
+	11, // 44: vws.iam.v1.AuthService.Login:output_type -> vws.iam.v1.LoginResponse
+	13, // 45: vws.iam.v1.AuthService.ValidateSession:output_type -> vws.iam.v1.ValidateSessionResponse
+	15, // 46: vws.iam.v1.AuthService.Logout:output_type -> vws.iam.v1.LogoutResponse
+	17, // 47: vws.iam.v1.TokenService.AssumeRole:output_type -> vws.iam.v1.AssumeRoleResponse
+	19, // 48: vws.iam.v1.TokenService.GetSessionToken:output_type -> vws.iam.v1.GetSessionTokenResponse
+	21, // 49: vws.iam.v1.TokenService.DecodeAuthorizationMessage:output_type -> vws.iam.v1.DecodeAuthorizationMessageResponse
+	23, // 50: vws.iam.v1.TokenService.GetAccessKeyInfo:output_type -> vws.iam.v1.GetAccessKeyInfoResponse
+	25, // 51: vws.iam.v1.TokenService.GetFederationToken:output_type -> vws.iam.v1.GetFederationTokenResponse
+	28, // 52: vws.iam.v1.TokenService.AssumeRoleWithSAML:output_type -> vws.iam.v1.AssumeRoleWithSAMLResponse
+	31, // 53: vws.iam.v1.TokenService.AssumeRoleWithWebIdentity:output_type -> vws.iam.v1.AssumeRoleWithWebIdentityResponse
+	42, // [42:54] is the sub-list for method output_type
+	30, // [30:42] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_auth_proto_init() }
@@ -2907,7 +2984,7 @@ func file_vws_iam_v1_auth_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_auth_proto_rawDesc), len(file_vws_iam_v1_auth_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      3,
 			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   2,
