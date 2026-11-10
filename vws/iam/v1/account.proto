@@ -102,6 +102,33 @@ service AccountService {
       body: "*"
     };
   }
+
+  // ---------------------------------------------------------------------------
+  // Account password policy
+  // ---------------------------------------------------------------------------
+
+  // UpdateAccountPasswordPolicy is AWS UpdateAccountPasswordPolicy. It
+  // creates or replaces the project's custom password policy. It is
+  // synchronous and not an operation, as the AWS call is: one store
+  // write, returned once stored.
+  // A bad parent or a value outside its AWS range is INVALID_ARGUMENT /
+  // INVALID_SPEC (AWS ValidationError), before any store access. An
+  // explicit 0 for max_password_age or password_reuse_prevention is a
+  // ValidationError, not the default. Omitted parameters take their AWS
+  // defaults (length 6, no max age, no reuse prevention, booleans
+  // false). A policy that keeps changing between read and write is
+  // ABORTED / GENERATION_CONFLICT (ConcurrentModification).
+  // NoSuchEntity, LimitExceeded and MalformedPolicyDocument never apply.
+  // Any other failure is INTERNAL (ServiceFailure).
+  // A repeat that would store the same policy writes nothing and
+  // succeeds, so a retry after a lost response succeeds.
+  // Authorization (iam:UpdateAccountPasswordPolicy) is console-api's.
+  rpc UpdateAccountPasswordPolicy(UpdateAccountPasswordPolicyRequest) returns (UpdateAccountPasswordPolicyResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}:updateAccountPasswordPolicy"
+      body: "*"
+    };
+  }
 }
 
 message GetAccountAuthorizationDetailsRequest {
@@ -338,3 +365,30 @@ message DeleteAccountAliasRequest {
 // DeleteAccountAliasResponse is empty, as AWS returns only
 // ResponseMetadata.
 message DeleteAccountAliasResponse {}
+
+// ---------------------------------------------------------------------------
+// Account password policy messages (#135)
+// ---------------------------------------------------------------------------
+
+message UpdateAccountPasswordPolicyRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // 6-128. Unset means the AWS default of 6. AWS has no partial update.
+  optional int32 minimum_password_length = 2;
+  // 1-1095 days. Unset means passwords never expire. An explicit 0 is
+  // ValidationError, not the default.
+  optional int32 max_password_age = 3;
+  // 1-24. Unset means no reuse check. An explicit 0 is ValidationError,
+  // not the default.
+  optional int32 password_reuse_prevention = 4;
+  bool require_symbols = 5;
+  bool require_numbers = 6;
+  bool require_uppercase_characters = 7;
+  bool require_lowercase_characters = 8;
+  bool allow_users_to_change_password = 9;
+  bool hard_expiry = 10;
+}
+
+// UpdateAccountPasswordPolicyResponse is empty, as AWS returns only
+// ResponseMetadata.
+message UpdateAccountPasswordPolicyResponse {}
