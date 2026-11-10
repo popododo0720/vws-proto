@@ -202,9 +202,9 @@ message ImportKeyPairRequest {
   // Region id, stored as spec.region.
   string region = 6 [(google.api.field_behavior) = REQUIRED];
   map<string, string> labels = 4;
-  // A repeated request_id within 24 hours with the same key_name and
-  // public_key returns the original operation. With other values it is
-  // ABORTED / IDEMPOTENCY_CONFLICT.
+  // Uses the shared request-fingerprint rule in vws/common/v1/operation.proto:
+  // within 24 hours, the same request_id and fingerprint return the original
+  // operation; a different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT.
   string request_id = 5 [
     (google.api.field_info).format = UUID4,
     (google.api.field_behavior) = OPTIONAL

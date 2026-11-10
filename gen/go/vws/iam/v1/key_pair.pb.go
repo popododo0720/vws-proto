@@ -651,9 +651,9 @@ type ImportKeyPairRequest struct {
 	// Region id, stored as spec.region.
 	Region string            `protobuf:"bytes,6,opt,name=region,proto3" json:"region,omitempty"`
 	Labels map[string]string `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// A repeated request_id within 24 hours with the same key_name and
-	// public_key returns the original operation. With other values it is
-	// ABORTED / IDEMPOTENCY_CONFLICT.
+	// Uses the shared request-fingerprint rule in vws/common/v1/operation.proto:
+	// within 24 hours, the same request_id and fingerprint return the original
+	// operation; a different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT.
 	RequestId     string `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
