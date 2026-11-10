@@ -225,8 +225,12 @@ type PolicyStatus struct {
 	UniqueId string `protobuf:"bytes,3,opt,name=unique_id,json=uniqueId,proto3" json:"unique_id,omitempty"`
 	// Users, groups, and roles that attach it.
 	AttachmentCount int32 `protobuf:"varint,4,opt,name=attachment_count,json=attachmentCount,proto3" json:"attachment_count,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Users and roles that use it as a permissions boundary. Counted
+	// separately from attachment_count: setting a boundary does not attach
+	// the policy, and attaching it does not set a boundary.
+	PermissionsBoundaryUsageCount int32 `protobuf:"varint,5,opt,name=permissions_boundary_usage_count,json=permissionsBoundaryUsageCount,proto3" json:"permissions_boundary_usage_count,omitempty"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
 }
 
 func (x *PolicyStatus) Reset() {
@@ -283,6 +287,13 @@ func (x *PolicyStatus) GetUniqueId() string {
 func (x *PolicyStatus) GetAttachmentCount() int32 {
 	if x != nil {
 		return x.AttachmentCount
+	}
+	return 0
+}
+
+func (x *PolicyStatus) GetPermissionsBoundaryUsageCount() int32 {
+	if x != nil {
+		return x.PermissionsBoundaryUsageCount
 	}
 	return 0
 }
@@ -1541,12 +1552,13 @@ const file_vws_iam_v1_policy_proto_rawDesc = "" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\"\n" +
 	"\bdocument\x18\x03 \x01(\tB\x06\xe0A\x02\xe0A\x05R\bdocument\x12'\n" +
-	"\x0fdefault_version\x18\x04 \x01(\tR\x0edefaultVersion\"\xa2\x01\n" +
+	"\x0fdefault_version\x18\x04 \x01(\tR\x0edefaultVersion\"\xeb\x01\n" +
 	"\fPolicyStatus\x128\n" +
 	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\x12\x10\n" +
 	"\x03arn\x18\x02 \x01(\tR\x03arn\x12\x1b\n" +
 	"\tunique_id\x18\x03 \x01(\tR\buniqueId\x12)\n" +
-	"\x10attachment_count\x18\x04 \x01(\x05R\x0fattachmentCount\"\xa3\x05\n" +
+	"\x10attachment_count\x18\x04 \x01(\x05R\x0fattachmentCount\x12G\n" +
+	" permissions_boundary_usage_count\x18\x05 \x01(\x05R\x1dpermissionsBoundaryUsageCount\"\xa3\x05\n" +
 	"\rPolicyVersion\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12\x1d\n" +
 	"\x03uid\x18\x02 \x01(\tB\v\xe0A\x03\xe2\x8c\xcf\xd7\b\x02\b\x01R\x03uid\x12#\n" +
