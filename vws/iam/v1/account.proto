@@ -1,0 +1,196 @@
+syntax = "proto3";
+
+package vws.iam.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/timestamp.proto";
+import "vws/iam/v1/policy.proto";
+
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
+option java_multiple_files = true;
+option java_outer_classname = "AccountProto";
+option java_package = "dev.vws.iam.v1";
+
+// AccountService holds account-level IAM reads and writes that are not
+// tied to one user, group, role or policy resource. Later account-level
+// actions (account summary, password policy, account aliases) belong on
+// this service.
+service AccountService {
+  // GetAccountAuthorizationDetails is AWS GetAccountAuthorizationDetails.
+  // It lists the users, groups, roles and customer managed policies of
+  // the parent project with their relationships, in pages, in that order,
+  // each by case-folded name. It only reads.
+  // A bad parent, an unknown filter value, a max_items outside 1-1000 or
+  // a marker character outside [\u0020-\u00FF] is INVALID_ARGUMENT /
+  // INVALID_SPEC (AWS ValidationError). A well-formed marker this RPC
+  // did not return is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). All
+  // of these are checked before any store access.
+  // AWSManagedPolicy selects nothing (AWS managed policies are not
+  // modeled). Tags and RoleLastUsed are not modeled yet and are left
+  // unset. Documents are plain JSON; URL encoding is console-api's.
+  // Any other failure is INTERNAL (ServiceFailure).
+  // Authorization (iam:GetAccountAuthorizationDetails) is console-api's.
+  rpc GetAccountAuthorizationDetails(GetAccountAuthorizationDetailsRequest) returns (GetAccountAuthorizationDetailsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}:getAccountAuthorizationDetails"};
+  }
+}
+
+message GetAccountAuthorizationDetailsRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS Filter, each one of User, Role, Group, LocalManagedPolicy,
+  // AWSManagedPolicy, case sensitive. Empty means all. Duplicates are
+  // allowed. AWSManagedPolicy selects nothing.
+  repeated string filter = 2;
+  // AWS MaxItems, 1-1000. 0 means not set: the server default is 100, as
+  // in AWS. console-api answers an explicit MaxItems=0 as ValidationError
+  // itself, since 0 cannot be told apart from unset here.
+  int32 max_items = 3;
+  // AWS Marker, 1-320 characters of [\u0020-\u00FF]. Only a marker this
+  // RPC returned.
+  string marker = 4;
+}
+
+message GetAccountAuthorizationDetailsResponse {
+  // Ordered by case-folded name among the users of this page.
+  repeated UserDetail user_detail_list = 1;
+  repeated GroupDetail group_detail_list = 2;
+  repeated RoleDetail role_detail_list = 3;
+  // Customer managed policies of this page, ordered by case-folded name.
+  repeated ManagedPolicyDetail policies = 4;
+  // AWS IsTruncated.
+  bool is_truncated = 5;
+  // AWS Marker. Set exactly when is_truncated is true.
+  string marker = 6;
+}
+
+// UserDetail is an AWS UserDetail.
+message UserDetail {
+  string path = 1;
+  string user_name = 2;
+  string user_id = 3;
+  string arn = 4;
+  google.protobuf.Timestamp create_time = 5;
+  repeated PolicyDetail user_policy_list = 6;
+  // Group names the user belongs to, as stored, ordered by case-folded
+  // name.
+  repeated string group_list = 7;
+  repeated AttachedPolicy attached_managed_policies = 8;
+  // Unset when the user has no permissions boundary.
+  AttachedPermissionsBoundary permissions_boundary = 9;
+  // Not modeled yet; left empty until that work lands.
+  repeated Tag tags = 10;
+}
+
+// GroupDetail is an AWS GroupDetail.
+message GroupDetail {
+  string path = 1;
+  string group_name = 2;
+  string group_id = 3;
+  string arn = 4;
+  google.protobuf.Timestamp create_time = 5;
+  repeated PolicyDetail group_policy_list = 6;
+  repeated AttachedPolicy attached_managed_policies = 7;
+}
+
+// RoleDetail is an AWS RoleDetail.
+message RoleDetail {
+  string path = 1;
+  string role_name = 2;
+  string role_id = 3;
+  string arn = 4;
+  google.protobuf.Timestamp create_time = 5;
+  // Trust policy, plain JSON.
+  string assume_role_policy_document = 6;
+  // Instance profiles that hold this role, each with its roles. Named
+  // AuthorizationInstanceProfile because InstanceProfile is already the
+  // resource envelope in instance_profile.proto.
+  repeated AuthorizationInstanceProfile instance_profile_list = 7;
+  repeated PolicyDetail role_policy_list = 8;
+  repeated AttachedPolicy attached_managed_policies = 9;
+  // Unset when the role has no permissions boundary.
+  AttachedPermissionsBoundary permissions_boundary = 10;
+  // Not modeled yet; left empty until that work lands.
+  repeated Tag tags = 11;
+  // Unset when last used is unknown. Not modeled yet.
+  RoleLastUsed role_last_used = 12;
+}
+
+// ManagedPolicyDetail is an AWS ManagedPolicyDetail.
+message ManagedPolicyDetail {
+  string policy_name = 1;
+  string policy_id = 2;
+  string arn = 3;
+  string path = 4;
+  string default_version_id = 5;
+  int32 attachment_count = 6;
+  int32 permissions_boundary_usage_count = 7;
+  bool is_attachable = 8;
+  string description = 9;
+  google.protobuf.Timestamp create_time = 10;
+  google.protobuf.Timestamp update_time = 11;
+  // Named AuthorizationPolicyVersion because PolicyVersion is already the
+  // resource envelope in policy.proto.
+  repeated AuthorizationPolicyVersion policy_version_list = 12;
+}
+
+// PolicyDetail is an AWS PolicyDetail: one inline policy.
+message PolicyDetail {
+  string policy_name = 1;
+  // Plain JSON.
+  string policy_document = 2;
+}
+
+// AttachedPolicy is an AWS AttachedPolicy: one attached managed policy.
+message AttachedPolicy {
+  string policy_name = 1;
+  string policy_arn = 2;
+}
+
+// AttachedPermissionsBoundary is an AWS AttachedPermissionsBoundary.
+// permissions_boundary_type is Policy when the message is set.
+message AttachedPermissionsBoundary {
+  string permissions_boundary_type = 1;
+  string permissions_boundary_arn = 2;
+}
+
+// RoleLastUsed is an AWS RoleLastUsed. The message is unset when unknown.
+message RoleLastUsed {
+  google.protobuf.Timestamp last_used_time = 1;
+  string region = 2;
+}
+
+// AuthorizationInstanceProfile is the AWS InstanceProfile data type as
+// carried by RoleDetail, not the InstanceProfile resource envelope.
+message AuthorizationInstanceProfile {
+  string path = 1;
+  string instance_profile_name = 2;
+  string instance_profile_id = 3;
+  string arn = 4;
+  google.protobuf.Timestamp create_time = 5;
+  // Roles the profile holds (at most one). A slim Role data type, not
+  // RoleDetail, so the list does not recurse.
+  repeated AuthorizationRole roles = 6;
+}
+
+// AuthorizationRole is the AWS Role data type as carried inside
+// AuthorizationInstanceProfile, not the Role resource envelope.
+message AuthorizationRole {
+  string path = 1;
+  string role_name = 2;
+  string role_id = 3;
+  string arn = 4;
+  google.protobuf.Timestamp create_time = 5;
+  string assume_role_policy_document = 6;
+}
+
+// AuthorizationPolicyVersion is the AWS PolicyVersion data type as
+// carried by ManagedPolicyDetail, not the PolicyVersion resource
+// envelope. document is plain JSON.
+message AuthorizationPolicyVersion {
+  string document = 1;
+  string version_id = 2;
+  bool is_default_version = 3;
+  google.protobuf.Timestamp create_time = 4;
+}
