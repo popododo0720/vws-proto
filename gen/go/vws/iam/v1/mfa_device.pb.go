@@ -695,12 +695,36 @@ func (x *EnableMfaDeviceRequest) GetAuthenticationCode_2() string {
 	return ""
 }
 
+// DeactivateMfaDeviceRequest unassigns the device from user. The server
+// checks a request_id replay first, then the preconditions, in the same store
+// mutation as the deactivate. A failed precondition writes nothing and leaves
+// the device enabled. Omitting all three optional fields keeps the unchecked,
+// non-replayed behavior.
 type DeactivateMfaDeviceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	User          string                 `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	User  string                 `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
+	// A repeated request_id within 24 hours with the same request returns the
+	// first response and writes nothing, so a retry after a lost response is not
+	// NOT_FOUND. The same request_id with a different request is
+	// ABORTED / IDEMPOTENCY_CONFLICT.
+	RequestId string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	// Optional precondition, the device's etag as read by the caller. A
+	// mismatch, or a change of the device that lands before the commit, is
+	// ABORTED / ETAG_MISMATCH (ConcurrentModification). The device etag changes
+	// on every enable and deactivate, so a user deleted and recreated under the
+	// same name and path, whose ARN is the same, still fails this check.
+	Etag string `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	// Optional precondition, the IAM user ARN of user, shape
+	// "arn:vws:iam::{project}:user{path}{user}", the same contract as
+	// access_key.proto expected_user_arn. When set, the server reads the User in
+	// the same store mutation as the deactivate and checks that its current ARN
+	// equals this value. A mismatch is FAILED_PRECONDITION
+	// (ConcurrentModification). The ARN contains the IAM path, so it changes
+	// when UpdateUser moves spec.path.
+	ExpectedUserArn string `protobuf:"bytes,5,opt,name=expected_user_arn,json=expectedUserArn,proto3" json:"expected_user_arn,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *DeactivateMfaDeviceRequest) Reset() {
@@ -743,6 +767,27 @@ func (x *DeactivateMfaDeviceRequest) GetName() string {
 func (x *DeactivateMfaDeviceRequest) GetUser() string {
 	if x != nil {
 		return x.User
+	}
+	return ""
+}
+
+func (x *DeactivateMfaDeviceRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *DeactivateMfaDeviceRequest) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+func (x *DeactivateMfaDeviceRequest) GetExpectedUserArn() string {
+	if x != nil {
+		return x.ExpectedUserArn
 	}
 	return ""
 }
@@ -1299,12 +1344,16 @@ const file_vws_iam_v1_mfa_device_proto_rawDesc = "" +
 	"\x04user\x18\x02 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04user\x12=\n" +
 	"\x15authentication_code_1\x18\x03 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\x13authenticationCode1\x12=\n" +
-	"\x15authentication_code_2\x18\x04 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\x13authenticationCode2\"u\n" +
+	"\x15authentication_code_2\x18\x04 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\x13authenticationCode2\"\xeb\x01\n" +
 	"\x1aDeactivateMfaDeviceRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11vws.iam/MfaDeviceR\x04name\x12(\n" +
 	"\x04user\x18\x02 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
-	"\fvws.iam/UserR\x04user\"O\n" +
+	"\fvws.iam/UserR\x04user\x12*\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12\x17\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\x12/\n" +
+	"\x11expected_user_arn\x18\x05 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\"O\n" +
 	"\x17EnableMfaDeviceResponse\x124\n" +
 	"\n" +
 	"mfa_device\x18\x01 \x01(\v2\x15.vws.iam.v1.MfaDeviceR\tmfaDevice\"S\n" +
