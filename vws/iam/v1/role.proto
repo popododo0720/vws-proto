@@ -10,6 +10,7 @@ import "google/longrunning/operations.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "vws/common/v1/resource.proto";
+import "vws/iam/v1/policy.proto";
 
 option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
 option java_multiple_files = true;
@@ -169,6 +170,20 @@ service RoleService {
       post: "/v1/{parent=projects/*}/roles:createServiceLinkedRole"
       body: "*"
     };
+  }
+  // ListRoleTags is AWS ListRoleTags. It lists the tags of the named role,
+  // sorted by key, in pages. It only reads.
+  // A bad project, a RoleName outside the AWS pattern, a page_size outside
+  // 1-1000, or a page_token character outside [\u0020-\u00FF] is
+  // INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). A well-formed
+  // page_token this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+  // (InvalidInput). All of these are checked before any store access.
+  // An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity:
+  // "The role with name X cannot be found."). Any other failure is INTERNAL
+  // (ServiceFailure).
+  // Authorization (iam:ListRoleTags) is console-api's.
+  rpc ListRoleTags(ListRoleTagsRequest) returns (ListRoleTagsResponse) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/roles/*}:tags"};
   }
 }
 
@@ -366,4 +381,28 @@ message CreateServiceLinkedRoleRequest {
 message CreateServiceLinkedRoleResponse {
   // The created role, as AWS CreateServiceLinkedRoleResult.Role.
   Role role = 1;
+}
+
+// ListRoleTags is AWS ListRoleTags. It lists a role's tags sorted by key.
+message ListRoleTagsRequest {
+  // projects/{project}/roles/{role}. The role id is AWS RoleName, 1-64
+  // characters of [\w+=,.@-].
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/Role"
+  ];
+  // AWS MaxItems, 1-1000. 0 means not set: the server default is 100, as in
+  // AWS. console-api answers an explicit MaxItems=0 as ValidationError
+  // itself, since 0 cannot be told apart from unset here.
+  int32 page_size = 2;
+  // AWS Marker, 1-320 characters of [\u0020-\u00FF]. Only a
+  // next_page_token this RPC returned.
+  string page_token = 3;
+}
+
+message ListRoleTagsResponse {
+  // Existing vws.iam.v1.Tag (key, value), sorted by key.
+  repeated Tag tags = 1;
+  // AWS Marker. Set exactly when the result is truncated (AWS IsTruncated).
+  string next_page_token = 2;
 }

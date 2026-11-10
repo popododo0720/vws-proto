@@ -30,6 +30,7 @@ const (
 	RoleService_DeleteRolePermissionsBoundary_FullMethodName = "/vws.iam.v1.RoleService/DeleteRolePermissionsBoundary"
 	RoleService_DeleteServiceLinkedRole_FullMethodName       = "/vws.iam.v1.RoleService/DeleteServiceLinkedRole"
 	RoleService_CreateServiceLinkedRole_FullMethodName       = "/vws.iam.v1.RoleService/CreateServiceLinkedRole"
+	RoleService_ListRoleTags_FullMethodName                  = "/vws.iam.v1.RoleService/ListRoleTags"
 )
 
 // RoleServiceClient is the client API for RoleService service.
@@ -127,6 +128,18 @@ type RoleServiceClient interface {
 	// Authorization (iam:CreateServiceLinkedRole, condition key
 	// iam:AWSServiceName) is console-api's.
 	CreateServiceLinkedRole(ctx context.Context, in *CreateServiceLinkedRoleRequest, opts ...grpc.CallOption) (*CreateServiceLinkedRoleResponse, error)
+	// ListRoleTags is AWS ListRoleTags. It lists the tags of the named role,
+	// sorted by key, in pages. It only reads.
+	// A bad project, a RoleName outside the AWS pattern, a page_size outside
+	// 1-1000, or a page_token character outside [\u0020-\u00FF] is
+	// INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). A well-formed
+	// page_token this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). All of these are checked before any store access.
+	// An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity:
+	// "The role with name X cannot be found."). Any other failure is INTERNAL
+	// (ServiceFailure).
+	// Authorization (iam:ListRoleTags) is console-api's.
+	ListRoleTags(ctx context.Context, in *ListRoleTagsRequest, opts ...grpc.CallOption) (*ListRoleTagsResponse, error)
 }
 
 type roleServiceClient struct {
@@ -237,6 +250,16 @@ func (c *roleServiceClient) CreateServiceLinkedRole(ctx context.Context, in *Cre
 	return out, nil
 }
 
+func (c *roleServiceClient) ListRoleTags(ctx context.Context, in *ListRoleTagsRequest, opts ...grpc.CallOption) (*ListRoleTagsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRoleTagsResponse)
+	err := c.cc.Invoke(ctx, RoleService_ListRoleTags_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoleServiceServer is the server API for RoleService service.
 // All implementations must embed UnimplementedRoleServiceServer
 // for forward compatibility.
@@ -332,6 +355,18 @@ type RoleServiceServer interface {
 	// Authorization (iam:CreateServiceLinkedRole, condition key
 	// iam:AWSServiceName) is console-api's.
 	CreateServiceLinkedRole(context.Context, *CreateServiceLinkedRoleRequest) (*CreateServiceLinkedRoleResponse, error)
+	// ListRoleTags is AWS ListRoleTags. It lists the tags of the named role,
+	// sorted by key, in pages. It only reads.
+	// A bad project, a RoleName outside the AWS pattern, a page_size outside
+	// 1-1000, or a page_token character outside [\u0020-\u00FF] is
+	// INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError). A well-formed
+	// page_token this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). All of these are checked before any store access.
+	// An unknown role is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity:
+	// "The role with name X cannot be found."). Any other failure is INTERNAL
+	// (ServiceFailure).
+	// Authorization (iam:ListRoleTags) is console-api's.
+	ListRoleTags(context.Context, *ListRoleTagsRequest) (*ListRoleTagsResponse, error)
 	mustEmbedUnimplementedRoleServiceServer()
 }
 
@@ -371,6 +406,9 @@ func (UnimplementedRoleServiceServer) DeleteServiceLinkedRole(context.Context, *
 }
 func (UnimplementedRoleServiceServer) CreateServiceLinkedRole(context.Context, *CreateServiceLinkedRoleRequest) (*CreateServiceLinkedRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateServiceLinkedRole not implemented")
+}
+func (UnimplementedRoleServiceServer) ListRoleTags(context.Context, *ListRoleTagsRequest) (*ListRoleTagsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRoleTags not implemented")
 }
 func (UnimplementedRoleServiceServer) mustEmbedUnimplementedRoleServiceServer() {}
 func (UnimplementedRoleServiceServer) testEmbeddedByValue()                     {}
@@ -573,6 +611,24 @@ func _RoleService_CreateServiceLinkedRole_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoleService_ListRoleTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRoleTagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleServiceServer).ListRoleTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleService_ListRoleTags_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleServiceServer).ListRoleTags(ctx, req.(*ListRoleTagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoleService_ServiceDesc is the grpc.ServiceDesc for RoleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -619,6 +675,10 @@ var RoleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateServiceLinkedRole",
 			Handler:    _RoleService_CreateServiceLinkedRole_Handler,
+		},
+		{
+			MethodName: "ListRoleTags",
+			Handler:    _RoleService_ListRoleTags_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
