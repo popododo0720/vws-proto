@@ -64,6 +64,9 @@ service UserService {
 
   // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
   // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  // DeleteUser also fails with FAILED_PRECONDITION / DEPENDENCY_MISSING
+  // (AWS DeleteConflict) while the user has a FIDO key
+  // (FidoDeviceService); delete the key first.
   rpc DeleteUser(DeleteUserRequest) returns (google.longrunning.Operation) {
     option (google.api.http) = {delete: "/v1/{name=projects/*/users/*}"};
     option (google.longrunning.operation_info) = {

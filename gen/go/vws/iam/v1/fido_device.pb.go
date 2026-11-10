@@ -692,7 +692,9 @@ type FinishFidoRegistrationRequest struct {
 	Parent         string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	RegistrationId string `protobuf:"bytes,2,opt,name=registration_id,json=registrationId,proto3" json:"registration_id,omitempty"`
 	// WebAuthn AuthenticatorAttestationResponse (the PublicKeyCredential
-	// from the authenticator) as UTF-8 JSON. Never log it.
+	// from the authenticator) as UTF-8 JSON, 1-65536 bytes. A larger
+	// value is INVALID_ARGUMENT / INVALID_SPEC (ValidationError),
+	// checked before it is parsed. Never log it.
 	AttestationResponse string `protobuf:"bytes,3,opt,name=attestation_response,json=attestationResponse,proto3" json:"attestation_response,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache

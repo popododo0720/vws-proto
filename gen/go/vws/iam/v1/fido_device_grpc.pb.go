@@ -46,13 +46,15 @@ type FidoDeviceServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// GetFidoDevice is AWS GetMFADevice for a u2f/ serial. Exactly one
-	// of name and serial_number must be set. A virtual mfa/ serial, a
-	// root u2f/root/ serial, a serial or name in another project, a
-	// malformed serial, an unknown device, or a user that does not own
-	// the key is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A bad
-	// parent, a name or serial that is not a FIDO identifier, or both
-	// name and serial_number set, is INVALID_ARGUMENT / INVALID_SPEC
-	// (ValidationError). It only reads.
+	// of name and serial_number must be set. A bad parent, neither or
+	// both of name and serial_number set, a name that is not
+	// projects/{project}/fidoDevices/{fido_device}, or a serial that
+	// does not follow the grammar below (so a serial that is not a
+	// u2f/user/ ARN, including a malformed one), is INVALID_ARGUMENT /
+	// INVALID_SPEC (ValidationError). A well-formed name or serial that
+	// is a virtual mfa/ serial, a root u2f/root/ serial, in another
+	// project, of an unknown device, or of a key the user does not own
+	// is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). It only reads.
 	// Authorization (iam:GetMFADevice) is console-api's.
 	GetFidoDevice(ctx context.Context, in *GetFidoDeviceRequest, opts ...grpc.CallOption) (*FidoDevice, error)
 	// ListFidoDevices lists FIDO keys in the project, optionally
@@ -84,13 +86,23 @@ type FidoDeviceServiceClient interface {
 	// FinishFidoRegistration verifies the attestation and stores the
 	// key. It is synchronous and not an operation, because the AWS
 	// registration is not an operation and the server stores the key in
-	// one write and returns the device. A missing, expired or already
-	// consumed registration_id is NOT_FOUND / RESOURCE_NOT_FOUND. A
-	// parent that does not match the Begin, or an attestation that does
-	// not verify, is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). A
-	// credential already registered in the project is ALREADY_EXISTS /
-	// ALREADY_EXISTS (EntityAlreadyExists). An unknown or deleted user
-	// is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+	// one write and returns the device. A missing or expired
+	// registration_id is NOT_FOUND / RESOURCE_NOT_FOUND. Idempotent:
+	// the server keeps a consumed registration_id and a fingerprint of
+	// its attestation for 24 hours, and a retry of the same
+	// registration_id with the same attestation returns the stored
+	// device and writes nothing, so a retry after a lost response is
+	// not NOT_FOUND. The same consumed registration_id with a different
+	// attestation is ABORTED / IDEMPOTENCY_CONFLICT. A parent that does
+	// not match the Begin, or an attestation that does not verify, is
+	// INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). A credential
+	// already registered in the project by another registration is
+	// ALREADY_EXISTS / ALREADY_EXISTS (EntityAlreadyExists). An unknown
+	// or deleted user is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+	// A user who already has eight MFA devices (virtual and FIDO
+	// together) when Finish stores the key is RESOURCE_EXHAUSTED /
+	// QUOTA_EXCEEDED (LimitExceeded), because Begin alone cannot hold
+	// the cap against concurrent registrations.
 	// Authorization is console-api's; there is no AWS action of this name.
 	FinishFidoRegistration(ctx context.Context, in *FinishFidoRegistrationRequest, opts ...grpc.CallOption) (*FinishFidoRegistrationResponse, error)
 }
@@ -172,13 +184,15 @@ type FidoDeviceServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// GetFidoDevice is AWS GetMFADevice for a u2f/ serial. Exactly one
-	// of name and serial_number must be set. A virtual mfa/ serial, a
-	// root u2f/root/ serial, a serial or name in another project, a
-	// malformed serial, an unknown device, or a user that does not own
-	// the key is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A bad
-	// parent, a name or serial that is not a FIDO identifier, or both
-	// name and serial_number set, is INVALID_ARGUMENT / INVALID_SPEC
-	// (ValidationError). It only reads.
+	// of name and serial_number must be set. A bad parent, neither or
+	// both of name and serial_number set, a name that is not
+	// projects/{project}/fidoDevices/{fido_device}, or a serial that
+	// does not follow the grammar below (so a serial that is not a
+	// u2f/user/ ARN, including a malformed one), is INVALID_ARGUMENT /
+	// INVALID_SPEC (ValidationError). A well-formed name or serial that
+	// is a virtual mfa/ serial, a root u2f/root/ serial, in another
+	// project, of an unknown device, or of a key the user does not own
+	// is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). It only reads.
 	// Authorization (iam:GetMFADevice) is console-api's.
 	GetFidoDevice(context.Context, *GetFidoDeviceRequest) (*FidoDevice, error)
 	// ListFidoDevices lists FIDO keys in the project, optionally
@@ -210,13 +224,23 @@ type FidoDeviceServiceServer interface {
 	// FinishFidoRegistration verifies the attestation and stores the
 	// key. It is synchronous and not an operation, because the AWS
 	// registration is not an operation and the server stores the key in
-	// one write and returns the device. A missing, expired or already
-	// consumed registration_id is NOT_FOUND / RESOURCE_NOT_FOUND. A
-	// parent that does not match the Begin, or an attestation that does
-	// not verify, is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). A
-	// credential already registered in the project is ALREADY_EXISTS /
-	// ALREADY_EXISTS (EntityAlreadyExists). An unknown or deleted user
-	// is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+	// one write and returns the device. A missing or expired
+	// registration_id is NOT_FOUND / RESOURCE_NOT_FOUND. Idempotent:
+	// the server keeps a consumed registration_id and a fingerprint of
+	// its attestation for 24 hours, and a retry of the same
+	// registration_id with the same attestation returns the stored
+	// device and writes nothing, so a retry after a lost response is
+	// not NOT_FOUND. The same consumed registration_id with a different
+	// attestation is ABORTED / IDEMPOTENCY_CONFLICT. A parent that does
+	// not match the Begin, or an attestation that does not verify, is
+	// INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). A credential
+	// already registered in the project by another registration is
+	// ALREADY_EXISTS / ALREADY_EXISTS (EntityAlreadyExists). An unknown
+	// or deleted user is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+	// A user who already has eight MFA devices (virtual and FIDO
+	// together) when Finish stores the key is RESOURCE_EXHAUSTED /
+	// QUOTA_EXCEEDED (LimitExceeded), because Begin alone cannot hold
+	// the cap against concurrent registrations.
 	// Authorization is console-api's; there is no AWS action of this name.
 	FinishFidoRegistration(context.Context, *FinishFidoRegistrationRequest) (*FinishFidoRegistrationResponse, error)
 	mustEmbedUnimplementedFidoDeviceServiceServer()
