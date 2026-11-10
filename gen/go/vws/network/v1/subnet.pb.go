@@ -217,8 +217,17 @@ func (x *SubnetSpec) GetDescription() string {
 }
 
 type SubnetStatus struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Observed      *v1.ObservedState      `protobuf:"bytes,1,opt,name=observed,proto3" json:"observed,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Observed *v1.ObservedState      `protobuf:"bytes,1,opt,name=observed,proto3" json:"observed,omitempty"`
+	// Unused private IPv4 addresses, matching EC2 AvailableIpAddressCount.
+	// Observed from the Kube-OVN Subnet status v4availableIPs on Get and List,
+	// not computed from the CIDR. Addresses of stopped instances remain used.
+	// https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Subnet.html
+	AvailableIpv4Count int64 `protobuf:"varint,2,opt,name=available_ipv4_count,json=availableIpv4Count,proto3" json:"available_ipv4_count,omitempty"`
+	// Allocated private IPv4 addresses (VMs, ENIs and EIP private addresses).
+	// Observed from the Kube-OVN Subnet status v4usingIPs on Get and List,
+	// not computed from the CIDR.
+	UsedIpv4Count int64 `protobuf:"varint,3,opt,name=used_ipv4_count,json=usedIpv4Count,proto3" json:"used_ipv4_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -258,6 +267,20 @@ func (x *SubnetStatus) GetObserved() *v1.ObservedState {
 		return x.Observed
 	}
 	return nil
+}
+
+func (x *SubnetStatus) GetAvailableIpv4Count() int64 {
+	if x != nil {
+		return x.AvailableIpv4Count
+	}
+	return 0
+}
+
+func (x *SubnetStatus) GetUsedIpv4Count() int64 {
+	if x != nil {
+		return x.UsedIpv4Count
+	}
+	return 0
 }
 
 type GetSubnetRequest struct {
@@ -779,9 +802,11 @@ const file_vws_network_v1_subnet_proto_rawDesc = "" +
 	"SubnetSpec\x12\x1a\n" +
 	"\x04zone\x18\x01 \x01(\tB\x06\xe0A\x02\xe0A\x05R\x04zone\x12#\n" +
 	"\tipv4_cidr\x18\x02 \x01(\tB\x06\xe0A\x02\xe0A\x05R\bipv4Cidr\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"H\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\"\xac\x01\n" +
 	"\fSubnetStatus\x128\n" +
-	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\"B\n" +
+	"\bobserved\x18\x01 \x01(\v2\x1c.vws.common.v1.ObservedStateR\bobserved\x125\n" +
+	"\x14available_ipv4_count\x18\x02 \x01(\x03B\x03\xe0A\x03R\x12availableIpv4Count\x12+\n" +
+	"\x0fused_ipv4_count\x18\x03 \x01(\x03B\x03\xe0A\x03R\rusedIpv4Count\"B\n" +
 	"\x10GetSubnetRequest\x12.\n" +
 	"\x04name\x18\x01 \x01(\tB\x1a\xe0A\x02\xfaA\x14\n" +
 	"\x12vws.network/SubnetR\x04name\"\x84\x01\n" +

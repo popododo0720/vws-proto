@@ -121,6 +121,15 @@ message SubnetSpec {
 
 message SubnetStatus {
   vws.common.v1.ObservedState observed = 1;
+  // Unused private IPv4 addresses, matching EC2 AvailableIpAddressCount.
+  // Observed from the Kube-OVN Subnet status v4availableIPs on Get and List,
+  // not computed from the CIDR. Addresses of stopped instances remain used.
+  // https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Subnet.html
+  int64 available_ipv4_count = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Allocated private IPv4 addresses (VMs, ENIs and EIP private addresses).
+  // Observed from the Kube-OVN Subnet status v4usingIPs on Get and List,
+  // not computed from the CIDR.
+  int64 used_ipv4_count = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message GetSubnetRequest {
