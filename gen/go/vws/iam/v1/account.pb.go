@@ -1181,6 +1181,51 @@ func (x *GetAccountSummaryRequest) GetParent() string {
 	return ""
 }
 
+type GetAccountPasswordPolicyRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}. The project id follows ResourceId.
+	Parent        string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAccountPasswordPolicyRequest) Reset() {
+	*x = GetAccountPasswordPolicyRequest{}
+	mi := &file_vws_iam_v1_account_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAccountPasswordPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAccountPasswordPolicyRequest) ProtoMessage() {}
+
+func (x *GetAccountPasswordPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_account_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAccountPasswordPolicyRequest.ProtoReflect.Descriptor instead.
+func (*GetAccountPasswordPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetAccountPasswordPolicyRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
 type GetAccountSummaryResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// AWS SummaryMap: key to value. Keys returned today are Users, Groups,
@@ -1198,7 +1243,7 @@ type GetAccountSummaryResponse struct {
 
 func (x *GetAccountSummaryResponse) Reset() {
 	*x = GetAccountSummaryResponse{}
-	mi := &file_vws_iam_v1_account_proto_msgTypes[14]
+	mi := &file_vws_iam_v1_account_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1210,7 +1255,7 @@ func (x *GetAccountSummaryResponse) String() string {
 func (*GetAccountSummaryResponse) ProtoMessage() {}
 
 func (x *GetAccountSummaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_vws_iam_v1_account_proto_msgTypes[14]
+	mi := &file_vws_iam_v1_account_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1223,7 +1268,7 @@ func (x *GetAccountSummaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAccountSummaryResponse.ProtoReflect.Descriptor instead.
 func (*GetAccountSummaryResponse) Descriptor() ([]byte, []int) {
-	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{14}
+	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetAccountSummaryResponse) GetSummaryMap() map[string]int32 {
@@ -1231,6 +1276,174 @@ func (x *GetAccountSummaryResponse) GetSummaryMap() map[string]int32 {
 		return x.SummaryMap
 	}
 	return nil
+}
+
+type GetAccountPasswordPolicyResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	PasswordPolicy *PasswordPolicy        `protobuf:"bytes,1,opt,name=password_policy,json=passwordPolicy,proto3" json:"password_policy,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetAccountPasswordPolicyResponse) Reset() {
+	*x = GetAccountPasswordPolicyResponse{}
+	mi := &file_vws_iam_v1_account_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAccountPasswordPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAccountPasswordPolicyResponse) ProtoMessage() {}
+
+func (x *GetAccountPasswordPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_account_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAccountPasswordPolicyResponse.ProtoReflect.Descriptor instead.
+func (*GetAccountPasswordPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetAccountPasswordPolicyResponse) GetPasswordPolicy() *PasswordPolicy {
+	if x != nil {
+		return x.PasswordPolicy
+	}
+	return nil
+}
+
+// PasswordPolicy is the AWS PasswordPolicy data type.
+// max_password_age and password_reuse_prevention use optional presence:
+// their AWS range starts at 1, and AWS omits them when they are not set,
+// so console-api can omit them from the XML.
+type PasswordPolicy struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 6-128.
+	MinimumPasswordLength      int32 `protobuf:"varint,1,opt,name=minimum_password_length,json=minimumPasswordLength,proto3" json:"minimum_password_length,omitempty"`
+	RequireSymbols             bool  `protobuf:"varint,2,opt,name=require_symbols,json=requireSymbols,proto3" json:"require_symbols,omitempty"`
+	RequireNumbers             bool  `protobuf:"varint,3,opt,name=require_numbers,json=requireNumbers,proto3" json:"require_numbers,omitempty"`
+	RequireUppercaseCharacters bool  `protobuf:"varint,4,opt,name=require_uppercase_characters,json=requireUppercaseCharacters,proto3" json:"require_uppercase_characters,omitempty"`
+	RequireLowercaseCharacters bool  `protobuf:"varint,5,opt,name=require_lowercase_characters,json=requireLowercaseCharacters,proto3" json:"require_lowercase_characters,omitempty"`
+	AllowUsersToChangePassword bool  `protobuf:"varint,6,opt,name=allow_users_to_change_password,json=allowUsersToChangePassword,proto3" json:"allow_users_to_change_password,omitempty"`
+	HardExpiry                 bool  `protobuf:"varint,7,opt,name=hard_expiry,json=hardExpiry,proto3" json:"hard_expiry,omitempty"`
+	// True exactly when max_password_age is set and greater than 0.
+	ExpirePasswords bool `protobuf:"varint,8,opt,name=expire_passwords,json=expirePasswords,proto3" json:"expire_passwords,omitempty"`
+	// 1-1095 days. Unset when passwords never expire.
+	MaxPasswordAge *int32 `protobuf:"varint,9,opt,name=max_password_age,json=maxPasswordAge,proto3,oneof" json:"max_password_age,omitempty"`
+	// 1-24. Unset when there is no reuse check.
+	PasswordReusePrevention *int32 `protobuf:"varint,10,opt,name=password_reuse_prevention,json=passwordReusePrevention,proto3,oneof" json:"password_reuse_prevention,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *PasswordPolicy) Reset() {
+	*x = PasswordPolicy{}
+	mi := &file_vws_iam_v1_account_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PasswordPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PasswordPolicy) ProtoMessage() {}
+
+func (x *PasswordPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_account_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PasswordPolicy.ProtoReflect.Descriptor instead.
+func (*PasswordPolicy) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *PasswordPolicy) GetMinimumPasswordLength() int32 {
+	if x != nil {
+		return x.MinimumPasswordLength
+	}
+	return 0
+}
+
+func (x *PasswordPolicy) GetRequireSymbols() bool {
+	if x != nil {
+		return x.RequireSymbols
+	}
+	return false
+}
+
+func (x *PasswordPolicy) GetRequireNumbers() bool {
+	if x != nil {
+		return x.RequireNumbers
+	}
+	return false
+}
+
+func (x *PasswordPolicy) GetRequireUppercaseCharacters() bool {
+	if x != nil {
+		return x.RequireUppercaseCharacters
+	}
+	return false
+}
+
+func (x *PasswordPolicy) GetRequireLowercaseCharacters() bool {
+	if x != nil {
+		return x.RequireLowercaseCharacters
+	}
+	return false
+}
+
+func (x *PasswordPolicy) GetAllowUsersToChangePassword() bool {
+	if x != nil {
+		return x.AllowUsersToChangePassword
+	}
+	return false
+}
+
+func (x *PasswordPolicy) GetHardExpiry() bool {
+	if x != nil {
+		return x.HardExpiry
+	}
+	return false
+}
+
+func (x *PasswordPolicy) GetExpirePasswords() bool {
+	if x != nil {
+		return x.ExpirePasswords
+	}
+	return false
+}
+
+func (x *PasswordPolicy) GetMaxPasswordAge() int32 {
+	if x != nil && x.MaxPasswordAge != nil {
+		return *x.MaxPasswordAge
+	}
+	return 0
+}
+
+func (x *PasswordPolicy) GetPasswordReusePrevention() int32 {
+	if x != nil && x.PasswordReusePrevention != nil {
+		return *x.PasswordReusePrevention
+	}
+	return 0
 }
 
 var File_vws_iam_v1_account_proto protoreflect.FileDescriptor
@@ -1348,16 +1561,36 @@ const file_vws_iam_v1_account_proto_rawDesc = "" +
 	"\vcreate_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\"7\n" +
 	"\x18GetAccountSummaryRequest\x12\x1b\n" +
+	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\">\n" +
+	"\x1fGetAccountPasswordPolicyRequest\x12\x1b\n" +
 	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\"\xb2\x01\n" +
 	"\x19GetAccountSummaryResponse\x12V\n" +
 	"\vsummary_map\x18\x01 \x03(\v25.vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntryR\n" +
 	"summaryMap\x1a=\n" +
 	"\x0fSummaryMapEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x012\xf0\x02\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"g\n" +
+	" GetAccountPasswordPolicyResponse\x12C\n" +
+	"\x0fpassword_policy\x18\x01 \x01(\v2\x1a.vws.iam.v1.PasswordPolicyR\x0epasswordPolicy\"\xd1\x04\n" +
+	"\x0ePasswordPolicy\x126\n" +
+	"\x17minimum_password_length\x18\x01 \x01(\x05R\x15minimumPasswordLength\x12'\n" +
+	"\x0frequire_symbols\x18\x02 \x01(\bR\x0erequireSymbols\x12'\n" +
+	"\x0frequire_numbers\x18\x03 \x01(\bR\x0erequireNumbers\x12@\n" +
+	"\x1crequire_uppercase_characters\x18\x04 \x01(\bR\x1arequireUppercaseCharacters\x12@\n" +
+	"\x1crequire_lowercase_characters\x18\x05 \x01(\bR\x1arequireLowercaseCharacters\x12B\n" +
+	"\x1eallow_users_to_change_password\x18\x06 \x01(\bR\x1aallowUsersToChangePassword\x12\x1f\n" +
+	"\vhard_expiry\x18\a \x01(\bR\n" +
+	"hardExpiry\x12)\n" +
+	"\x10expire_passwords\x18\b \x01(\bR\x0fexpirePasswords\x12-\n" +
+	"\x10max_password_age\x18\t \x01(\x05H\x00R\x0emaxPasswordAge\x88\x01\x01\x12?\n" +
+	"\x19password_reuse_prevention\x18\n" +
+	" \x01(\x05H\x01R\x17passwordReusePrevention\x88\x01\x01B\x13\n" +
+	"\x11_max_password_ageB\x1c\n" +
+	"\x1a_password_reuse_prevention2\xa2\x04\n" +
 	"\x0eAccountService\x12\xc7\x01\n" +
 	"\x1eGetAccountAuthorizationDetails\x121.vws.iam.v1.GetAccountAuthorizationDetailsRequest\x1a2.vws.iam.v1.GetAccountAuthorizationDetailsResponse\">\x82\xd3\xe4\x93\x028\x126/v1/{parent=projects/*}:getAccountAuthorizationDetails\x12\x93\x01\n" +
-	"\x11GetAccountSummary\x12$.vws.iam.v1.GetAccountSummaryRequest\x1a%.vws.iam.v1.GetAccountSummaryResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{parent=projects/*}:getAccountSummaryB[\n" +
+	"\x11GetAccountSummary\x12$.vws.iam.v1.GetAccountSummaryRequest\x1a%.vws.iam.v1.GetAccountSummaryResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{parent=projects/*}:getAccountSummary\x12\xaf\x01\n" +
+	"\x18GetAccountPasswordPolicy\x12+.vws.iam.v1.GetAccountPasswordPolicyRequest\x1a,.vws.iam.v1.GetAccountPasswordPolicyResponse\"8\x82\xd3\xe4\x93\x022\x120/v1/{parent=projects/*}:getAccountPasswordPolicyB[\n" +
 	"\x0edev.vws.iam.v1B\fAccountProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -1372,65 +1605,71 @@ func file_vws_iam_v1_account_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_account_proto_rawDescData
 }
 
-var file_vws_iam_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_vws_iam_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_vws_iam_v1_account_proto_goTypes = []any{
 	(*GetAccountAuthorizationDetailsRequest)(nil),  // 0: vws.iam.v1.GetAccountAuthorizationDetailsRequest
 	(*GetAccountAuthorizationDetailsResponse)(nil), // 1: vws.iam.v1.GetAccountAuthorizationDetailsResponse
-	(*UserDetail)(nil),                   // 2: vws.iam.v1.UserDetail
-	(*GroupDetail)(nil),                  // 3: vws.iam.v1.GroupDetail
-	(*RoleDetail)(nil),                   // 4: vws.iam.v1.RoleDetail
-	(*ManagedPolicyDetail)(nil),          // 5: vws.iam.v1.ManagedPolicyDetail
-	(*PolicyDetail)(nil),                 // 6: vws.iam.v1.PolicyDetail
-	(*AttachedPolicy)(nil),               // 7: vws.iam.v1.AttachedPolicy
-	(*AttachedPermissionsBoundary)(nil),  // 8: vws.iam.v1.AttachedPermissionsBoundary
-	(*RoleLastUsed)(nil),                 // 9: vws.iam.v1.RoleLastUsed
-	(*AuthorizationInstanceProfile)(nil), // 10: vws.iam.v1.AuthorizationInstanceProfile
-	(*AuthorizationRole)(nil),            // 11: vws.iam.v1.AuthorizationRole
-	(*AuthorizationPolicyVersion)(nil),   // 12: vws.iam.v1.AuthorizationPolicyVersion
-	(*GetAccountSummaryRequest)(nil),     // 13: vws.iam.v1.GetAccountSummaryRequest
-	(*GetAccountSummaryResponse)(nil),    // 14: vws.iam.v1.GetAccountSummaryResponse
-	nil,                                  // 15: vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
-	(*timestamppb.Timestamp)(nil),        // 16: google.protobuf.Timestamp
-	(*Tag)(nil),                          // 17: vws.iam.v1.Tag
+	(*UserDetail)(nil),                       // 2: vws.iam.v1.UserDetail
+	(*GroupDetail)(nil),                      // 3: vws.iam.v1.GroupDetail
+	(*RoleDetail)(nil),                       // 4: vws.iam.v1.RoleDetail
+	(*ManagedPolicyDetail)(nil),              // 5: vws.iam.v1.ManagedPolicyDetail
+	(*PolicyDetail)(nil),                     // 6: vws.iam.v1.PolicyDetail
+	(*AttachedPolicy)(nil),                   // 7: vws.iam.v1.AttachedPolicy
+	(*AttachedPermissionsBoundary)(nil),      // 8: vws.iam.v1.AttachedPermissionsBoundary
+	(*RoleLastUsed)(nil),                     // 9: vws.iam.v1.RoleLastUsed
+	(*AuthorizationInstanceProfile)(nil),     // 10: vws.iam.v1.AuthorizationInstanceProfile
+	(*AuthorizationRole)(nil),                // 11: vws.iam.v1.AuthorizationRole
+	(*AuthorizationPolicyVersion)(nil),       // 12: vws.iam.v1.AuthorizationPolicyVersion
+	(*GetAccountSummaryRequest)(nil),         // 13: vws.iam.v1.GetAccountSummaryRequest
+	(*GetAccountPasswordPolicyRequest)(nil),  // 14: vws.iam.v1.GetAccountPasswordPolicyRequest
+	(*GetAccountSummaryResponse)(nil),        // 15: vws.iam.v1.GetAccountSummaryResponse
+	(*GetAccountPasswordPolicyResponse)(nil), // 16: vws.iam.v1.GetAccountPasswordPolicyResponse
+	(*PasswordPolicy)(nil),                   // 17: vws.iam.v1.PasswordPolicy
+	nil,                                      // 18: vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
+	(*timestamppb.Timestamp)(nil),            // 19: google.protobuf.Timestamp
+	(*Tag)(nil),                              // 20: vws.iam.v1.Tag
 }
 var file_vws_iam_v1_account_proto_depIdxs = []int32{
 	2,  // 0: vws.iam.v1.GetAccountAuthorizationDetailsResponse.user_detail_list:type_name -> vws.iam.v1.UserDetail
 	3,  // 1: vws.iam.v1.GetAccountAuthorizationDetailsResponse.group_detail_list:type_name -> vws.iam.v1.GroupDetail
 	4,  // 2: vws.iam.v1.GetAccountAuthorizationDetailsResponse.role_detail_list:type_name -> vws.iam.v1.RoleDetail
 	5,  // 3: vws.iam.v1.GetAccountAuthorizationDetailsResponse.policies:type_name -> vws.iam.v1.ManagedPolicyDetail
-	16, // 4: vws.iam.v1.UserDetail.create_time:type_name -> google.protobuf.Timestamp
+	19, // 4: vws.iam.v1.UserDetail.create_time:type_name -> google.protobuf.Timestamp
 	6,  // 5: vws.iam.v1.UserDetail.user_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 6: vws.iam.v1.UserDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
 	8,  // 7: vws.iam.v1.UserDetail.permissions_boundary:type_name -> vws.iam.v1.AttachedPermissionsBoundary
-	17, // 8: vws.iam.v1.UserDetail.tags:type_name -> vws.iam.v1.Tag
-	16, // 9: vws.iam.v1.GroupDetail.create_time:type_name -> google.protobuf.Timestamp
+	20, // 8: vws.iam.v1.UserDetail.tags:type_name -> vws.iam.v1.Tag
+	19, // 9: vws.iam.v1.GroupDetail.create_time:type_name -> google.protobuf.Timestamp
 	6,  // 10: vws.iam.v1.GroupDetail.group_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 11: vws.iam.v1.GroupDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
-	16, // 12: vws.iam.v1.RoleDetail.create_time:type_name -> google.protobuf.Timestamp
+	19, // 12: vws.iam.v1.RoleDetail.create_time:type_name -> google.protobuf.Timestamp
 	10, // 13: vws.iam.v1.RoleDetail.instance_profile_list:type_name -> vws.iam.v1.AuthorizationInstanceProfile
 	6,  // 14: vws.iam.v1.RoleDetail.role_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 15: vws.iam.v1.RoleDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
 	8,  // 16: vws.iam.v1.RoleDetail.permissions_boundary:type_name -> vws.iam.v1.AttachedPermissionsBoundary
-	17, // 17: vws.iam.v1.RoleDetail.tags:type_name -> vws.iam.v1.Tag
+	20, // 17: vws.iam.v1.RoleDetail.tags:type_name -> vws.iam.v1.Tag
 	9,  // 18: vws.iam.v1.RoleDetail.role_last_used:type_name -> vws.iam.v1.RoleLastUsed
-	16, // 19: vws.iam.v1.ManagedPolicyDetail.create_time:type_name -> google.protobuf.Timestamp
-	16, // 20: vws.iam.v1.ManagedPolicyDetail.update_time:type_name -> google.protobuf.Timestamp
+	19, // 19: vws.iam.v1.ManagedPolicyDetail.create_time:type_name -> google.protobuf.Timestamp
+	19, // 20: vws.iam.v1.ManagedPolicyDetail.update_time:type_name -> google.protobuf.Timestamp
 	12, // 21: vws.iam.v1.ManagedPolicyDetail.policy_version_list:type_name -> vws.iam.v1.AuthorizationPolicyVersion
-	16, // 22: vws.iam.v1.RoleLastUsed.last_used_time:type_name -> google.protobuf.Timestamp
-	16, // 23: vws.iam.v1.AuthorizationInstanceProfile.create_time:type_name -> google.protobuf.Timestamp
+	19, // 22: vws.iam.v1.RoleLastUsed.last_used_time:type_name -> google.protobuf.Timestamp
+	19, // 23: vws.iam.v1.AuthorizationInstanceProfile.create_time:type_name -> google.protobuf.Timestamp
 	11, // 24: vws.iam.v1.AuthorizationInstanceProfile.roles:type_name -> vws.iam.v1.AuthorizationRole
-	16, // 25: vws.iam.v1.AuthorizationRole.create_time:type_name -> google.protobuf.Timestamp
-	16, // 26: vws.iam.v1.AuthorizationPolicyVersion.create_time:type_name -> google.protobuf.Timestamp
-	15, // 27: vws.iam.v1.GetAccountSummaryResponse.summary_map:type_name -> vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
-	0,  // 28: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:input_type -> vws.iam.v1.GetAccountAuthorizationDetailsRequest
-	13, // 29: vws.iam.v1.AccountService.GetAccountSummary:input_type -> vws.iam.v1.GetAccountSummaryRequest
-	1,  // 30: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:output_type -> vws.iam.v1.GetAccountAuthorizationDetailsResponse
-	14, // 31: vws.iam.v1.AccountService.GetAccountSummary:output_type -> vws.iam.v1.GetAccountSummaryResponse
-	30, // [30:32] is the sub-list for method output_type
-	28, // [28:30] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	19, // 25: vws.iam.v1.AuthorizationRole.create_time:type_name -> google.protobuf.Timestamp
+	19, // 26: vws.iam.v1.AuthorizationPolicyVersion.create_time:type_name -> google.protobuf.Timestamp
+	18, // 27: vws.iam.v1.GetAccountSummaryResponse.summary_map:type_name -> vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
+	17, // 28: vws.iam.v1.GetAccountPasswordPolicyResponse.password_policy:type_name -> vws.iam.v1.PasswordPolicy
+	0,  // 29: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:input_type -> vws.iam.v1.GetAccountAuthorizationDetailsRequest
+	13, // 30: vws.iam.v1.AccountService.GetAccountSummary:input_type -> vws.iam.v1.GetAccountSummaryRequest
+	14, // 31: vws.iam.v1.AccountService.GetAccountPasswordPolicy:input_type -> vws.iam.v1.GetAccountPasswordPolicyRequest
+	1,  // 32: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:output_type -> vws.iam.v1.GetAccountAuthorizationDetailsResponse
+	15, // 33: vws.iam.v1.AccountService.GetAccountSummary:output_type -> vws.iam.v1.GetAccountSummaryResponse
+	16, // 34: vws.iam.v1.AccountService.GetAccountPasswordPolicy:output_type -> vws.iam.v1.GetAccountPasswordPolicyResponse
+	32, // [32:35] is the sub-list for method output_type
+	29, // [29:32] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_account_proto_init() }
@@ -1439,13 +1678,14 @@ func file_vws_iam_v1_account_proto_init() {
 		return
 	}
 	file_vws_iam_v1_policy_proto_init()
+	file_vws_iam_v1_account_proto_msgTypes[17].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_account_proto_rawDesc), len(file_vws_iam_v1_account_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
