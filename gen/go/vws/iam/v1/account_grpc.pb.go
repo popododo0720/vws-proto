@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	AccountService_GetAccountAuthorizationDetails_FullMethodName = "/vws.iam.v1.AccountService/GetAccountAuthorizationDetails"
+	AccountService_GetAccountSummary_FullMethodName              = "/vws.iam.v1.AccountService/GetAccountSummary"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -46,6 +47,14 @@ type AccountServiceClient interface {
 	// Any other failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:GetAccountAuthorizationDetails) is console-api's.
 	GetAccountAuthorizationDetails(ctx context.Context, in *GetAccountAuthorizationDetailsRequest, opts ...grpc.CallOption) (*GetAccountAuthorizationDetailsResponse, error)
+	// GetAccountSummary is AWS GetAccountSummary. It returns the project's
+	// entity usage and enforced quotas as the AWS SummaryMap. It only reads.
+	// A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+	// before any store access. Any other failure is INTERNAL (ServiceFailure).
+	// A key absent from summary_map is not reported and must not be filled
+	// with 0.
+	// Authorization (iam:GetAccountSummary) is console-api's.
+	GetAccountSummary(ctx context.Context, in *GetAccountSummaryRequest, opts ...grpc.CallOption) (*GetAccountSummaryResponse, error)
 }
 
 type accountServiceClient struct {
@@ -60,6 +69,16 @@ func (c *accountServiceClient) GetAccountAuthorizationDetails(ctx context.Contex
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAccountAuthorizationDetailsResponse)
 	err := c.cc.Invoke(ctx, AccountService_GetAccountAuthorizationDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) GetAccountSummary(ctx context.Context, in *GetAccountSummaryRequest, opts ...grpc.CallOption) (*GetAccountSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAccountSummaryResponse)
+	err := c.cc.Invoke(ctx, AccountService_GetAccountSummary_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +109,14 @@ type AccountServiceServer interface {
 	// Any other failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:GetAccountAuthorizationDetails) is console-api's.
 	GetAccountAuthorizationDetails(context.Context, *GetAccountAuthorizationDetailsRequest) (*GetAccountAuthorizationDetailsResponse, error)
+	// GetAccountSummary is AWS GetAccountSummary. It returns the project's
+	// entity usage and enforced quotas as the AWS SummaryMap. It only reads.
+	// A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+	// before any store access. Any other failure is INTERNAL (ServiceFailure).
+	// A key absent from summary_map is not reported and must not be filled
+	// with 0.
+	// Authorization (iam:GetAccountSummary) is console-api's.
+	GetAccountSummary(context.Context, *GetAccountSummaryRequest) (*GetAccountSummaryResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -102,6 +129,9 @@ type UnimplementedAccountServiceServer struct{}
 
 func (UnimplementedAccountServiceServer) GetAccountAuthorizationDetails(context.Context, *GetAccountAuthorizationDetailsRequest) (*GetAccountAuthorizationDetailsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAccountAuthorizationDetails not implemented")
+}
+func (UnimplementedAccountServiceServer) GetAccountSummary(context.Context, *GetAccountSummaryRequest) (*GetAccountSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAccountSummary not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -142,6 +172,24 @@ func _AccountService_GetAccountAuthorizationDetails_Handler(srv interface{}, ctx
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_GetAccountSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAccountSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).GetAccountSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_GetAccountSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).GetAccountSummary(ctx, req.(*GetAccountSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +200,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccountAuthorizationDetails",
 			Handler:    _AccountService_GetAccountAuthorizationDetails_Handler,
+		},
+		{
+			MethodName: "GetAccountSummary",
+			Handler:    _AccountService_GetAccountSummary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

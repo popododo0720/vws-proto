@@ -165,6 +165,13 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Pages: the marker continues after the last returned entry (users, then groups, then roles, then policies, each by case-folded name), so a change between pages does not shift the listing. The call only reads, so a retry is safe.
 - Authorization (`iam:GetAccountAuthorizationDetails`) is console-api's.
 
+## Account summary (#138)
+
+- `AccountService.GetAccountSummary` is AWS `GetAccountSummary`. `parent` is `projects/{project}`. It returns the project's entity usage and enforced quotas as `summary_map` (AWS `SummaryMap`). A key absent from the map is not reported and must not be filled with 0 (popododo0720/vws-iam#268). It is a read RPC, not an operation.
+- Keys returned today: `Users`, `Groups`, `Roles`, `Policies`, `InstanceProfiles`, `MFADevices`, `MFADevicesInUse`, `AccountAccessKeysPresent`, and the enforced quotas `AccessKeysPerUserQuota`, `AttachedPoliciesPerGroupQuota`, `AttachedPoliciesPerRoleQuota`, `AttachedPoliciesPerUserQuota`, `GroupPolicySizeQuota`, `GroupsPerUserQuota`, `PolicySizeQuota`, `RolePolicySizeQuota`, `UserPolicySizeQuota`, `VersionsPerPolicyQuota`.
+- Errors: a bad `parent` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`) before any store access. Any other failure is `INTERNAL` (`ServiceFailure`). The call only reads, so a retry is safe.
+- Authorization (`iam:GetAccountSummary`) is console-api's.
+
 ## Decode authorization message (#84)
 
 - `TokenService.DecodeAuthorizationMessage` is AWS STS `DecodeAuthorizationMessage`. It opens the `AuthorizeResponse.encoded_message` that vws-iam sets on a `DENY_*` decision; console-api returns that message the way AWS does, for example as the EC2 `UnauthorizedOperation` "Encoded authorization failure message". It is empty on `ALLOW`.

@@ -1136,6 +1136,103 @@ func (x *AuthorizationPolicyVersion) GetCreateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+type GetAccountSummaryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}. The project id follows ResourceId.
+	Parent        string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAccountSummaryRequest) Reset() {
+	*x = GetAccountSummaryRequest{}
+	mi := &file_vws_iam_v1_account_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAccountSummaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAccountSummaryRequest) ProtoMessage() {}
+
+func (x *GetAccountSummaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_account_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAccountSummaryRequest.ProtoReflect.Descriptor instead.
+func (*GetAccountSummaryRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetAccountSummaryRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+type GetAccountSummaryResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// AWS SummaryMap: key to value. Keys returned today are Users, Groups,
+	// Roles, Policies, InstanceProfiles, MFADevices, MFADevicesInUse,
+	// AccountAccessKeysPresent, and the enforced quotas
+	// AccessKeysPerUserQuota, AttachedPoliciesPerGroupQuota,
+	// AttachedPoliciesPerRoleQuota, AttachedPoliciesPerUserQuota,
+	// GroupPolicySizeQuota, GroupsPerUserQuota, PolicySizeQuota,
+	// RolePolicySizeQuota, UserPolicySizeQuota, VersionsPerPolicyQuota.
+	// A key VWS cannot compute honestly is omitted, never invented as 0.
+	SummaryMap    map[string]int32 `protobuf:"bytes,1,rep,name=summary_map,json=summaryMap,proto3" json:"summary_map,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAccountSummaryResponse) Reset() {
+	*x = GetAccountSummaryResponse{}
+	mi := &file_vws_iam_v1_account_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAccountSummaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAccountSummaryResponse) ProtoMessage() {}
+
+func (x *GetAccountSummaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_account_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAccountSummaryResponse.ProtoReflect.Descriptor instead.
+func (*GetAccountSummaryResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_account_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetAccountSummaryResponse) GetSummaryMap() map[string]int32 {
+	if x != nil {
+		return x.SummaryMap
+	}
+	return nil
+}
+
 var File_vws_iam_v1_account_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_account_proto_rawDesc = "" +
@@ -1249,9 +1346,18 @@ const file_vws_iam_v1_account_proto_rawDesc = "" +
 	"version_id\x18\x02 \x01(\tR\tversionId\x12,\n" +
 	"\x12is_default_version\x18\x03 \x01(\bR\x10isDefaultVersion\x12;\n" +
 	"\vcreate_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"createTime2\xda\x01\n" +
+	"createTime\"7\n" +
+	"\x18GetAccountSummaryRequest\x12\x1b\n" +
+	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\"\xb2\x01\n" +
+	"\x19GetAccountSummaryResponse\x12V\n" +
+	"\vsummary_map\x18\x01 \x03(\v25.vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntryR\n" +
+	"summaryMap\x1a=\n" +
+	"\x0fSummaryMapEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x012\xf0\x02\n" +
 	"\x0eAccountService\x12\xc7\x01\n" +
-	"\x1eGetAccountAuthorizationDetails\x121.vws.iam.v1.GetAccountAuthorizationDetailsRequest\x1a2.vws.iam.v1.GetAccountAuthorizationDetailsResponse\">\x82\xd3\xe4\x93\x028\x126/v1/{parent=projects/*}:getAccountAuthorizationDetailsB[\n" +
+	"\x1eGetAccountAuthorizationDetails\x121.vws.iam.v1.GetAccountAuthorizationDetailsRequest\x1a2.vws.iam.v1.GetAccountAuthorizationDetailsResponse\">\x82\xd3\xe4\x93\x028\x126/v1/{parent=projects/*}:getAccountAuthorizationDetails\x12\x93\x01\n" +
+	"\x11GetAccountSummary\x12$.vws.iam.v1.GetAccountSummaryRequest\x1a%.vws.iam.v1.GetAccountSummaryResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{parent=projects/*}:getAccountSummaryB[\n" +
 	"\x0edev.vws.iam.v1B\fAccountProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -1266,7 +1372,7 @@ func file_vws_iam_v1_account_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_account_proto_rawDescData
 }
 
-var file_vws_iam_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_vws_iam_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_vws_iam_v1_account_proto_goTypes = []any{
 	(*GetAccountAuthorizationDetailsRequest)(nil),  // 0: vws.iam.v1.GetAccountAuthorizationDetailsRequest
 	(*GetAccountAuthorizationDetailsResponse)(nil), // 1: vws.iam.v1.GetAccountAuthorizationDetailsResponse
@@ -1281,44 +1387,50 @@ var file_vws_iam_v1_account_proto_goTypes = []any{
 	(*AuthorizationInstanceProfile)(nil), // 10: vws.iam.v1.AuthorizationInstanceProfile
 	(*AuthorizationRole)(nil),            // 11: vws.iam.v1.AuthorizationRole
 	(*AuthorizationPolicyVersion)(nil),   // 12: vws.iam.v1.AuthorizationPolicyVersion
-	(*timestamppb.Timestamp)(nil),        // 13: google.protobuf.Timestamp
-	(*Tag)(nil),                          // 14: vws.iam.v1.Tag
+	(*GetAccountSummaryRequest)(nil),     // 13: vws.iam.v1.GetAccountSummaryRequest
+	(*GetAccountSummaryResponse)(nil),    // 14: vws.iam.v1.GetAccountSummaryResponse
+	nil,                                  // 15: vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
+	(*timestamppb.Timestamp)(nil),        // 16: google.protobuf.Timestamp
+	(*Tag)(nil),                          // 17: vws.iam.v1.Tag
 }
 var file_vws_iam_v1_account_proto_depIdxs = []int32{
 	2,  // 0: vws.iam.v1.GetAccountAuthorizationDetailsResponse.user_detail_list:type_name -> vws.iam.v1.UserDetail
 	3,  // 1: vws.iam.v1.GetAccountAuthorizationDetailsResponse.group_detail_list:type_name -> vws.iam.v1.GroupDetail
 	4,  // 2: vws.iam.v1.GetAccountAuthorizationDetailsResponse.role_detail_list:type_name -> vws.iam.v1.RoleDetail
 	5,  // 3: vws.iam.v1.GetAccountAuthorizationDetailsResponse.policies:type_name -> vws.iam.v1.ManagedPolicyDetail
-	13, // 4: vws.iam.v1.UserDetail.create_time:type_name -> google.protobuf.Timestamp
+	16, // 4: vws.iam.v1.UserDetail.create_time:type_name -> google.protobuf.Timestamp
 	6,  // 5: vws.iam.v1.UserDetail.user_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 6: vws.iam.v1.UserDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
 	8,  // 7: vws.iam.v1.UserDetail.permissions_boundary:type_name -> vws.iam.v1.AttachedPermissionsBoundary
-	14, // 8: vws.iam.v1.UserDetail.tags:type_name -> vws.iam.v1.Tag
-	13, // 9: vws.iam.v1.GroupDetail.create_time:type_name -> google.protobuf.Timestamp
+	17, // 8: vws.iam.v1.UserDetail.tags:type_name -> vws.iam.v1.Tag
+	16, // 9: vws.iam.v1.GroupDetail.create_time:type_name -> google.protobuf.Timestamp
 	6,  // 10: vws.iam.v1.GroupDetail.group_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 11: vws.iam.v1.GroupDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
-	13, // 12: vws.iam.v1.RoleDetail.create_time:type_name -> google.protobuf.Timestamp
+	16, // 12: vws.iam.v1.RoleDetail.create_time:type_name -> google.protobuf.Timestamp
 	10, // 13: vws.iam.v1.RoleDetail.instance_profile_list:type_name -> vws.iam.v1.AuthorizationInstanceProfile
 	6,  // 14: vws.iam.v1.RoleDetail.role_policy_list:type_name -> vws.iam.v1.PolicyDetail
 	7,  // 15: vws.iam.v1.RoleDetail.attached_managed_policies:type_name -> vws.iam.v1.AttachedPolicy
 	8,  // 16: vws.iam.v1.RoleDetail.permissions_boundary:type_name -> vws.iam.v1.AttachedPermissionsBoundary
-	14, // 17: vws.iam.v1.RoleDetail.tags:type_name -> vws.iam.v1.Tag
+	17, // 17: vws.iam.v1.RoleDetail.tags:type_name -> vws.iam.v1.Tag
 	9,  // 18: vws.iam.v1.RoleDetail.role_last_used:type_name -> vws.iam.v1.RoleLastUsed
-	13, // 19: vws.iam.v1.ManagedPolicyDetail.create_time:type_name -> google.protobuf.Timestamp
-	13, // 20: vws.iam.v1.ManagedPolicyDetail.update_time:type_name -> google.protobuf.Timestamp
+	16, // 19: vws.iam.v1.ManagedPolicyDetail.create_time:type_name -> google.protobuf.Timestamp
+	16, // 20: vws.iam.v1.ManagedPolicyDetail.update_time:type_name -> google.protobuf.Timestamp
 	12, // 21: vws.iam.v1.ManagedPolicyDetail.policy_version_list:type_name -> vws.iam.v1.AuthorizationPolicyVersion
-	13, // 22: vws.iam.v1.RoleLastUsed.last_used_time:type_name -> google.protobuf.Timestamp
-	13, // 23: vws.iam.v1.AuthorizationInstanceProfile.create_time:type_name -> google.protobuf.Timestamp
+	16, // 22: vws.iam.v1.RoleLastUsed.last_used_time:type_name -> google.protobuf.Timestamp
+	16, // 23: vws.iam.v1.AuthorizationInstanceProfile.create_time:type_name -> google.protobuf.Timestamp
 	11, // 24: vws.iam.v1.AuthorizationInstanceProfile.roles:type_name -> vws.iam.v1.AuthorizationRole
-	13, // 25: vws.iam.v1.AuthorizationRole.create_time:type_name -> google.protobuf.Timestamp
-	13, // 26: vws.iam.v1.AuthorizationPolicyVersion.create_time:type_name -> google.protobuf.Timestamp
-	0,  // 27: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:input_type -> vws.iam.v1.GetAccountAuthorizationDetailsRequest
-	1,  // 28: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:output_type -> vws.iam.v1.GetAccountAuthorizationDetailsResponse
-	28, // [28:29] is the sub-list for method output_type
-	27, // [27:28] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	16, // 25: vws.iam.v1.AuthorizationRole.create_time:type_name -> google.protobuf.Timestamp
+	16, // 26: vws.iam.v1.AuthorizationPolicyVersion.create_time:type_name -> google.protobuf.Timestamp
+	15, // 27: vws.iam.v1.GetAccountSummaryResponse.summary_map:type_name -> vws.iam.v1.GetAccountSummaryResponse.SummaryMapEntry
+	0,  // 28: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:input_type -> vws.iam.v1.GetAccountAuthorizationDetailsRequest
+	13, // 29: vws.iam.v1.AccountService.GetAccountSummary:input_type -> vws.iam.v1.GetAccountSummaryRequest
+	1,  // 30: vws.iam.v1.AccountService.GetAccountAuthorizationDetails:output_type -> vws.iam.v1.GetAccountAuthorizationDetailsResponse
+	14, // 31: vws.iam.v1.AccountService.GetAccountSummary:output_type -> vws.iam.v1.GetAccountSummaryResponse
+	30, // [30:32] is the sub-list for method output_type
+	28, // [28:30] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_account_proto_init() }
@@ -1333,7 +1445,7 @@ func file_vws_iam_v1_account_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_account_proto_rawDesc), len(file_vws_iam_v1_account_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
