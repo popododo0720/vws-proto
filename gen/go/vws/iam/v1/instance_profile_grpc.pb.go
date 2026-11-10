@@ -24,6 +24,7 @@ const (
 	InstanceProfileService_RemoveRoleFromInstanceProfile_FullMethodName = "/vws.iam.v1.InstanceProfileService/RemoveRoleFromInstanceProfile"
 	InstanceProfileService_ListInstanceProfilesForRole_FullMethodName   = "/vws.iam.v1.InstanceProfileService/ListInstanceProfilesForRole"
 	InstanceProfileService_ListInstanceProfiles_FullMethodName          = "/vws.iam.v1.InstanceProfileService/ListInstanceProfiles"
+	InstanceProfileService_DeleteInstanceProfile_FullMethodName         = "/vws.iam.v1.InstanceProfileService/DeleteInstanceProfile"
 )
 
 // InstanceProfileServiceClient is the client API for InstanceProfileService service.
@@ -93,6 +94,19 @@ type InstanceProfileServiceClient interface {
 	// (InvalidInput). No matching profile is an empty, complete page.
 	// Authorization (iam:ListInstanceProfiles) is console-api's.
 	ListInstanceProfiles(ctx context.Context, in *ListInstanceProfilesRequest, opts ...grpc.CallOption) (*ListInstanceProfilesResponse, error)
+	// DeleteInstanceProfile is AWS DeleteInstanceProfile. It deletes the
+	// instance profile. It is synchronous and not an operation, as the AWS call
+	// is: one conditional store write, returned once stored.
+	// An instance profile name length or pattern fault is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError). An unknown instance profile is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A profile that still holds
+	// a role is FAILED_PRECONDITION / DEPENDENCY_MISSING (DeleteConflict:
+	// "Cannot delete entity, must remove roles from instance profile first.").
+	// Names compare case-insensitively. The delete is conditional on the
+	// version read, so it never races a concurrent AddRoleToInstanceProfile.
+	// A repeat after success is NOT_FOUND (NoSuchEntity), as in AWS.
+	// Authorization (iam:DeleteInstanceProfile) is console-api's.
+	DeleteInstanceProfile(ctx context.Context, in *DeleteInstanceProfileRequest, opts ...grpc.CallOption) (*DeleteInstanceProfileResponse, error)
 }
 
 type instanceProfileServiceClient struct {
@@ -147,6 +161,16 @@ func (c *instanceProfileServiceClient) ListInstanceProfiles(ctx context.Context,
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListInstanceProfilesResponse)
 	err := c.cc.Invoke(ctx, InstanceProfileService_ListInstanceProfiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *instanceProfileServiceClient) DeleteInstanceProfile(ctx context.Context, in *DeleteInstanceProfileRequest, opts ...grpc.CallOption) (*DeleteInstanceProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteInstanceProfileResponse)
+	err := c.cc.Invoke(ctx, InstanceProfileService_DeleteInstanceProfile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -220,6 +244,19 @@ type InstanceProfileServiceServer interface {
 	// (InvalidInput). No matching profile is an empty, complete page.
 	// Authorization (iam:ListInstanceProfiles) is console-api's.
 	ListInstanceProfiles(context.Context, *ListInstanceProfilesRequest) (*ListInstanceProfilesResponse, error)
+	// DeleteInstanceProfile is AWS DeleteInstanceProfile. It deletes the
+	// instance profile. It is synchronous and not an operation, as the AWS call
+	// is: one conditional store write, returned once stored.
+	// An instance profile name length or pattern fault is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError). An unknown instance profile is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A profile that still holds
+	// a role is FAILED_PRECONDITION / DEPENDENCY_MISSING (DeleteConflict:
+	// "Cannot delete entity, must remove roles from instance profile first.").
+	// Names compare case-insensitively. The delete is conditional on the
+	// version read, so it never races a concurrent AddRoleToInstanceProfile.
+	// A repeat after success is NOT_FOUND (NoSuchEntity), as in AWS.
+	// Authorization (iam:DeleteInstanceProfile) is console-api's.
+	DeleteInstanceProfile(context.Context, *DeleteInstanceProfileRequest) (*DeleteInstanceProfileResponse, error)
 	mustEmbedUnimplementedInstanceProfileServiceServer()
 }
 
@@ -244,6 +281,9 @@ func (UnimplementedInstanceProfileServiceServer) ListInstanceProfilesForRole(con
 }
 func (UnimplementedInstanceProfileServiceServer) ListInstanceProfiles(context.Context, *ListInstanceProfilesRequest) (*ListInstanceProfilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListInstanceProfiles not implemented")
+}
+func (UnimplementedInstanceProfileServiceServer) DeleteInstanceProfile(context.Context, *DeleteInstanceProfileRequest) (*DeleteInstanceProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteInstanceProfile not implemented")
 }
 func (UnimplementedInstanceProfileServiceServer) mustEmbedUnimplementedInstanceProfileServiceServer() {
 }
@@ -357,6 +397,24 @@ func _InstanceProfileService_ListInstanceProfiles_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InstanceProfileService_DeleteInstanceProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteInstanceProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InstanceProfileServiceServer).DeleteInstanceProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InstanceProfileService_DeleteInstanceProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InstanceProfileServiceServer).DeleteInstanceProfile(ctx, req.(*DeleteInstanceProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InstanceProfileService_ServiceDesc is the grpc.ServiceDesc for InstanceProfileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -383,6 +441,10 @@ var InstanceProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListInstanceProfiles",
 			Handler:    _InstanceProfileService_ListInstanceProfiles_Handler,
+		},
+		{
+			MethodName: "DeleteInstanceProfile",
+			Handler:    _InstanceProfileService_DeleteInstanceProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
