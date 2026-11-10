@@ -172,6 +172,12 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: a bad `parent` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`) before any store access. Any other failure is `INTERNAL` (`ServiceFailure`). The call only reads, so a retry is safe.
 - Authorization (`iam:GetAccountSummary`) is console-api's.
 
+## Account password policy (#136)
+
+- `AccountService.GetAccountPasswordPolicy` is AWS `GetAccountPasswordPolicy`. `parent` is `projects/{project}`. It returns the project's custom `PasswordPolicy`. `max_password_age` (1-1095 days) and `password_reuse_prevention` (1-24) are optional: they are unset when AWS would omit them (passwords never expire, or no reuse check). `expire_passwords` is true exactly when `max_password_age` is set and greater than 0. `minimum_password_length` is 6-128. It is a read RPC, not an operation.
+- Errors: a bad `parent` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`) before any store access. An account without a custom policy is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`, `The Password Policy with domain name <project> cannot be found.`). Any other failure is `INTERNAL` (`ServiceFailure`). The call only reads, so a retry is safe.
+- Authorization (`iam:GetAccountPasswordPolicy`) is console-api's.
+
 ## Decode authorization message (#84)
 
 - `TokenService.DecodeAuthorizationMessage` is AWS STS `DecodeAuthorizationMessage`. It opens the `AuthorizeResponse.encoded_message` that vws-iam sets on a `DENY_*` decision; console-api returns that message the way AWS does, for example as the EC2 `UnauthorizedOperation` "Encoded authorization failure message". It is empty on `ALLOW`.

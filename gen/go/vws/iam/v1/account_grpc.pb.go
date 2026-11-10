@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	AccountService_GetAccountAuthorizationDetails_FullMethodName = "/vws.iam.v1.AccountService/GetAccountAuthorizationDetails"
 	AccountService_GetAccountSummary_FullMethodName              = "/vws.iam.v1.AccountService/GetAccountSummary"
+	AccountService_GetAccountPasswordPolicy_FullMethodName       = "/vws.iam.v1.AccountService/GetAccountPasswordPolicy"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -55,6 +56,15 @@ type AccountServiceClient interface {
 	// with 0.
 	// Authorization (iam:GetAccountSummary) is console-api's.
 	GetAccountSummary(ctx context.Context, in *GetAccountSummaryRequest, opts ...grpc.CallOption) (*GetAccountSummaryResponse, error)
+	// GetAccountPasswordPolicy is AWS GetAccountPasswordPolicy. It returns
+	// the project's custom password policy. It only reads.
+	// A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+	// before any store access. An account without a custom policy is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity: "The Password Policy
+	// with domain name <project> cannot be found."). Any other failure is
+	// INTERNAL (ServiceFailure).
+	// Authorization (iam:GetAccountPasswordPolicy) is console-api's.
+	GetAccountPasswordPolicy(ctx context.Context, in *GetAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*GetAccountPasswordPolicyResponse, error)
 }
 
 type accountServiceClient struct {
@@ -79,6 +89,16 @@ func (c *accountServiceClient) GetAccountSummary(ctx context.Context, in *GetAcc
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAccountSummaryResponse)
 	err := c.cc.Invoke(ctx, AccountService_GetAccountSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) GetAccountPasswordPolicy(ctx context.Context, in *GetAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*GetAccountPasswordPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAccountPasswordPolicyResponse)
+	err := c.cc.Invoke(ctx, AccountService_GetAccountPasswordPolicy_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +137,15 @@ type AccountServiceServer interface {
 	// with 0.
 	// Authorization (iam:GetAccountSummary) is console-api's.
 	GetAccountSummary(context.Context, *GetAccountSummaryRequest) (*GetAccountSummaryResponse, error)
+	// GetAccountPasswordPolicy is AWS GetAccountPasswordPolicy. It returns
+	// the project's custom password policy. It only reads.
+	// A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+	// before any store access. An account without a custom policy is
+	// NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity: "The Password Policy
+	// with domain name <project> cannot be found."). Any other failure is
+	// INTERNAL (ServiceFailure).
+	// Authorization (iam:GetAccountPasswordPolicy) is console-api's.
+	GetAccountPasswordPolicy(context.Context, *GetAccountPasswordPolicyRequest) (*GetAccountPasswordPolicyResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -132,6 +161,9 @@ func (UnimplementedAccountServiceServer) GetAccountAuthorizationDetails(context.
 }
 func (UnimplementedAccountServiceServer) GetAccountSummary(context.Context, *GetAccountSummaryRequest) (*GetAccountSummaryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAccountSummary not implemented")
+}
+func (UnimplementedAccountServiceServer) GetAccountPasswordPolicy(context.Context, *GetAccountPasswordPolicyRequest) (*GetAccountPasswordPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAccountPasswordPolicy not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -190,6 +222,24 @@ func _AccountService_GetAccountSummary_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_GetAccountPasswordPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAccountPasswordPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).GetAccountPasswordPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_GetAccountPasswordPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).GetAccountPasswordPolicy(ctx, req.(*GetAccountPasswordPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -204,6 +254,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccountSummary",
 			Handler:    _AccountService_GetAccountSummary_Handler,
+		},
+		{
+			MethodName: "GetAccountPasswordPolicy",
+			Handler:    _AccountService_GetAccountPasswordPolicy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

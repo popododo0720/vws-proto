@@ -45,6 +45,18 @@ service AccountService {
   rpc GetAccountSummary(GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {
     option (google.api.http) = {get: "/v1/{parent=projects/*}:getAccountSummary"};
   }
+
+  // GetAccountPasswordPolicy is AWS GetAccountPasswordPolicy. It returns
+  // the project's custom password policy. It only reads.
+  // A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+  // before any store access. An account without a custom policy is
+  // NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity: "The Password Policy
+  // with domain name <project> cannot be found."). Any other failure is
+  // INTERNAL (ServiceFailure).
+  // Authorization (iam:GetAccountPasswordPolicy) is console-api's.
+  rpc GetAccountPasswordPolicy(GetAccountPasswordPolicyRequest) returns (GetAccountPasswordPolicyResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}:getAccountPasswordPolicy"};
+  }
 }
 
 message GetAccountAuthorizationDetailsRequest {
@@ -211,6 +223,11 @@ message GetAccountSummaryRequest {
   string parent = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
+message GetAccountPasswordPolicyRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
 message GetAccountSummaryResponse {
   // AWS SummaryMap: key to value. Keys returned today are Users, Groups,
   // Roles, Policies, InstanceProfiles, MFADevices, MFADevicesInUse,
@@ -221,4 +238,29 @@ message GetAccountSummaryResponse {
   // RolePolicySizeQuota, UserPolicySizeQuota, VersionsPerPolicyQuota.
   // A key VWS cannot compute honestly is omitted, never invented as 0.
   map<string, int32> summary_map = 1;
+}
+
+message GetAccountPasswordPolicyResponse {
+  PasswordPolicy password_policy = 1;
+}
+
+// PasswordPolicy is the AWS PasswordPolicy data type.
+// max_password_age and password_reuse_prevention use optional presence:
+// their AWS range starts at 1, and AWS omits them when they are not set,
+// so console-api can omit them from the XML.
+message PasswordPolicy {
+  // 6-128.
+  int32 minimum_password_length = 1;
+  bool require_symbols = 2;
+  bool require_numbers = 3;
+  bool require_uppercase_characters = 4;
+  bool require_lowercase_characters = 5;
+  bool allow_users_to_change_password = 6;
+  bool hard_expiry = 7;
+  // True exactly when max_password_age is set and greater than 0.
+  bool expire_passwords = 8;
+  // 1-1095 days. Unset when passwords never expire.
+  optional int32 max_password_age = 9;
+  // 1-24. Unset when there is no reuse check.
+  optional int32 password_reuse_prevention = 10;
 }
