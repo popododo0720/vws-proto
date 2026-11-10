@@ -45,7 +45,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Write tag RPCs on resources other than a managed policy and a virtual MFA device (`TagUser`, `TagRole`, `UntagRole` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice`, `ListMFADeviceTags` and `ListRoleTags` are in).
 - AssumeRole session policies (`Policy`/`PolicyArns`), and session tags on any STS call.
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
-- `SimulatePrincipalPolicy`, `SimulateCustomPolicy`.
+- `SimulateCustomPolicy`.
 - Reverse lookup lists other than `ListEntitiesForPolicy` (`ListAttachedUserPolicies`, `ListGroupsForUser` and so on). console-api builds those from spec and status (`User.status.groups`).
 
 ## Needs checking
@@ -194,6 +194,14 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: a length, pattern or enum fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A `policy_arn` that is not a managed policy ARN, or a well-formed `marker` the server did not issue, is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). All of these are checked before any store access. A policy that is not a managed policy of the project (path included) is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). Any other failure is `INTERNAL` (`ServiceFailure`). console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
 - Pages: the marker continues after the last returned entity (groups, then roles, then users, each by case-folded name), so a change between pages does not shift the listing. The call only reads, so a retry is safe.
 - Authorization (`iam:ListEntitiesForPolicy`) is console-api's.
+
+## Simulate principal policy (#131)
+
+- `PolicyService.SimulatePrincipalPolicy` is AWS `SimulatePrincipalPolicy`. `parent` is `projects/{project}`. `policy_source_arn` is AWS `PolicySourceArn` (required, 20-2048 characters, a user, group or role ARN of the project). `action_names` is required, each 3-128 characters. `resource_arns` are each 1-2048 characters; empty means `*`. `policy_input_list` and `permissions_boundary_policy_input_list` are each 1-131072 characters of `[\u0009\u000A\u000D\u0020-\u00FF]` (at most one boundary). `caller_arn` is 1-2048 characters. `context_entries` use `ContextEntry` (`context_key_name` 5-256, `context_key_type`, `context_key_values`). `max_items` is AWS `MaxItems` (1-1000; 0 is unset, server default 100) and `marker` is AWS `Marker`. The response is `evaluation_results`, `is_truncated` and `marker` (set exactly when `is_truncated` is true). It is a read RPC, not an operation.
+- Fields 11-14 are reserved for `resource_policy`, `resource_owner`, `resource_handling_option` and `policy_exclusion_list` (popododo0720/vws-iam#253).
+- Errors: a length, pattern or enum fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A malformed input policy, an action without a service prefix, a `caller_arn` or `policy_source_arn` that is not a user, group or role ARN, a context value not of its type, a duplicate context key, two boundaries, or a well-formed `marker` the server did not issue is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). All of these are checked before any store access. A `policy_source_arn` of another project or that does not exist is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). A stored policy that cannot be evaluated is `INTERNAL` with `aws_code` `PolicyEvaluation`. Any other failure is `INTERNAL` (`ServiceFailure`). console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
+- Pages: of actions. The call only reads, so a retry is safe.
+- Authorization (`iam:SimulatePrincipalPolicy`) is console-api's.
 
 ## Decode authorization message (#84)
 
