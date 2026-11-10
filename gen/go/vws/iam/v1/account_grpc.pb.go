@@ -22,6 +22,7 @@ const (
 	AccountService_GetAccountAuthorizationDetails_FullMethodName = "/vws.iam.v1.AccountService/GetAccountAuthorizationDetails"
 	AccountService_GetAccountSummary_FullMethodName              = "/vws.iam.v1.AccountService/GetAccountSummary"
 	AccountService_GetAccountPasswordPolicy_FullMethodName       = "/vws.iam.v1.AccountService/GetAccountPasswordPolicy"
+	AccountService_CreateAccountAlias_FullMethodName             = "/vws.iam.v1.AccountService/CreateAccountAlias"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -30,8 +31,8 @@ const (
 //
 // AccountService holds account-level IAM reads and writes that are not
 // tied to one user, group, role or policy resource. Later account-level
-// actions (account summary, password policy, account aliases) belong on
-// this service.
+// actions (account summary, password policy, and list/delete of this
+// account alias) belong on this service.
 type AccountServiceClient interface {
 	// GetAccountAuthorizationDetails is AWS GetAccountAuthorizationDetails.
 	// It lists the users, groups, roles and customer managed policies of
@@ -65,6 +66,21 @@ type AccountServiceClient interface {
 	// INTERNAL (ServiceFailure).
 	// Authorization (iam:GetAccountPasswordPolicy) is console-api's.
 	GetAccountPasswordPolicy(ctx context.Context, in *GetAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*GetAccountPasswordPolicyResponse, error)
+	// CreateAccountAlias is AWS CreateAccountAlias. It sets the project's
+	// account alias. It is synchronous and not an operation, as the AWS
+	// call is: one store write, returned once stored.
+	// A bad parent or account_alias is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError), before any store access. An alias the
+	// project already holds, or one another project holds (AWS keeps
+	// aliases unique across accounts), is ALREADY_EXISTS /
+	// ALREADY_EXISTS (EntityAlreadyExists); a repeat after success is
+	// EntityAlreadyExists. A project has one alias; a create with a
+	// different alias overwrites the previous one, so LimitExceeded
+	// never applies. Persistent contention on the alias claim is
+	// ABORTED / GENERATION_CONFLICT (ConcurrentModification). Any other
+	// failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:CreateAccountAlias) is console-api's.
+	CreateAccountAlias(ctx context.Context, in *CreateAccountAliasRequest, opts ...grpc.CallOption) (*CreateAccountAliasResponse, error)
 }
 
 type accountServiceClient struct {
@@ -105,14 +121,24 @@ func (c *accountServiceClient) GetAccountPasswordPolicy(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *accountServiceClient) CreateAccountAlias(ctx context.Context, in *CreateAccountAliasRequest, opts ...grpc.CallOption) (*CreateAccountAliasResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateAccountAliasResponse)
+	err := c.cc.Invoke(ctx, AccountService_CreateAccountAlias_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AccountServiceServer is the server API for AccountService service.
 // All implementations must embed UnimplementedAccountServiceServer
 // for forward compatibility.
 //
 // AccountService holds account-level IAM reads and writes that are not
 // tied to one user, group, role or policy resource. Later account-level
-// actions (account summary, password policy, account aliases) belong on
-// this service.
+// actions (account summary, password policy, and list/delete of this
+// account alias) belong on this service.
 type AccountServiceServer interface {
 	// GetAccountAuthorizationDetails is AWS GetAccountAuthorizationDetails.
 	// It lists the users, groups, roles and customer managed policies of
@@ -146,6 +172,21 @@ type AccountServiceServer interface {
 	// INTERNAL (ServiceFailure).
 	// Authorization (iam:GetAccountPasswordPolicy) is console-api's.
 	GetAccountPasswordPolicy(context.Context, *GetAccountPasswordPolicyRequest) (*GetAccountPasswordPolicyResponse, error)
+	// CreateAccountAlias is AWS CreateAccountAlias. It sets the project's
+	// account alias. It is synchronous and not an operation, as the AWS
+	// call is: one store write, returned once stored.
+	// A bad parent or account_alias is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError), before any store access. An alias the
+	// project already holds, or one another project holds (AWS keeps
+	// aliases unique across accounts), is ALREADY_EXISTS /
+	// ALREADY_EXISTS (EntityAlreadyExists); a repeat after success is
+	// EntityAlreadyExists. A project has one alias; a create with a
+	// different alias overwrites the previous one, so LimitExceeded
+	// never applies. Persistent contention on the alias claim is
+	// ABORTED / GENERATION_CONFLICT (ConcurrentModification). Any other
+	// failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:CreateAccountAlias) is console-api's.
+	CreateAccountAlias(context.Context, *CreateAccountAliasRequest) (*CreateAccountAliasResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -164,6 +205,9 @@ func (UnimplementedAccountServiceServer) GetAccountSummary(context.Context, *Get
 }
 func (UnimplementedAccountServiceServer) GetAccountPasswordPolicy(context.Context, *GetAccountPasswordPolicyRequest) (*GetAccountPasswordPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAccountPasswordPolicy not implemented")
+}
+func (UnimplementedAccountServiceServer) CreateAccountAlias(context.Context, *CreateAccountAliasRequest) (*CreateAccountAliasResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAccountAlias not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -240,6 +284,24 @@ func _AccountService_GetAccountPasswordPolicy_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_CreateAccountAlias_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAccountAliasRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).CreateAccountAlias(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_CreateAccountAlias_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).CreateAccountAlias(ctx, req.(*CreateAccountAliasRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -258,6 +320,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccountPasswordPolicy",
 			Handler:    _AccountService_GetAccountPasswordPolicy_Handler,
+		},
+		{
+			MethodName: "CreateAccountAlias",
+			Handler:    _AccountService_CreateAccountAlias_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
