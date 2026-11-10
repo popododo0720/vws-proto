@@ -303,10 +303,13 @@ func (x *SecurityGroupSpec) GetRules() []*SecurityGroupRule {
 
 // SecurityGroupRule is one allow rule. There is no deny rule.
 // direction and protocol must not be UNSPECIFIED.
-// Exactly one of cidr or security_group is set.
+// Exactly one of cidr, security_group or prefix_list is set.
 // TCP and UDP: from_port and to_port are inclusive, 0 to 65535, and from_port <= to_port.
 // ICMP and ALL: from_port and to_port are 0.
 // security_group must be in the same VPC. Self-reference is allowed.
+// prefix_list is the full resource name of a vws.network/ManagedPrefixList in
+// the same project and region; the rule expands to that list's current
+// entries at evaluation time, never a copy taken at rule-write time.
 type SecurityGroupRule struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Stable id. Must match vws.common.v1.ResourceId.
@@ -319,6 +322,7 @@ type SecurityGroupRule struct {
 	//
 	//	*SecurityGroupRule_Cidr
 	//	*SecurityGroupRule_SecurityGroup
+	//	*SecurityGroupRule_PrefixList
 	Target        isSecurityGroupRule_Target `protobuf_oneof:"target"`
 	Description   string                     `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -415,6 +419,15 @@ func (x *SecurityGroupRule) GetSecurityGroup() string {
 	return ""
 }
 
+func (x *SecurityGroupRule) GetPrefixList() string {
+	if x != nil {
+		if x, ok := x.Target.(*SecurityGroupRule_PrefixList); ok {
+			return x.PrefixList
+		}
+	}
+	return ""
+}
+
 func (x *SecurityGroupRule) GetDescription() string {
 	if x != nil {
 		return x.Description
@@ -434,9 +447,15 @@ type SecurityGroupRule_SecurityGroup struct {
 	SecurityGroup string `protobuf:"bytes,7,opt,name=security_group,json=securityGroup,proto3,oneof"`
 }
 
+type SecurityGroupRule_PrefixList struct {
+	PrefixList string `protobuf:"bytes,9,opt,name=prefix_list,json=prefixList,proto3,oneof"`
+}
+
 func (*SecurityGroupRule_Cidr) isSecurityGroupRule_Target() {}
 
 func (*SecurityGroupRule_SecurityGroup) isSecurityGroupRule_Target() {}
+
+func (*SecurityGroupRule_PrefixList) isSecurityGroupRule_Target() {}
 
 type SecurityGroupStatus struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -994,7 +1013,7 @@ const file_vws_network_v1_security_group_proto_rawDesc = "" +
 	"\x19vws.network/SecurityGroup\x12Nprojects/{project}/regions/{region}/vpcs/{vpc}/securityGroups/{security_group}*\x0esecurityGroups2\rsecurityGroup\"n\n" +
 	"\x11SecurityGroupSpec\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x127\n" +
-	"\x05rules\x18\x02 \x03(\v2!.vws.network.v1.SecurityGroupRuleR\x05rules\"\xe2\x02\n" +
+	"\x05rules\x18\x02 \x03(\v2!.vws.network.v1.SecurityGroupRuleR\x05rules\"\xa9\x03\n" +
 	"\x11SecurityGroupRule\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12<\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x19.vws.network.v1.DirectionB\x03\xe0A\x02R\tdirection\x129\n" +
@@ -1003,7 +1022,10 @@ const file_vws_network_v1_security_group_proto_rawDesc = "" +
 	"\ato_port\x18\x05 \x01(\x05R\x06toPort\x12\x14\n" +
 	"\x04cidr\x18\x06 \x01(\tH\x00R\x04cidr\x12G\n" +
 	"\x0esecurity_group\x18\a \x01(\tB\x1e\xfaA\x1b\n" +
-	"\x19vws.network/SecurityGroupH\x00R\rsecurityGroup\x12 \n" +
+	"\x19vws.network/SecurityGroupH\x00R\rsecurityGroup\x12E\n" +
+	"\vprefix_list\x18\t \x01(\tB\"\xfaA\x1f\n" +
+	"\x1dvws.network/ManagedPrefixListH\x00R\n" +
+	"prefixList\x12 \n" +
 	"\vdescription\x18\b \x01(\tR\vdescriptionB\b\n" +
 	"\x06target\"O\n" +
 	"\x13SecurityGroupStatus\x128\n" +
@@ -1151,6 +1173,7 @@ func file_vws_network_v1_security_group_proto_init() {
 	file_vws_network_v1_security_group_proto_msgTypes[2].OneofWrappers = []any{
 		(*SecurityGroupRule_Cidr)(nil),
 		(*SecurityGroupRule_SecurityGroup)(nil),
+		(*SecurityGroupRule_PrefixList)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
