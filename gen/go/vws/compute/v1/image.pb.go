@@ -467,12 +467,18 @@ type CreateImageRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// Final path segment. Must match vws.common.v1.ResourceId.
-	ImageId       string `protobuf:"bytes,2,opt,name=image_id,json=imageId,proto3" json:"image_id,omitempty"`
-	Image         *Image `protobuf:"bytes,3,opt,name=image,proto3" json:"image,omitempty"`
-	RequestId     string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	ValidateOnly  bool   `protobuf:"varint,5,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ImageId      string `protobuf:"bytes,2,opt,name=image_id,json=imageId,proto3" json:"image_id,omitempty"`
+	Image        *Image `protobuf:"bytes,3,opt,name=image,proto3" json:"image,omitempty"`
+	RequestId    string `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly bool   `protobuf:"varint,5,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,6,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CreateImageRequest) Reset() {
@@ -540,17 +546,30 @@ func (x *CreateImageRequest) GetValidateOnly() bool {
 	return false
 }
 
+func (x *CreateImageRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
+	}
+	return ""
+}
+
 type UpdateImageRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Image *Image                 `protobuf:"bytes,1,opt,name=image,proto3" json:"image,omitempty"`
 	// Paths are relative to Image. status and output-only fields are rejected.
 	// Omitted mask is treated as "spec,labels". source is immutable.
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	ValidateOnly  bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
-	AllowMissing  bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	UpdateMask   *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	RequestId    string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	AllowMissing bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,6,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *UpdateImageRequest) Reset() {
@@ -618,14 +637,27 @@ func (x *UpdateImageRequest) GetAllowMissing() bool {
 	return false
 }
 
+func (x *UpdateImageRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
+	}
+	return ""
+}
+
 type DeleteImageRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	RequestId     string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	AllowMissing  bool                   `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
-	Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Name         string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	RequestId    string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	AllowMissing bool                   `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	Etag         string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,5,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *DeleteImageRequest) Reset() {
@@ -682,6 +714,13 @@ func (x *DeleteImageRequest) GetAllowMissing() bool {
 func (x *DeleteImageRequest) GetEtag() string {
 	if x != nil {
 		return x.Etag
+	}
+	return ""
+}
+
+func (x *DeleteImageRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
 	}
 	return ""
 }
@@ -838,14 +877,15 @@ const file_vws_compute_v1_image_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"k\n" +
 	"\x12ListImagesResponse\x12-\n" +
 	"\x06images\x18\x01 \x03(\v2\x15.vws.compute.v1.ImageR\x06images\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xef\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xa3\x02\n" +
 	"\x12CreateImageRequest\x121\n" +
 	"\x06parent\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\x12\x11vws.compute/ImageR\x06parent\x12\x1e\n" +
 	"\bimage_id\x18\x02 \x01(\tB\x03\xe0A\x02R\aimageId\x120\n" +
 	"\x05image\x18\x03 \x01(\v2\x15.vws.compute.v1.ImageB\x03\xe0A\x02R\x05image\x12*\n" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
-	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\x83\x02\n" +
+	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x122\n" +
+	"\x12client_fingerprint\x18\x06 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xb7\x02\n" +
 	"\x12UpdateImageRequest\x120\n" +
 	"\x05image\x18\x01 \x01(\v2\x15.vws.compute.v1.ImageB\x03\xe0A\x02R\x05image\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
@@ -853,14 +893,16 @@ const file_vws_compute_v1_image_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x12(\n" +
-	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\"\xb2\x01\n" +
+	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\x122\n" +
+	"\x12client_fingerprint\x18\x06 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xe6\x01\n" +
 	"\x12DeleteImageRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11vws.compute/ImageR\x04name\x12*\n" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
-	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\xaf\x01\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\x122\n" +
+	"\x12client_fingerprint\x18\x05 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xaf\x01\n" +
 	"\x18ReportImageStatusRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11vws.compute/ImageR\x04name\x128\n" +

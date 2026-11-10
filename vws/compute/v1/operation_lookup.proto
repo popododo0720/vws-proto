@@ -55,4 +55,10 @@ message LookupOperationResponse {
   // "projects/{project}/operations/{operation}" and its metadata is
   // vws.common.v1.OperationMetadata with request_id set.
   google.longrunning.Operation operation = 1;
+  // The original client_fingerprint, stored with the operation at accept time.
+  // It is not computed from the current resource or this lookup request. It is
+  // unchanged after later mutations and restarts. Empty means that the original
+  // request omitted it, including operations accepted before this field existed.
+  // The field name, number and string type match the network lookup in #151.
+  string request_fingerprint = 2;
 }

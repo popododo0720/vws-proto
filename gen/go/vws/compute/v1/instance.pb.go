@@ -949,12 +949,18 @@ type CreateInstanceRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// Final path segment. Must match vws.common.v1.ResourceId.
-	InstanceId    string    `protobuf:"bytes,2,opt,name=instance_id,json=instanceId,proto3" json:"instance_id,omitempty"`
-	Instance      *Instance `protobuf:"bytes,3,opt,name=instance,proto3" json:"instance,omitempty"`
-	RequestId     string    `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	ValidateOnly  bool      `protobuf:"varint,5,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	InstanceId   string    `protobuf:"bytes,2,opt,name=instance_id,json=instanceId,proto3" json:"instance_id,omitempty"`
+	Instance     *Instance `protobuf:"bytes,3,opt,name=instance,proto3" json:"instance,omitempty"`
+	RequestId    string    `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly bool      `protobuf:"varint,5,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,6,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CreateInstanceRequest) Reset() {
@@ -1022,6 +1028,13 @@ func (x *CreateInstanceRequest) GetValidateOnly() bool {
 	return false
 }
 
+func (x *CreateInstanceRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
+	}
+	return ""
+}
+
 type UpdateInstanceRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Instance *Instance              `protobuf:"bytes,1,opt,name=instance,proto3" json:"instance,omitempty"`
@@ -1032,9 +1045,15 @@ type UpdateInstanceRequest struct {
 	RequestId    string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	ValidateOnly bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
 	// When true and the instance is missing, this RPC creates it.
-	AllowMissing  bool `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	AllowMissing bool `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,6,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *UpdateInstanceRequest) Reset() {
@@ -1102,15 +1121,28 @@ func (x *UpdateInstanceRequest) GetAllowMissing() bool {
 	return false
 }
 
+func (x *UpdateInstanceRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
+	}
+	return ""
+}
+
 type DeleteInstanceRequest struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	Name         string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	RequestId    string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	AllowMissing bool                   `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
 	// When set, must match the stored etag.
-	Etag          string `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Etag string `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,5,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *DeleteInstanceRequest) Reset() {
@@ -1171,14 +1203,27 @@ func (x *DeleteInstanceRequest) GetEtag() string {
 	return ""
 }
 
+func (x *DeleteInstanceRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
+	}
+	return ""
+}
+
 type RebootInstanceRequest struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	Name      string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	RequestId string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	// When set, must match the stored etag.
-	Etag          string `protobuf:"bytes,3,opt,name=etag,proto3" json:"etag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Etag string `protobuf:"bytes,3,opt,name=etag,proto3" json:"etag,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,4,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *RebootInstanceRequest) Reset() {
@@ -1228,6 +1273,13 @@ func (x *RebootInstanceRequest) GetRequestId() string {
 func (x *RebootInstanceRequest) GetEtag() string {
 	if x != nil {
 		return x.Etag
+	}
+	return ""
+}
+
+func (x *RebootInstanceRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
 	}
 	return ""
 }
@@ -1428,7 +1480,7 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"w\n" +
 	"\x15ListInstancesResponse\x126\n" +
 	"\tinstances\x18\x01 \x03(\v2\x18.vws.compute.v1.InstanceR\tinstances\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x84\x02\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xb8\x02\n" +
 	"\x15CreateInstanceRequest\x124\n" +
 	"\x06parent\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\x12\x14vws.compute/InstanceR\x06parent\x12$\n" +
 	"\vinstance_id\x18\x02 \x01(\tB\x03\xe0A\x02R\n" +
@@ -1436,7 +1488,8 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\binstance\x18\x03 \x01(\v2\x18.vws.compute.v1.InstanceB\x03\xe0A\x02R\binstance\x12*\n" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
-	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\x8f\x02\n" +
+	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x122\n" +
+	"\x12client_fingerprint\x18\x06 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xc3\x02\n" +
 	"\x15UpdateInstanceRequest\x129\n" +
 	"\binstance\x18\x01 \x01(\v2\x18.vws.compute.v1.InstanceB\x03\xe0A\x02R\binstance\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
@@ -1444,20 +1497,23 @@ const file_vws_compute_v1_instance_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x12(\n" +
-	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\"\xb8\x01\n" +
+	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\x122\n" +
+	"\x12client_fingerprint\x18\x06 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xec\x01\n" +
 	"\x15DeleteInstanceRequest\x120\n" +
 	"\x04name\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\n" +
 	"\x14vws.compute/InstanceR\x04name\x12*\n" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
-	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\x8e\x01\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\x122\n" +
+	"\x12client_fingerprint\x18\x05 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xc2\x01\n" +
 	"\x15RebootInstanceRequest\x120\n" +
 	"\x04name\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\n" +
 	"\x14vws.compute/InstanceR\x04name\x12*\n" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12\x17\n" +
-	"\x04etag\x18\x03 \x01(\tB\x03\xe0A\x01R\x04etag\"\xb8\x01\n" +
+	"\x04etag\x18\x03 \x01(\tB\x03\xe0A\x01R\x04etag\x122\n" +
+	"\x12client_fingerprint\x18\x04 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xb8\x01\n" +
 	"\x1bReportInstanceStatusRequest\x120\n" +
 	"\x04name\x18\x01 \x01(\tB\x1c\xe0A\x02\xfaA\x16\n" +
 	"\x14vws.compute/InstanceR\x04name\x12;\n" +

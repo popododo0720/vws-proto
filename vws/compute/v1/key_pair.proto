@@ -170,6 +170,12 @@ message CreateKeyPairRequest {
     (google.api.field_behavior) = OPTIONAL
   ];
   bool validate_only = 5 [(google.api.field_behavior) = OPTIONAL];
+  // Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+  // Empty means not supplied. The server stores it with the accepted operation
+  // and returns it unchanged as LookupOperationResponse.request_fingerprint,
+  // even after another mutation or restart. A same-request_id retry with a
+  // different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+  string client_fingerprint = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message UpdateKeyPairRequest {
@@ -184,6 +190,12 @@ message UpdateKeyPairRequest {
   ];
   bool validate_only = 4 [(google.api.field_behavior) = OPTIONAL];
   bool allow_missing = 5 [(google.api.field_behavior) = OPTIONAL];
+  // Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+  // Empty means not supplied. The server stores it with the accepted operation
+  // and returns it unchanged as LookupOperationResponse.request_fingerprint,
+  // even after another mutation or restart. A same-request_id retry with a
+  // different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+  string client_fingerprint = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message DeleteKeyPairRequest {
@@ -197,6 +209,12 @@ message DeleteKeyPairRequest {
   ];
   bool allow_missing = 3 [(google.api.field_behavior) = OPTIONAL];
   string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+  // Empty means not supplied. The server stores it with the accepted operation
+  // and returns it unchanged as LookupOperationResponse.request_fingerprint,
+  // even after another mutation or restart. A same-request_id retry with a
+  // different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+  string client_fingerprint = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ReportKeyPairStatusRequest {

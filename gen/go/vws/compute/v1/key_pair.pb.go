@@ -417,12 +417,18 @@ type CreateKeyPairRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// Final path segment. Must match vws.common.v1.ResourceId.
-	KeyPairId     string   `protobuf:"bytes,2,opt,name=key_pair_id,json=keyPairId,proto3" json:"key_pair_id,omitempty"`
-	KeyPair       *KeyPair `protobuf:"bytes,3,opt,name=key_pair,json=keyPair,proto3" json:"key_pair,omitempty"`
-	RequestId     string   `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	ValidateOnly  bool     `protobuf:"varint,5,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	KeyPairId    string   `protobuf:"bytes,2,opt,name=key_pair_id,json=keyPairId,proto3" json:"key_pair_id,omitempty"`
+	KeyPair      *KeyPair `protobuf:"bytes,3,opt,name=key_pair,json=keyPair,proto3" json:"key_pair,omitempty"`
+	RequestId    string   `protobuf:"bytes,4,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly bool     `protobuf:"varint,5,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,6,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CreateKeyPairRequest) Reset() {
@@ -490,18 +496,31 @@ func (x *CreateKeyPairRequest) GetValidateOnly() bool {
 	return false
 }
 
+func (x *CreateKeyPairRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
+	}
+	return ""
+}
+
 type UpdateKeyPairRequest struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	KeyPair *KeyPair               `protobuf:"bytes,1,opt,name=key_pair,json=keyPair,proto3" json:"key_pair,omitempty"`
 	// Paths are relative to KeyPair. public_key is immutable.
 	// status and output-only fields are rejected.
 	// Omitted mask is treated as "spec,labels".
-	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
-	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	ValidateOnly  bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
-	AllowMissing  bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	UpdateMask   *fieldmaskpb.FieldMask `protobuf:"bytes,2,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	RequestId    string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	ValidateOnly bool                   `protobuf:"varint,4,opt,name=validate_only,json=validateOnly,proto3" json:"validate_only,omitempty"`
+	AllowMissing bool                   `protobuf:"varint,5,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,6,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *UpdateKeyPairRequest) Reset() {
@@ -569,14 +588,27 @@ func (x *UpdateKeyPairRequest) GetAllowMissing() bool {
 	return false
 }
 
+func (x *UpdateKeyPairRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
+	}
+	return ""
+}
+
 type DeleteKeyPairRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	RequestId     string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	AllowMissing  bool                   `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
-	Etag          string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Name         string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	RequestId    string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	AllowMissing bool                   `protobuf:"varint,3,opt,name=allow_missing,json=allowMissing,proto3" json:"allow_missing,omitempty"`
+	Etag         string                 `protobuf:"bytes,4,opt,name=etag,proto3" json:"etag,omitempty"`
+	// Opaque fingerprint of the original client parameters, at most 256 UTF-8 bytes.
+	// Empty means not supplied. The server stores it with the accepted operation
+	// and returns it unchanged as LookupOperationResponse.request_fingerprint,
+	// even after another mutation or restart. A same-request_id retry with a
+	// different fingerprint is ABORTED / IDEMPOTENCY_CONFLICT. Do not put secrets here.
+	ClientFingerprint string `protobuf:"bytes,5,opt,name=client_fingerprint,json=clientFingerprint,proto3" json:"client_fingerprint,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *DeleteKeyPairRequest) Reset() {
@@ -633,6 +665,13 @@ func (x *DeleteKeyPairRequest) GetAllowMissing() bool {
 func (x *DeleteKeyPairRequest) GetEtag() string {
 	if x != nil {
 		return x.Etag
+	}
+	return ""
+}
+
+func (x *DeleteKeyPairRequest) GetClientFingerprint() string {
+	if x != nil {
+		return x.ClientFingerprint
 	}
 	return ""
 }
@@ -783,14 +822,15 @@ const file_vws_compute_v1_key_pair_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"t\n" +
 	"\x14ListKeyPairsResponse\x124\n" +
 	"\tkey_pairs\x18\x01 \x03(\v2\x17.vws.compute.v1.KeyPairR\bkeyPairs\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xff\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xb3\x02\n" +
 	"\x14CreateKeyPairRequest\x123\n" +
 	"\x06parent\x18\x01 \x01(\tB\x1b\xe0A\x02\xfaA\x15\x12\x13vws.compute/KeyPairR\x06parent\x12#\n" +
 	"\vkey_pair_id\x18\x02 \x01(\tB\x03\xe0A\x02R\tkeyPairId\x127\n" +
 	"\bkey_pair\x18\x03 \x01(\v2\x17.vws.compute.v1.KeyPairB\x03\xe0A\x02R\akeyPair\x12*\n" +
 	"\n" +
 	"request_id\x18\x04 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
-	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\"\x8c\x02\n" +
+	"\rvalidate_only\x18\x05 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x122\n" +
+	"\x12client_fingerprint\x18\x06 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xc0\x02\n" +
 	"\x14UpdateKeyPairRequest\x127\n" +
 	"\bkey_pair\x18\x01 \x01(\v2\x17.vws.compute.v1.KeyPairB\x03\xe0A\x02R\akeyPair\x12;\n" +
 	"\vupdate_mask\x18\x02 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
@@ -798,14 +838,16 @@ const file_vws_compute_v1_key_pair_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rvalidate_only\x18\x04 \x01(\bB\x03\xe0A\x01R\fvalidateOnly\x12(\n" +
-	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\"\xb6\x01\n" +
+	"\rallow_missing\x18\x05 \x01(\bB\x03\xe0A\x01R\fallowMissing\x122\n" +
+	"\x12client_fingerprint\x18\x06 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xea\x01\n" +
 	"\x14DeleteKeyPairRequest\x12/\n" +
 	"\x04name\x18\x01 \x01(\tB\x1b\xe0A\x02\xfaA\x15\n" +
 	"\x13vws.compute/KeyPairR\x04name\x12*\n" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
-	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\xb5\x01\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\x122\n" +
+	"\x12client_fingerprint\x18\x05 \x01(\tB\x03\xe0A\x01R\x11clientFingerprint\"\xb5\x01\n" +
 	"\x1aReportKeyPairStatusRequest\x12/\n" +
 	"\x04name\x18\x01 \x01(\tB\x1b\xe0A\x02\xfaA\x15\n" +
 	"\x13vws.compute/KeyPairR\x04name\x12:\n" +

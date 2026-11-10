@@ -53,3 +53,19 @@ go mod tidy && go build ./... && go test ./...
 It records the tag and commit in its README and moves to `require` with no `replace` in its next release.
 
 After a tag that a consumer must act on, the tagger opens an issue in that consumer's repo with the tag, the commit and the release note. The consumer's PR body names the tag, the commit and the build and test commands it ran.
+
+## Compute client fingerprints (next minor release)
+
+Ship the additive compute `client_fingerprint` request fields and
+`LookupOperationResponse.request_fingerprint` in v0.23.0. This is not a breaking wire change.
+
+The lookup uses the same string field 2 and name as the network lookup in #151.
+`vws-compute` must validate the 256-byte bound, persist the supplied value with
+the operation atomically, compare it on replay, and return it from lookup.
+`vws-console-api` must send its canonical parameter fingerprint and compare the
+lookup value before treating a retry as the same request. Neither behavior is
+implemented by generated stubs alone.
+
+`vws-network` uses the parallel lookup contract from #151. `vws-storage` and
+`vws-deploy` need no API or deployment change for these additive fields.
+Consumers can keep their existing release pins until their implementations are ready.

@@ -83,9 +83,15 @@ type LookupOperationResponse struct {
 	// The operation, in the same form GetOperation returns. Its name is
 	// "projects/{project}/operations/{operation}" and its metadata is
 	// vws.common.v1.OperationMetadata with request_id set.
-	Operation     *longrunningpb.Operation `protobuf:"bytes,1,opt,name=operation,proto3" json:"operation,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Operation *longrunningpb.Operation `protobuf:"bytes,1,opt,name=operation,proto3" json:"operation,omitempty"`
+	// The original client_fingerprint, stored with the operation at accept time.
+	// It is not computed from the current resource or this lookup request. It is
+	// unchanged after later mutations and restarts. Empty means that the original
+	// request omitted it, including operations accepted before this field existed.
+	// The field name, number and string type match the network lookup in #151.
+	RequestFingerprint string `protobuf:"bytes,2,opt,name=request_fingerprint,json=requestFingerprint,proto3" json:"request_fingerprint,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *LookupOperationResponse) Reset() {
@@ -125,6 +131,13 @@ func (x *LookupOperationResponse) GetOperation() *longrunningpb.Operation {
 	return nil
 }
 
+func (x *LookupOperationResponse) GetRequestFingerprint() string {
+	if x != nil {
+		return x.RequestFingerprint
+	}
+	return ""
+}
+
 var File_vws_compute_v1_operation_lookup_proto protoreflect.FileDescriptor
 
 const file_vws_compute_v1_operation_lookup_proto_rawDesc = "" +
@@ -133,9 +146,10 @@ const file_vws_compute_v1_operation_lookup_proto_rawDesc = "" +
 	"\x16LookupOperationRequest\x12D\n" +
 	"\x06parent\x18\x01 \x01(\tB,\xe0A\x02\xfaA&\x12$longrunning.googleapis.com/OperationR\x06parent\x12*\n" +
 	"\n" +
-	"request_id\x18\x02 \x01(\tB\v\xe0A\x02\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"V\n" +
+	"request_id\x18\x02 \x01(\tB\v\xe0A\x02\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"\x87\x01\n" +
 	"\x17LookupOperationResponse\x12;\n" +
-	"\toperation\x18\x01 \x01(\v2\x1d.google.longrunning.OperationR\toperation2\xb0\x01\n" +
+	"\toperation\x18\x01 \x01(\v2\x1d.google.longrunning.OperationR\toperation\x12/\n" +
+	"\x13request_fingerprint\x18\x02 \x01(\tR\x12requestFingerprint2\xb0\x01\n" +
 	"\x16OperationLookupService\x12\x95\x01\n" +
 	"\x0fLookupOperation\x12&.vws.compute.v1.LookupOperationRequest\x1a'.vws.compute.v1.LookupOperationResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{parent=projects/*}/operations:lookupBo\n" +
 	"\x12dev.vws.compute.v1B\x14OperationLookupProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/compute/v1;computev1b\x06proto3"
