@@ -155,6 +155,16 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Authorization (`iam:DeleteInstanceProfile`) is console-api's.
 - The other instance profile actions (#126) join this service.
 
+## Account authorization details (#137)
+
+- `AccountService.GetAccountAuthorizationDetails` is AWS `GetAccountAuthorizationDetails`. `parent` is `projects/{project}`. `filter` is AWS `Filter`: each value is one of `User`, `Role`, `Group`, `LocalManagedPolicy`, `AWSManagedPolicy` (case sensitive); empty means all; duplicates are allowed. `max_items` is AWS `MaxItems` (1-1000; 0 is unset, server default 100) and `marker` is AWS `Marker`. The response lists `user_detail_list`, `group_detail_list`, `role_detail_list` and `policies` (customer managed), in that order, each by case-folded name. `is_truncated` and `marker` are AWS `IsTruncated` and `Marker`; `marker` is set exactly when `is_truncated` is true. It is a read RPC, not an operation.
+- Documents (`user_policy_list`, `group_policy_list`, `role_policy_list`, `assume_role_policy_document`, and `policy_version_list.document`) are plain JSON. URL encoding (RFC 3986) is console-api's wire concern.
+- `AWSManagedPolicy` selects nothing (AWS managed policies are not modeled, popododo0720/vws-iam#260). `UserDetail.tags`, `RoleDetail.tags` and `RoleLastUsed` are not modeled yet (popododo0720/vws-iam#265) and are left unset.
+- The AWS `InstanceProfile` and `PolicyVersion` data types are `AuthorizationInstanceProfile` and `AuthorizationPolicyVersion` in this contract, because `InstanceProfile` and `PolicyVersion` already name the resource envelopes. `AuthorizationInstanceProfile.roles` is a slim `AuthorizationRole` (not `RoleDetail`), so the list does not recurse. `permissions_boundary` is unset when the user or role has none; `permissions_boundary_type` is `Policy` when the message is set.
+- Errors: a bad `parent`, an unknown `filter` value, a `max_items` outside 1-1000 or a `marker` character outside `[\u0020-\u00FF]` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A well-formed `marker` the server did not issue is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). All of these are checked before any store access. Any other failure is `INTERNAL` (`ServiceFailure`). console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
+- Pages: the marker continues after the last returned entry (users, then groups, then roles, then policies, each by case-folded name), so a change between pages does not shift the listing. The call only reads, so a retry is safe.
+- Authorization (`iam:GetAccountAuthorizationDetails`) is console-api's.
+
 ## Decode authorization message (#84)
 
 - `TokenService.DecodeAuthorizationMessage` is AWS STS `DecodeAuthorizationMessage`. It opens the `AuthorizeResponse.encoded_message` that vws-iam sets on a `DENY_*` decision; console-api returns that message the way AWS does, for example as the EC2 `UnauthorizedOperation` "Encoded authorization failure message". It is empty on `ALLOW`.
