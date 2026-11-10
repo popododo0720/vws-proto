@@ -1,0 +1,280 @@
+syntax = "proto3";
+
+package vws.iam.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/timestamp.proto";
+import "vws/common/v1/resource.proto";
+
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
+option java_multiple_files = true;
+option java_outer_classname = "FidoDeviceProto";
+option java_package = "dev.vws.iam.v1";
+
+// FidoDeviceService manages FIDO security keys (WebAuthn credentials)
+// registered to an IAM user. A key exists only while it is registered
+// to its user; unlike a virtual MFA device it is never unassigned and
+// kept. The serial number is
+// arn:vws:iam::{project}:u2f/user/{user}/{label}-{id}, as AWS
+// u2f/user/{user}/{name}-{id}. The resource id is 26 characters of
+// [A-Z2-7], the first 26 characters of the unpadded base32 SHA-256 of
+// the credential id, so one credential registers once per project.
+// Root u2f/root/ serials are out of scope: VWS root has no FIDO
+// devices. The resource holds no secret (the public COSE key stays in
+// vws-iam and is not in this contract).
+service FidoDeviceService {
+  // AIP-131: the Get response is the resource.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // GetFidoDevice is AWS GetMFADevice for a u2f/ serial. Exactly one
+  // of name and serial_number must be set. A virtual mfa/ serial, a
+  // root u2f/root/ serial, a serial or name in another project, a
+  // malformed serial, an unknown device, or a user that does not own
+  // the key is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A bad
+  // parent, a name or serial that is not a FIDO identifier, or both
+  // name and serial_number set, is INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError). It only reads.
+  // Authorization (iam:GetMFADevice) is console-api's.
+  rpc GetFidoDevice(GetFidoDeviceRequest) returns (FidoDevice) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}:getFidoDevice"};
+  }
+
+  // ListFidoDevices lists FIDO keys in the project, optionally
+  // filtered to one user. That covers the FIDO entries of AWS
+  // ListMFADevices. A project or user with no key is an empty,
+  // complete page. It only reads.
+  // Authorization (iam:ListMFADevices) is console-api's.
+  rpc ListFidoDevices(ListFidoDevicesRequest) returns (ListFidoDevicesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}/fidoDevices"};
+  }
+
+  // AIP-151: every mutation returns google.longrunning.Operation.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  // DeleteFidoDevice is AWS DeactivateMFADevice for a u2f/ serial: the
+  // key is deleted, not kept disabled. An unknown device, or a user
+  // that does not own the key, is NOT_FOUND / RESOURCE_NOT_FOUND
+  // (NoSuchEntity); a repeat after success is NoSuchEntity, as in AWS.
+  // Authorization (iam:DeactivateMFADevice) is console-api's.
+  rpc DeleteFidoDevice(DeleteFidoDeviceRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {delete: "/v1/{name=projects/*/fidoDevices/*}"};
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.FidoDevice"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // BeginFidoRegistration starts a WebAuthn registration for user
+  // under label. It is synchronous and not an operation: it returns
+  // creation options and a registration id, and the server keeps the
+  // challenge until FinishFidoRegistration or the registration expires.
+  // A bad parent, user or label is INVALID_ARGUMENT / INVALID_SPEC
+  // (ValidationError). An unknown user is NOT_FOUND / RESOURCE_NOT_FOUND
+  // (NoSuchEntity). A user who already has eight MFA devices (virtual
+  // and FIDO together, the AWS cap) is RESOURCE_EXHAUSTED /
+  // QUOTA_EXCEEDED (LimitExceeded).
+  // Authorization is console-api's; there is no AWS action of this name.
+  rpc BeginFidoRegistration(BeginFidoRegistrationRequest) returns (BeginFidoRegistrationResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}/fidoDevices:beginRegistration"
+      body: "*"
+    };
+  }
+
+  // FinishFidoRegistration verifies the attestation and stores the
+  // key. It is synchronous and not an operation, because the AWS
+  // registration is not an operation and the server stores the key in
+  // one write and returns the device. A missing, expired or already
+  // consumed registration_id is NOT_FOUND / RESOURCE_NOT_FOUND. A
+  // parent that does not match the Begin, or an attestation that does
+  // not verify, is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput). A
+  // credential already registered in the project is ALREADY_EXISTS /
+  // ALREADY_EXISTS (EntityAlreadyExists). An unknown or deleted user
+  // is NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity).
+  // Authorization is console-api's; there is no AWS action of this name.
+  rpc FinishFidoRegistration(FinishFidoRegistrationRequest) returns (FinishFidoRegistrationResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}/fidoDevices:finishRegistration"
+      body: "*"
+    };
+  }
+}
+
+// FidoDevice is a FIDO security key registered to a user.
+// Fields 1-10 are the shared resource envelope.
+// The id (the last segment of name) is 26 characters of [A-Z2-7].
+message FidoDevice {
+  option (google.api.resource) = {
+    type: "vws.iam/FidoDevice"
+    pattern: "projects/{project}/fidoDevices/{fido_device}"
+    plural: "fidoDevices"
+    singular: "fidoDevice"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = UUID4
+  ];
+  int64 generation = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string etag = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  map<string, string> labels = 5;
+  FidoDeviceSpec spec = 6 [(google.api.field_behavior) = REQUIRED];
+  FidoDeviceStatus status = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp delete_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message FidoDeviceSpec {
+  // Friendly name given at registration, IamName, 1-64 characters of
+  // [A-Za-z0-9+=,.@_-]. The last segment of the serial is {label}-{id}.
+  string label = 1;
+}
+
+message FidoDeviceStatus {
+  vws.common.v1.ObservedState observed = 1;
+  // AWS SerialNumber,
+  // arn:vws:iam::{project}:u2f/user/{user}/{label}-{id}, at most 256
+  // characters.
+  string serial_number = 2;
+  // The user the key is registered to, projects/{project}/users/{user}.
+  // A FIDO key is always assigned.
+  string user = 3;
+  // AWS EnableDate.
+  google.protobuf.Timestamp enable_time = 4;
+  // AWS Certifications, FIDO Alliance MDS levels (for example
+  // "FIDO": "L1"). At most 16 entries. Each key is 1-128 and each
+  // value 1-32 characters of [\u0020-\u00FF], counted in Unicode
+  // characters.
+  map<string, string> certifications = 5;
+  // Authenticator AAGUID, a lowercase UUID, empty when the
+  // authenticator did not report one.
+  string aaguid = 6;
+}
+
+message GetFidoDeviceRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // projects/{project}/fidoDevices/{fido_device}. Empty when looking
+  // up by serial_number. Exactly one of name and serial_number must
+  // be set.
+  string name = 2 [(google.api.resource_reference).type = "vws.iam/FidoDevice"];
+  // AWS SerialNumber,
+  // arn:vws:iam::{project}:u2f/user/{user}/{label}-{id}, at most 256
+  // characters. Empty when looking up by name. console-api has this
+  // value from the Query API and no resource name.
+  string serial_number = 3;
+  // Optional precondition, the user resource name
+  // projects/{project}/users/{user}. When set, the key must belong to
+  // that user, compared case-insensitively on the IAM user id;
+  // otherwise NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). Empty
+  // means no ownership check. AWS GetMFADevice UserName is optional
+  // the same way.
+  string user = 4 [(google.api.resource_reference).type = "vws.iam/User"];
+}
+
+message ListFidoDevicesRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/FidoDevice"
+  ];
+  // 1-1000. 0 means not set: the server default is 100.
+  int32 page_size = 2;
+  // Characters of [\u0020-\u00FF]. Only a value this RPC returned.
+  string page_token = 3;
+  // Optional filter, projects/{project}/users/{user}. Empty means
+  // every FIDO key in the project. An unknown user is an empty,
+  // complete page, not NOT_FOUND, so ListMFADevices can merge FIDO
+  // and virtual devices without a first lookup.
+  string user = 4 [(google.api.resource_reference).type = "vws.iam/User"];
+}
+
+message ListFidoDevicesResponse {
+  // This page, ordered by case-folded resource id.
+  repeated FidoDevice fido_devices = 1;
+  // Set exactly when the result is truncated.
+  string next_page_token = 2;
+}
+
+message DeleteFidoDeviceRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/FidoDevice"
+  ];
+  // A repeated request_id within 24 hours with the same request
+  // returns the first operation and writes nothing, so a retry after
+  // a lost response is not NOT_FOUND. The same request_id with a
+  // different request is ABORTED / IDEMPOTENCY_CONFLICT.
+  string request_id = 2 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  // Optional precondition, projects/{project}/users/{user}. When set,
+  // the key must belong to that user, compared case-insensitively on
+  // the IAM user id; otherwise NOT_FOUND / RESOURCE_NOT_FOUND
+  // (NoSuchEntity). Empty means no ownership check. AWS
+  // DeactivateMFADevice requires UserName; console-api may set this.
+  string user = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
+}
+
+message BeginFidoRegistrationRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/FidoDevice"
+  ];
+  // projects/{project}/users/{user}. The user the key will be
+  // registered to.
+  string user = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/User"
+  ];
+  // Friendly name, IamName, 1-64 characters of [A-Za-z0-9+=,.@_-].
+  // Becomes FidoDevice.spec.label and the label segment of the serial.
+  string label = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BeginFidoRegistrationResponse {
+  // Server-issued id for FinishFidoRegistration. A UUID4.
+  string registration_id = 1 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = UUID4
+  ];
+  // WebAuthn PublicKeyCredentialCreationOptions as UTF-8 JSON,
+  // including the challenge the server stored. Never log it.
+  string public_key_credential_creation_options = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    debug_redact = true
+  ];
+}
+
+message FinishFidoRegistrationRequest {
+  // projects/{project}. Must be the same parent as the matching Begin.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/FidoDevice"
+  ];
+  string registration_id = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_info).format = UUID4
+  ];
+  // WebAuthn AuthenticatorAttestationResponse (the PublicKeyCredential
+  // from the authenticator) as UTF-8 JSON. Never log it.
+  string attestation_response = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY,
+    debug_redact = true
+  ];
+}
+
+message FinishFidoRegistrationResponse {
+  FidoDevice fido_device = 1;
+}
