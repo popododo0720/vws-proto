@@ -505,8 +505,22 @@ type CreateVirtualMfaDeviceRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Parent string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
 	// Final path segment. Must match IamName.
-	MfaDeviceId   string     `protobuf:"bytes,2,opt,name=mfa_device_id,json=mfaDeviceId,proto3" json:"mfa_device_id,omitempty"`
-	MfaDevice     *MfaDevice `protobuf:"bytes,3,opt,name=mfa_device,json=mfaDevice,proto3" json:"mfa_device,omitempty"`
+	MfaDeviceId string     `protobuf:"bytes,2,opt,name=mfa_device_id,json=mfaDeviceId,proto3" json:"mfa_device_id,omitempty"`
+	MfaDevice   *MfaDevice `protobuf:"bytes,3,opt,name=mfa_device,json=mfaDevice,proto3" json:"mfa_device,omitempty"`
+	// AWS Tags, at most 50. Empty means none. Validated like TagMFADevice
+	// (key and value length and pattern, a key or value beginning with
+	// aws: is refused). Written in the same store transaction as the
+	// device. If one tag is invalid or the request has more than 50 tags,
+	// the entire request fails and the device is not created.
+	Tags []*Tag `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`
+	// A repeated request_id within 24 hours with the same request returns
+	// the first response, including the same base32_string_seed and
+	// otpauth_uri, and writes nothing, so a retry after a lost response
+	// does not lose the seed. The same request_id with a different
+	// request is ABORTED / IDEMPOTENCY_CONFLICT. Omitted means no replay:
+	// a retry after a lost response is ALREADY_EXISTS and the seed is
+	// not returned again.
+	RequestId     string `protobuf:"bytes,5,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -560,6 +574,20 @@ func (x *CreateVirtualMfaDeviceRequest) GetMfaDevice() *MfaDevice {
 		return x.MfaDevice
 	}
 	return nil
+}
+
+func (x *CreateVirtualMfaDeviceRequest) GetTags() []*Tag {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *CreateVirtualMfaDeviceRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
 }
 
 type CreateVirtualMfaDeviceResponse struct {
@@ -1359,12 +1387,15 @@ const file_vws_iam_v1_mfa_device_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\x12(\n" +
 	"\rallow_missing\x18\x03 \x01(\bB\x03\xe0A\x01R\fallowMissing\x12\x17\n" +
-	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\xb6\x01\n" +
+	"\x04etag\x18\x04 \x01(\tB\x03\xe0A\x01R\x04etag\"\x87\x02\n" +
 	"\x1dCreateVirtualMfaDeviceRequest\x121\n" +
 	"\x06parent\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\x12\x11vws.iam/MfaDeviceR\x06parent\x12'\n" +
 	"\rmfa_device_id\x18\x02 \x01(\tB\x03\xe0A\x02R\vmfaDeviceId\x129\n" +
 	"\n" +
-	"mfa_device\x18\x03 \x01(\v2\x15.vws.iam.v1.MfaDeviceB\x03\xe0A\x02R\tmfaDevice\"\xb5\x01\n" +
+	"mfa_device\x18\x03 \x01(\v2\x15.vws.iam.v1.MfaDeviceB\x03\xe0A\x02R\tmfaDevice\x12#\n" +
+	"\x04tags\x18\x04 \x03(\v2\x0f.vws.iam.v1.TagR\x04tags\x12*\n" +
+	"\n" +
+	"request_id\x18\x05 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"\xb5\x01\n" +
 	"\x1eCreateVirtualMfaDeviceResponse\x124\n" +
 	"\n" +
 	"mfa_device\x18\x01 \x01(\v2\x15.vws.iam.v1.MfaDeviceR\tmfaDevice\x124\n" +
@@ -1493,36 +1524,37 @@ var file_vws_iam_v1_mfa_device_proto_depIdxs = []int32{
 	20, // 8: vws.iam.v1.MfaDeviceStatus.locked_until:type_name -> google.protobuf.Timestamp
 	0,  // 9: vws.iam.v1.ListMfaDevicesResponse.mfa_devices:type_name -> vws.iam.v1.MfaDevice
 	0,  // 10: vws.iam.v1.CreateVirtualMfaDeviceRequest.mfa_device:type_name -> vws.iam.v1.MfaDevice
-	0,  // 11: vws.iam.v1.CreateVirtualMfaDeviceResponse.mfa_device:type_name -> vws.iam.v1.MfaDevice
-	0,  // 12: vws.iam.v1.EnableMfaDeviceResponse.mfa_device:type_name -> vws.iam.v1.MfaDevice
-	0,  // 13: vws.iam.v1.DeactivateMfaDeviceResponse.mfa_device:type_name -> vws.iam.v1.MfaDevice
-	22, // 14: vws.iam.v1.TagMFADeviceRequest.tags:type_name -> vws.iam.v1.Tag
-	22, // 15: vws.iam.v1.ListMFADeviceTagsResponse.tags:type_name -> vws.iam.v1.Tag
-	3,  // 16: vws.iam.v1.MfaDeviceService.GetMfaDevice:input_type -> vws.iam.v1.GetMfaDeviceRequest
-	4,  // 17: vws.iam.v1.MfaDeviceService.ListMfaDevices:input_type -> vws.iam.v1.ListMfaDevicesRequest
-	6,  // 18: vws.iam.v1.MfaDeviceService.DeleteMfaDevice:input_type -> vws.iam.v1.DeleteMfaDeviceRequest
-	7,  // 19: vws.iam.v1.MfaDeviceService.CreateVirtualMfaDevice:input_type -> vws.iam.v1.CreateVirtualMfaDeviceRequest
-	9,  // 20: vws.iam.v1.MfaDeviceService.EnableMfaDevice:input_type -> vws.iam.v1.EnableMfaDeviceRequest
-	10, // 21: vws.iam.v1.MfaDeviceService.DeactivateMfaDevice:input_type -> vws.iam.v1.DeactivateMfaDeviceRequest
-	13, // 22: vws.iam.v1.MfaDeviceService.ResyncMfaDevice:input_type -> vws.iam.v1.ResyncMfaDeviceRequest
-	15, // 23: vws.iam.v1.MfaDeviceService.TagMFADevice:input_type -> vws.iam.v1.TagMFADeviceRequest
-	16, // 24: vws.iam.v1.MfaDeviceService.UntagMFADevice:input_type -> vws.iam.v1.UntagMFADeviceRequest
-	17, // 25: vws.iam.v1.MfaDeviceService.ListMFADeviceTags:input_type -> vws.iam.v1.ListMFADeviceTagsRequest
-	0,  // 26: vws.iam.v1.MfaDeviceService.GetMfaDevice:output_type -> vws.iam.v1.MfaDevice
-	5,  // 27: vws.iam.v1.MfaDeviceService.ListMfaDevices:output_type -> vws.iam.v1.ListMfaDevicesResponse
-	23, // 28: vws.iam.v1.MfaDeviceService.DeleteMfaDevice:output_type -> google.longrunning.Operation
-	8,  // 29: vws.iam.v1.MfaDeviceService.CreateVirtualMfaDevice:output_type -> vws.iam.v1.CreateVirtualMfaDeviceResponse
-	11, // 30: vws.iam.v1.MfaDeviceService.EnableMfaDevice:output_type -> vws.iam.v1.EnableMfaDeviceResponse
-	12, // 31: vws.iam.v1.MfaDeviceService.DeactivateMfaDevice:output_type -> vws.iam.v1.DeactivateMfaDeviceResponse
-	14, // 32: vws.iam.v1.MfaDeviceService.ResyncMfaDevice:output_type -> vws.iam.v1.ResyncMfaDeviceResponse
-	23, // 33: vws.iam.v1.MfaDeviceService.TagMFADevice:output_type -> google.longrunning.Operation
-	23, // 34: vws.iam.v1.MfaDeviceService.UntagMFADevice:output_type -> google.longrunning.Operation
-	18, // 35: vws.iam.v1.MfaDeviceService.ListMFADeviceTags:output_type -> vws.iam.v1.ListMFADeviceTagsResponse
-	26, // [26:36] is the sub-list for method output_type
-	16, // [16:26] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	22, // 11: vws.iam.v1.CreateVirtualMfaDeviceRequest.tags:type_name -> vws.iam.v1.Tag
+	0,  // 12: vws.iam.v1.CreateVirtualMfaDeviceResponse.mfa_device:type_name -> vws.iam.v1.MfaDevice
+	0,  // 13: vws.iam.v1.EnableMfaDeviceResponse.mfa_device:type_name -> vws.iam.v1.MfaDevice
+	0,  // 14: vws.iam.v1.DeactivateMfaDeviceResponse.mfa_device:type_name -> vws.iam.v1.MfaDevice
+	22, // 15: vws.iam.v1.TagMFADeviceRequest.tags:type_name -> vws.iam.v1.Tag
+	22, // 16: vws.iam.v1.ListMFADeviceTagsResponse.tags:type_name -> vws.iam.v1.Tag
+	3,  // 17: vws.iam.v1.MfaDeviceService.GetMfaDevice:input_type -> vws.iam.v1.GetMfaDeviceRequest
+	4,  // 18: vws.iam.v1.MfaDeviceService.ListMfaDevices:input_type -> vws.iam.v1.ListMfaDevicesRequest
+	6,  // 19: vws.iam.v1.MfaDeviceService.DeleteMfaDevice:input_type -> vws.iam.v1.DeleteMfaDeviceRequest
+	7,  // 20: vws.iam.v1.MfaDeviceService.CreateVirtualMfaDevice:input_type -> vws.iam.v1.CreateVirtualMfaDeviceRequest
+	9,  // 21: vws.iam.v1.MfaDeviceService.EnableMfaDevice:input_type -> vws.iam.v1.EnableMfaDeviceRequest
+	10, // 22: vws.iam.v1.MfaDeviceService.DeactivateMfaDevice:input_type -> vws.iam.v1.DeactivateMfaDeviceRequest
+	13, // 23: vws.iam.v1.MfaDeviceService.ResyncMfaDevice:input_type -> vws.iam.v1.ResyncMfaDeviceRequest
+	15, // 24: vws.iam.v1.MfaDeviceService.TagMFADevice:input_type -> vws.iam.v1.TagMFADeviceRequest
+	16, // 25: vws.iam.v1.MfaDeviceService.UntagMFADevice:input_type -> vws.iam.v1.UntagMFADeviceRequest
+	17, // 26: vws.iam.v1.MfaDeviceService.ListMFADeviceTags:input_type -> vws.iam.v1.ListMFADeviceTagsRequest
+	0,  // 27: vws.iam.v1.MfaDeviceService.GetMfaDevice:output_type -> vws.iam.v1.MfaDevice
+	5,  // 28: vws.iam.v1.MfaDeviceService.ListMfaDevices:output_type -> vws.iam.v1.ListMfaDevicesResponse
+	23, // 29: vws.iam.v1.MfaDeviceService.DeleteMfaDevice:output_type -> google.longrunning.Operation
+	8,  // 30: vws.iam.v1.MfaDeviceService.CreateVirtualMfaDevice:output_type -> vws.iam.v1.CreateVirtualMfaDeviceResponse
+	11, // 31: vws.iam.v1.MfaDeviceService.EnableMfaDevice:output_type -> vws.iam.v1.EnableMfaDeviceResponse
+	12, // 32: vws.iam.v1.MfaDeviceService.DeactivateMfaDevice:output_type -> vws.iam.v1.DeactivateMfaDeviceResponse
+	14, // 33: vws.iam.v1.MfaDeviceService.ResyncMfaDevice:output_type -> vws.iam.v1.ResyncMfaDeviceResponse
+	23, // 34: vws.iam.v1.MfaDeviceService.TagMFADevice:output_type -> google.longrunning.Operation
+	23, // 35: vws.iam.v1.MfaDeviceService.UntagMFADevice:output_type -> google.longrunning.Operation
+	18, // 36: vws.iam.v1.MfaDeviceService.ListMFADeviceTags:output_type -> vws.iam.v1.ListMFADeviceTagsResponse
+	27, // [27:37] is the sub-list for method output_type
+	17, // [17:27] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_mfa_device_proto_init() }
