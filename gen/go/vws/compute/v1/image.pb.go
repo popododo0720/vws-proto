@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/compute/v1/image.proto
 
+// Package vws.compute.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package computev1
 
 import (
@@ -868,7 +872,7 @@ const file_vws_compute_v1_image_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x03 \x01(\tB\v\xe0A\x01\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"H\n" +
 	"\x19ReportImageStatusResponse\x12+\n" +
-	"\x05image\x18\x01 \x01(\v2\x15.vws.compute.v1.ImageR\x05image2\x8a\b\n" +
+	"\x05image\x18\x01 \x01(\v2\x15.vws.compute.v1.ImageR\x05image2\x8f\b\n" +
 	"\fImageService\x12t\n" +
 	"\bGetImage\x12\x1f.vws.compute.v1.GetImageRequest\x1a\x15.vws.compute.v1.Image\"0\x82\xd3\xe4\x93\x02*\x12(/v1/{name=projects/*/regions/*/images/*}\x12\x85\x01\n" +
 	"\n" +
@@ -879,7 +883,7 @@ const file_vws_compute_v1_image_proto_rawDesc = "" +
 	"\x14vws.compute.v1.Image\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x027:\x05image2./v1/{image.name=projects/*/regions/*/images/*}\x12\xbc\x01\n" +
 	"\vDeleteImage\x12\".vws.compute.v1.DeleteImageRequest\x1a\x1d.google.longrunning.Operation\"j\xcaA7\n" +
 	"\x14vws.compute.v1.Image\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02**(/v1/{name=projects/*/regions/*/images/*}\x12\xaa\x01\n" +
-	"\x11ReportImageStatus\x12(.vws.compute.v1.ReportImageStatusRequest\x1a).vws.compute.v1.ReportImageStatusResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/v1/{name=projects/*/regions/*/images/*}:reportStatusBe\n" +
+	"\x11ReportImageStatus\x12(.vws.compute.v1.ReportImageStatusRequest\x1a).vws.compute.v1.ReportImageStatusResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/v1/{name=projects/*/regions/*/images/*}:reportStatus\x1a\x03\x88\x02\x01Be\n" +
 	"\x12dev.vws.compute.v1B\n" +
 	"ImageProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/compute/v1;computev1b\x06proto3"
 

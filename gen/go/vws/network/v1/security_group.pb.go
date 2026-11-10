@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/network/v1/security_group.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -1058,7 +1062,7 @@ const file_vws_network_v1_security_group_proto_rawDesc = "" +
 	"\fPROTOCOL_TCP\x10\x01\x12\x10\n" +
 	"\fPROTOCOL_UDP\x10\x02\x12\x11\n" +
 	"\rPROTOCOL_ICMP\x10\x03\x12\x10\n" +
-	"\fPROTOCOL_ALL\x10\x042\x9b\n" +
+	"\fPROTOCOL_ALL\x10\x042\xa0\n" +
 	"\n" +
 	"\x14SecurityGroupService\x12\x9b\x01\n" +
 	"\x10GetSecurityGroup\x12'.vws.network.v1.GetSecurityGroupRequest\x1a\x1d.vws.network.v1.SecurityGroup\"?\x82\xd3\xe4\x93\x029\x127/v1/{name=projects/*/regions/*/vpcs/*/securityGroups/*}\x12\xac\x01\n" +
@@ -1069,7 +1073,7 @@ const file_vws_network_v1_security_group_proto_rawDesc = "" +
 	"\x1cvws.network.v1.SecurityGroup\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02X:\x0esecurity_group2F/v1/{security_group.name=projects/*/regions/*/vpcs/*/securityGroups/*}\x12\xe4\x01\n" +
 	"\x13DeleteSecurityGroup\x12*.vws.network.v1.DeleteSecurityGroupRequest\x1a\x1d.google.longrunning.Operation\"\x81\x01\xcaA?\n" +
 	"\x1cvws.network.v1.SecurityGroup\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x029*7/v1/{name=projects/*/regions/*/vpcs/*/securityGroups/*}\x12\xd1\x01\n" +
-	"\x19ReportSecurityGroupStatus\x120.vws.network.v1.ReportSecurityGroupStatusRequest\x1a1.vws.network.v1.ReportSecurityGroupStatusResponse\"O\x82\xd3\xe4\x93\x02I:\x01*\"D/v1/{name=projects/*/regions/*/vpcs/*/securityGroups/*}:reportStatusBm\n" +
+	"\x19ReportSecurityGroupStatus\x120.vws.network.v1.ReportSecurityGroupStatusRequest\x1a1.vws.network.v1.ReportSecurityGroupStatusResponse\"O\x82\xd3\xe4\x93\x02I:\x01*\"D/v1/{name=projects/*/regions/*/vpcs/*/securityGroups/*}:reportStatus\x1a\x03\x88\x02\x01Bm\n" +
 	"\x12dev.vws.network.v1B\x12SecurityGroupProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/network/v1;networkv1b\x06proto3"
 
 var (

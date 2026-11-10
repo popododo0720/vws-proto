@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/storage/v1/object.proto
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package storagev1
 
 import (
@@ -44,6 +48,8 @@ const (
 // Servers accept CreateObject, UpdateObject, and WriteObject requests of at least 8MiB.
 // Clients of ReadObject accept responses of at least 8MiB.
 // The limit is on decoded bytes. JSON base64 is larger and is not the limit.
+//
+// Deprecated: Do not use.
 type ObjectServiceClient interface {
 	// AIP-131: the Get response is the resource. The payload is not included.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -107,6 +113,7 @@ type objectServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewObjectServiceClient(cc grpc.ClientConnInterface) ObjectServiceClient {
 	return &objectServiceClient{cc}
 }
@@ -205,6 +212,8 @@ func (c *objectServiceClient) ReportObjectStatus(ctx context.Context, in *Report
 // Servers accept CreateObject, UpdateObject, and WriteObject requests of at least 8MiB.
 // Clients of ReadObject accept responses of at least 8MiB.
 // The limit is on decoded bytes. JSON base64 is larger and is not the limit.
+//
+// Deprecated: Do not use.
 type ObjectServiceServer interface {
 	// AIP-131: the Get response is the resource. The payload is not included.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -306,6 +315,7 @@ type UnsafeObjectServiceServer interface {
 	mustEmbedUnimplementedObjectServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterObjectServiceServer(s grpc.ServiceRegistrar, srv ObjectServiceServer) {
 	// If the following call panics, it indicates UnimplementedObjectServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

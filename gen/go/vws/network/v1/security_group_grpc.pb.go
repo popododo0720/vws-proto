@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/network/v1/security_group.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -38,6 +42,8 @@ const (
 // An empty rule list allows no traffic. The server does not add a default rule.
 // Delete is rejected with DEPENDENCY_MISSING while an instance or another
 // group's rule still references this group.
+//
+// Deprecated: Do not use.
 type SecurityGroupServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -61,6 +67,7 @@ type securityGroupServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewSecurityGroupServiceClient(cc grpc.ClientConnInterface) SecurityGroupServiceClient {
 	return &securityGroupServiceClient{cc}
 }
@@ -135,6 +142,8 @@ func (c *securityGroupServiceClient) ReportSecurityGroupStatus(ctx context.Conte
 // An empty rule list allows no traffic. The server does not add a default rule.
 // Delete is rejected with DEPENDENCY_MISSING while an instance or another
 // group's rule still references this group.
+//
+// Deprecated: Do not use.
 type SecurityGroupServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -190,6 +199,7 @@ type UnsafeSecurityGroupServiceServer interface {
 	mustEmbedUnimplementedSecurityGroupServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterSecurityGroupServiceServer(s grpc.ServiceRegistrar, srv SecurityGroupServiceServer) {
 	// If the following call panics, it indicates UnimplementedSecurityGroupServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

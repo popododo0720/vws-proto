@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/network/v1/internet_gateway.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -854,7 +858,7 @@ const file_vws_network_v1_internet_gateway_proto_rawDesc = "" +
 	"+INTERNET_GATEWAY_ATTACHMENT_STATE_ATTACHING\x10\x01\x12/\n" +
 	"+INTERNET_GATEWAY_ATTACHMENT_STATE_AVAILABLE\x10\x02\x12/\n" +
 	"+INTERNET_GATEWAY_ATTACHMENT_STATE_DETACHING\x10\x03\x12.\n" +
-	"*INTERNET_GATEWAY_ATTACHMENT_STATE_DETACHED\x10\x042\x9d\b\n" +
+	"*INTERNET_GATEWAY_ATTACHMENT_STATE_DETACHED\x10\x042\xa2\b\n" +
 	"\x16InternetGatewayService\x12\x9c\x01\n" +
 	"\x12GetInternetGateway\x12).vws.network.v1.GetInternetGatewayRequest\x1a\x1f.vws.network.v1.InternetGateway\":\x82\xd3\xe4\x93\x024\x122/v1/{name=projects/*/regions/*/internetGateways/*}\x12\xad\x01\n" +
 	"\x14ListInternetGateways\x12+.vws.network.v1.ListInternetGatewaysRequest\x1a,.vws.network.v1.ListInternetGatewaysResponse\":\x82\xd3\xe4\x93\x024\x122/v1/{parent=projects/*/regions/*}/internetGateways\x12\xf7\x01\n" +
@@ -862,7 +866,7 @@ const file_vws_network_v1_internet_gateway_proto_rawDesc = "" +
 	"\x1evws.network.v1.InternetGateway\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02F:\x10internet_gateway\"2/v1/{parent=projects/*/regions/*}/internetGateways\x12\xe4\x01\n" +
 	"\x15DeleteInternetGateway\x12,.vws.network.v1.DeleteInternetGatewayRequest\x1a\x1d.google.longrunning.Operation\"~\xcaAA\n" +
 	"\x1evws.network.v1.InternetGateway\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x024*2/v1/{name=projects/*/regions/*/internetGateways/*}\x12\xd2\x01\n" +
-	"\x1bReportInternetGatewayStatus\x122.vws.network.v1.ReportInternetGatewayStatusRequest\x1a3.vws.network.v1.ReportInternetGatewayStatusResponse\"J\x82\xd3\xe4\x93\x02D:\x01*\"?/v1/{name=projects/*/regions/*/internetGateways/*}:reportStatusBo\n" +
+	"\x1bReportInternetGatewayStatus\x122.vws.network.v1.ReportInternetGatewayStatusRequest\x1a3.vws.network.v1.ReportInternetGatewayStatusResponse\"J\x82\xd3\xe4\x93\x02D:\x01*\"?/v1/{name=projects/*/regions/*/internetGateways/*}:reportStatus\x1a\x03\x88\x02\x01Bo\n" +
 	"\x12dev.vws.network.v1B\x14InternetGatewayProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/network/v1;networkv1b\x06proto3"
 
 var (

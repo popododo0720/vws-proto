@@ -1,5 +1,8 @@
 syntax = "proto3";
 
+// Package vws.storage.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
 package vws.storage.v1;
 
 import "google/api/annotations.proto";
@@ -22,6 +25,8 @@ option java_package = "dev.vws.storage.v1";
 // Delete is rejected with DEPENDENCY_MISSING while an instance spec references
 // this volume, or a not-yet-ready image or snapshot is still copying it.
 service VolumeService {
+  option deprecated = true;
+
   // AIP-131: the Get response is the resource.
   // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
   rpc GetVolume(GetVolumeRequest) returns (Volume) {

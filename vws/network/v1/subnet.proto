@@ -1,5 +1,8 @@
 syntax = "proto3";
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
 package vws.network.v1;
 
 import "google/api/annotations.proto";
@@ -21,6 +24,8 @@ option java_package = "dev.vws.network.v1";
 // ipv4_cidr must be inside the parent VPC CIDR and must use a longer prefix.
 // Delete is rejected with DEPENDENCY_MISSING while an instance still references the subnet.
 service SubnetService {
+  option deprecated = true;
+
   // AIP-131: the Get response is the resource.
   // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
   rpc GetSubnet(GetSubnetRequest) returns (Subnet) {

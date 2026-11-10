@@ -4,6 +4,10 @@
 // 	protoc        (unknown)
 // source: vws/compute/v1/operation_lookup.proto
 
+// Package vws.compute.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package computev1
 
 import (
@@ -135,9 +139,9 @@ const file_vws_compute_v1_operation_lookup_proto_rawDesc = "" +
 	"\n" +
 	"request_id\x18\x02 \x01(\tB\v\xe0A\x02\xe2\x8c\xcf\xd7\b\x02\b\x01R\trequestId\"V\n" +
 	"\x17LookupOperationResponse\x12;\n" +
-	"\toperation\x18\x01 \x01(\v2\x1d.google.longrunning.OperationR\toperation2\xb0\x01\n" +
+	"\toperation\x18\x01 \x01(\v2\x1d.google.longrunning.OperationR\toperation2\xb5\x01\n" +
 	"\x16OperationLookupService\x12\x95\x01\n" +
-	"\x0fLookupOperation\x12&.vws.compute.v1.LookupOperationRequest\x1a'.vws.compute.v1.LookupOperationResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{parent=projects/*}/operations:lookupBo\n" +
+	"\x0fLookupOperation\x12&.vws.compute.v1.LookupOperationRequest\x1a'.vws.compute.v1.LookupOperationResponse\"1\x82\xd3\xe4\x93\x02+\x12)/v1/{parent=projects/*}/operations:lookup\x1a\x03\x88\x02\x01Bo\n" +
 	"\x12dev.vws.compute.v1B\x14OperationLookupProtoP\x01ZAgithub.com/popododo0720/vws-proto/gen/go/vws/compute/v1;computev1b\x06proto3"
 
 var (

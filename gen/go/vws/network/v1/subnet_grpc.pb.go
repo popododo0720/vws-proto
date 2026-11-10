@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/network/v1/subnet.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -36,6 +40,8 @@ const (
 // Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
 // ipv4_cidr must be inside the parent VPC CIDR and must use a longer prefix.
 // Delete is rejected with DEPENDENCY_MISSING while an instance still references the subnet.
+//
+// Deprecated: Do not use.
 type SubnetServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -59,6 +65,7 @@ type subnetServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewSubnetServiceClient(cc grpc.ClientConnInterface) SubnetServiceClient {
 	return &subnetServiceClient{cc}
 }
@@ -131,6 +138,8 @@ func (c *subnetServiceClient) ReportSubnetStatus(ctx context.Context, in *Report
 // Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
 // ipv4_cidr must be inside the parent VPC CIDR and must use a longer prefix.
 // Delete is rejected with DEPENDENCY_MISSING while an instance still references the subnet.
+//
+// Deprecated: Do not use.
 type SubnetServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -186,6 +195,7 @@ type UnsafeSubnetServiceServer interface {
 	mustEmbedUnimplementedSubnetServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterSubnetServiceServer(s grpc.ServiceRegistrar, srv SubnetServiceServer) {
 	// If the following call panics, it indicates UnimplementedSubnetServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an

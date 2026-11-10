@@ -4,6 +4,10 @@
 // - protoc             (unknown)
 // source: vws/network/v1/vpc.proto
 
+// Package vws.network.v1 is deprecated: the Proxmox backend replaces these services
+// and the package takes no new fields. See the hybrid design (AWS + Proxmox),
+// design.md section 2.2, "vws-proto".
+
 package networkv1
 
 import (
@@ -36,6 +40,8 @@ const (
 // Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
 // Delete is rejected with DEPENDENCY_MISSING while a subnet, a security group,
 // or an Address whose spec.vpc names this VPC remains.
+//
+// Deprecated: Do not use.
 type VpcServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -59,6 +65,7 @@ type vpcServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
+// Deprecated: Do not use.
 func NewVpcServiceClient(cc grpc.ClientConnInterface) VpcServiceClient {
 	return &vpcServiceClient{cc}
 }
@@ -131,6 +138,8 @@ func (c *vpcServiceClient) ReportVpcStatus(ctx context.Context, in *ReportVpcSta
 // Nodes reconcile spec. Mutations follow vws.common.v1.OperationMetadata.
 // Delete is rejected with DEPENDENCY_MISSING while a subnet, a security group,
 // or an Address whose spec.vpc names this VPC remains.
+//
+// Deprecated: Do not use.
 type VpcServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -186,6 +195,7 @@ type UnsafeVpcServiceServer interface {
 	mustEmbedUnimplementedVpcServiceServer()
 }
 
+// Deprecated: Do not use.
 func RegisterVpcServiceServer(s grpc.ServiceRegistrar, srv VpcServiceServer) {
 	// If the following call panics, it indicates UnimplementedVpcServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
