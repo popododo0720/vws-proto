@@ -179,21 +179,25 @@ message Principal {
   bool mfa_authenticated = 7;
   // aws:MultiFactorAuthAge is computed from this.
   google.protobuf.Timestamp auth_time = 8;
-  // Opaque, sealed by vws-iam: the session policies of a temporary session
-  // (federated user, assumed role), bound to its arn, unique_id, project and
-  // expiry. Authenticate sets it when it resolves the session's credentials;
-  // the gateway passes the principal to Authorize unchanged and never builds
-  // or reads it. Authorize opens it and allows only what both the
-  // principal's policies and the session policies allow. A principal whose
-  // type is FEDERATED_USER or whose arn is a federated-user ARN, without it,
-  // or with one that does not open, has expired, or is bound to another
-  // arn, unique_id or project, is DENY_IMPLICIT (fail closed). For a root,
-  // user or GetSessionToken principal it seals only the credential type (no
-  // session policies) and binds it to the credential that produced it: the
-  // access key id when Authenticate resolves a key, the console session when
-  // Login or ValidateSession returns the principal. Without it Authorize
-  // answers DENY_IMPLICIT, so a caller that drops credential_type and
-  // session_context loses access instead of gaining it. Never log it.
+  // Opaque, sealed by vws-iam: the session as Authenticate sealed it (session
+  // identity, revocation state, SAML identity (saml:sub, saml:sub_type,
+  // saml:namequalifier), and the session policies of a temporary session
+  // (federated user, assumed role)), bound to its arn, unique_id, project and
+  // expiry, not only its session policies. Authenticate sets it when it
+  // resolves the session's credentials; the gateway passes the principal to
+  // Authorize unchanged and never builds or reads it. Authorize opens it,
+  // checks the session for revocation, restores the SAML keys, and allows only
+  // what both the principal's policies and the session policies allow. A
+  // principal whose type is FEDERATED_USER or ASSUMED_ROLE, or whose arn is a
+  // federated-user or assumed-role ARN, without it, or with one that does not
+  // open, has expired, or is bound to another arn, unique_id or project, is
+  // DENY_IMPLICIT (fail closed). For a root, user or GetSessionToken principal
+  // it seals only the credential type (no session policies) and binds it to
+  // the credential that produced it: the access key id when Authenticate
+  // resolves a key, the console session when Login or ValidateSession returns
+  // the principal. Without it Authorize answers DENY_IMPLICIT, so a caller
+  // that drops credential_type and session_context loses access instead of
+  // gaining it. Never log it.
   string session_context = 9 [debug_redact = true];
   // The kind of credential vws-iam resolved. Unset means a long-term access
   // key (Authenticate) or a console session (Login, ValidateSession), each
