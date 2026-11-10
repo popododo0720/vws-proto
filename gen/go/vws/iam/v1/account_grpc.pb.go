@@ -24,6 +24,7 @@ const (
 	AccountService_GetAccountPasswordPolicy_FullMethodName       = "/vws.iam.v1.AccountService/GetAccountPasswordPolicy"
 	AccountService_CreateAccountAlias_FullMethodName             = "/vws.iam.v1.AccountService/CreateAccountAlias"
 	AccountService_DeleteAccountAlias_FullMethodName             = "/vws.iam.v1.AccountService/DeleteAccountAlias"
+	AccountService_UpdateAccountPasswordPolicy_FullMethodName    = "/vws.iam.v1.AccountService/UpdateAccountPasswordPolicy"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -96,6 +97,23 @@ type AccountServiceClient interface {
 	// delete. Any other failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:DeleteAccountAlias) is console-api's.
 	DeleteAccountAlias(ctx context.Context, in *DeleteAccountAliasRequest, opts ...grpc.CallOption) (*DeleteAccountAliasResponse, error)
+	// UpdateAccountPasswordPolicy is AWS UpdateAccountPasswordPolicy. It
+	// creates or replaces the project's custom password policy. It is
+	// synchronous and not an operation, as the AWS call is: one store
+	// write, returned once stored.
+	// A bad parent or a value outside its AWS range is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError), before any store access. An
+	// explicit 0 for max_password_age or password_reuse_prevention is a
+	// ValidationError, not the default. Omitted parameters take their AWS
+	// defaults (length 6, no max age, no reuse prevention, booleans
+	// false). A policy that keeps changing between read and write is
+	// ABORTED / GENERATION_CONFLICT (ConcurrentModification).
+	// NoSuchEntity, LimitExceeded and MalformedPolicyDocument never apply.
+	// Any other failure is INTERNAL (ServiceFailure).
+	// A repeat that would store the same policy writes nothing and
+	// succeeds, so a retry after a lost response succeeds.
+	// Authorization (iam:UpdateAccountPasswordPolicy) is console-api's.
+	UpdateAccountPasswordPolicy(ctx context.Context, in *UpdateAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*UpdateAccountPasswordPolicyResponse, error)
 }
 
 type accountServiceClient struct {
@@ -150,6 +168,16 @@ func (c *accountServiceClient) DeleteAccountAlias(ctx context.Context, in *Delet
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteAccountAliasResponse)
 	err := c.cc.Invoke(ctx, AccountService_DeleteAccountAlias_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) UpdateAccountPasswordPolicy(ctx context.Context, in *UpdateAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*UpdateAccountPasswordPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAccountPasswordPolicyResponse)
+	err := c.cc.Invoke(ctx, AccountService_UpdateAccountPasswordPolicy_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -226,6 +254,23 @@ type AccountServiceServer interface {
 	// delete. Any other failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:DeleteAccountAlias) is console-api's.
 	DeleteAccountAlias(context.Context, *DeleteAccountAliasRequest) (*DeleteAccountAliasResponse, error)
+	// UpdateAccountPasswordPolicy is AWS UpdateAccountPasswordPolicy. It
+	// creates or replaces the project's custom password policy. It is
+	// synchronous and not an operation, as the AWS call is: one store
+	// write, returned once stored.
+	// A bad parent or a value outside its AWS range is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError), before any store access. An
+	// explicit 0 for max_password_age or password_reuse_prevention is a
+	// ValidationError, not the default. Omitted parameters take their AWS
+	// defaults (length 6, no max age, no reuse prevention, booleans
+	// false). A policy that keeps changing between read and write is
+	// ABORTED / GENERATION_CONFLICT (ConcurrentModification).
+	// NoSuchEntity, LimitExceeded and MalformedPolicyDocument never apply.
+	// Any other failure is INTERNAL (ServiceFailure).
+	// A repeat that would store the same policy writes nothing and
+	// succeeds, so a retry after a lost response succeeds.
+	// Authorization (iam:UpdateAccountPasswordPolicy) is console-api's.
+	UpdateAccountPasswordPolicy(context.Context, *UpdateAccountPasswordPolicyRequest) (*UpdateAccountPasswordPolicyResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -250,6 +295,9 @@ func (UnimplementedAccountServiceServer) CreateAccountAlias(context.Context, *Cr
 }
 func (UnimplementedAccountServiceServer) DeleteAccountAlias(context.Context, *DeleteAccountAliasRequest) (*DeleteAccountAliasResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAccountAlias not implemented")
+}
+func (UnimplementedAccountServiceServer) UpdateAccountPasswordPolicy(context.Context, *UpdateAccountPasswordPolicyRequest) (*UpdateAccountPasswordPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAccountPasswordPolicy not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -362,6 +410,24 @@ func _AccountService_DeleteAccountAlias_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_UpdateAccountPasswordPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAccountPasswordPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).UpdateAccountPasswordPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_UpdateAccountPasswordPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).UpdateAccountPasswordPolicy(ctx, req.(*UpdateAccountPasswordPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -388,6 +454,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAccountAlias",
 			Handler:    _AccountService_DeleteAccountAlias_Handler,
+		},
+		{
+			MethodName: "UpdateAccountPasswordPolicy",
+			Handler:    _AccountService_UpdateAccountPasswordPolicy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
