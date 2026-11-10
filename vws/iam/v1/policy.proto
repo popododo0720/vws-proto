@@ -10,6 +10,7 @@ import "google/longrunning/operations.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "vws/common/v1/resource.proto";
+import "vws/iam/v1/simulate.proto";
 
 option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
 option java_multiple_files = true;
@@ -160,6 +161,33 @@ service PolicyService {
   // Authorization (iam:ListEntitiesForPolicy) is console-api's.
   rpc ListEntitiesForPolicy(ListEntitiesForPolicyRequest) returns (ListEntitiesForPolicyResponse) {
     option (google.api.http) = {get: "/v1/{parent=projects/*}:listEntitiesForPolicy"};
+  }
+
+  // ---------------------------------------------------------------------------
+  // Policy simulation
+  // ---------------------------------------------------------------------------
+
+  // SimulatePrincipalPolicy is AWS SimulatePrincipalPolicy. It evaluates
+  // the stored policies of a user (with its groups'), group or role, plus
+  // any input policies, for each action on each resource, in pages of
+  // actions. It only reads.
+  // A length, pattern or enum fault is INVALID_ARGUMENT / INVALID_SPEC
+  // (AWS ValidationError). A malformed input policy, an action without a
+  // service prefix, a caller_arn or policy_source_arn that is not a
+  // user, group or role ARN, a context value not of its type, a
+  // duplicate context key, two boundaries, or a well-formed marker this
+  // RPC did not return is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput).
+  // All of these are checked before any store access. A policy_source_arn
+  // of another project or that does not exist is NOT_FOUND /
+  // RESOURCE_NOT_FOUND (NoSuchEntity). A stored policy that cannot be
+  // evaluated is INTERNAL with aws_code PolicyEvaluation. Any other
+  // failure is INTERNAL (ServiceFailure).
+  // Authorization (iam:SimulatePrincipalPolicy) is console-api's.
+  rpc SimulatePrincipalPolicy(SimulatePrincipalPolicyRequest) returns (SimulatePrincipalPolicyResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}:simulatePrincipalPolicy"
+      body: "*"
+    };
   }
 }
 
