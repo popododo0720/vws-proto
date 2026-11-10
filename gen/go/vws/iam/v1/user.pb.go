@@ -985,8 +985,25 @@ type ChangePasswordRequest struct {
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Secrets: never log them.
 	// A wrong old password is UNAUTHENTICATED / INVALID_CREDENTIALS.
-	OldPassword   string `protobuf:"bytes,2,opt,name=old_password,json=oldPassword,proto3" json:"old_password,omitempty"`
-	NewPassword   string `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	OldPassword string `protobuf:"bytes,2,opt,name=old_password,json=oldPassword,proto3" json:"old_password,omitempty"`
+	NewPassword string `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	// Optional precondition, the IAM user ARN of the user, shape
+	// "arn:vws:iam::{project}:user{path}{user}". When set, the server reads the
+	// User in the same store mutation as the hash write and checks that its
+	// current ARN equals this value. A mismatch is FAILED_PRECONDITION and no
+	// state changes. Omitted means no check. The ARN contains the IAM path, so it
+	// changes when UpdateUser moves spec.path. A user deleted and recreated
+	// under the same name and path has the same ARN; user_etag catches that.
+	ExpectedUserArn string `protobuf:"bytes,4,opt,name=expected_user_arn,json=expectedUserArn,proto3" json:"expected_user_arn,omitempty"`
+	// Optional precondition, the User's etag as read by the caller. When set,
+	// the server commits the hash write only while the user is still at this
+	// etag. A mismatch, or a change of the user that lands before the commit, is
+	// ABORTED (ConcurrentModification) and no state changes. A user deleted and
+	// recreated under the same name never matches an etag read before the
+	// delete. The login profile is part of the User, so a successful
+	// ChangePassword changes the etag: a retry after a lost response reads the
+	// User again, or it is ABORTED. Omitted means no check.
+	UserEtag      string `protobuf:"bytes,5,opt,name=user_etag,json=userEtag,proto3" json:"user_etag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1038,6 +1055,20 @@ func (x *ChangePasswordRequest) GetOldPassword() string {
 func (x *ChangePasswordRequest) GetNewPassword() string {
 	if x != nil {
 		return x.NewPassword
+	}
+	return ""
+}
+
+func (x *ChangePasswordRequest) GetExpectedUserArn() string {
+	if x != nil {
+		return x.ExpectedUserArn
+	}
+	return ""
+}
+
+func (x *ChangePasswordRequest) GetUserEtag() string {
+	if x != nil {
+		return x.UserEtag
 	}
 	return ""
 }
@@ -1473,12 +1504,14 @@ const file_vws_iam_v1_user_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\x12/\n" +
 	"\x11expected_user_arn\x18\x02 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\x12 \n" +
-	"\tuser_etag\x18\x03 \x01(\tB\x03\xe0A\x01R\buserEtag\"\x9d\x01\n" +
+	"\tuser_etag\x18\x03 \x01(\tB\x03\xe0A\x01R\buserEtag\"\xf0\x01\n" +
 	"\x15ChangePasswordRequest\x12(\n" +
 	"\x04name\x18\x01 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04name\x12,\n" +
 	"\fold_password\x18\x02 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\voldPassword\x12,\n" +
-	"\fnew_password\x18\x03 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\vnewPassword\"\x19\n" +
+	"\fnew_password\x18\x03 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\vnewPassword\x12/\n" +
+	"\x11expected_user_arn\x18\x04 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\x12 \n" +
+	"\tuser_etag\x18\x05 \x01(\tB\x03\xe0A\x01R\buserEtag\"\x19\n" +
 	"\x17SetLoginProfileResponse\"\x1c\n" +
 	"\x1aDeleteLoginProfileResponse\"\x18\n" +
 	"\x16ChangePasswordResponse\"q\n" +
