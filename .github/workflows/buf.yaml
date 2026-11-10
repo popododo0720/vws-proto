@@ -57,3 +57,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: guard-agents.sh rejects bad input
         run: scripts/guard-agents.sh selftest
+      # This repo's own guard checks. The shared vws-deploy pr-hygiene job that repo-guard.yml calls does not
+      # run them, so they stay here under the required guard-agents check.
+      - name: AGENTS.md rules name an enforcer (#60)
+        run: scripts/guard-agents.sh rules
+      - name: AGENTS.md has the /correct loop, incident form and label (vws-deploy#448)
+        run: scripts/guard.sh correct
+      - name: guard.sh fails on an empty /correct loop section
+        run: scripts/guard_test.sh
