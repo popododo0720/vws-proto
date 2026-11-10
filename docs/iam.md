@@ -210,3 +210,11 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: an `aws_service_name`, `custom_suffix` or `description` length or character fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). An unknown service principal, a `custom_suffix` the service does not allow, or a resulting role name over 64 characters is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). A role name already taken in the project, compared case folded, is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`, "Service role name ... has been taken in this account, please try a different suffix."), not `ALREADY_EXISTS`, as in AWS.
 - Retry: this is an exception to the shared create rule in `vws/common/v1/operation.proto` (an identical repeat returns the existing resource), decided by #112 for AWS parity. There is no `request_id`, as in AWS. A repeat after a success, a lost response included, is the taken-name `InvalidInput`; the role exists, and `ListRoles` returns it with `spec.path` `/aws-service-role/{aws_service_name}/`. Two concurrent requests for the same name create one role; the other gets the taken-name error. A restart leaves either the stored role or no role.
 - Authorization (`iam:CreateServiceLinkedRole`, condition key `iam:AWSServiceName`) is console-api's.
+
+## Console sessions (#254)
+
+- `ConsoleSessionService` (`console_session.proto`) keeps console sign-in sessions in the IAM store, so two console-api instances share them and a restart signs nobody out (design 10.1.3). RPCs: `CreateConsoleSession`, `GetConsoleSession`, `RevokeConsoleSession`, `ListConsoleSessions` (the sessions of one user).
+- No message carries a session token. console-api keeps the token in the cookie and sends only its SHA-256 digest (`spec.token_digest`, input only, redacted, never returned). `Login`, `ValidateSession` and `Logout` are unchanged.
+- The session id is chosen by console-api, so `CreateConsoleSession` is idempotent by id and `request_id`. Create and revoke are operations returned done. `status.revoke_time` keeps the first revocation.
+- Project mappings live in the admin registry, so there is no binding RPC.
+- Downstream: vws-iam implements the service and the `IamConsoleSession` kind (vws-iam P3-03); console-api replaces its in-memory sessions. Additive, not breaking.
