@@ -10,6 +10,7 @@ option java_outer_classname = "SimulateProto";
 option java_package = "dev.vws.iam.v1";
 
 // Shared types for SimulatePrincipalPolicy and SimulateCustomPolicy.
+// SimulateCustomPolicy uses the same messages.
 
 // ContextKeyType is AWS ContextKeyTypeEnum.
 enum ContextKeyType {
@@ -131,6 +132,54 @@ message SimulatePrincipalPolicyRequest {
 }
 
 message SimulatePrincipalPolicyResponse {
+  repeated EvaluationResult evaluation_results = 1;
+  // AWS IsTruncated.
+  bool is_truncated = 2;
+  // AWS Marker. Set exactly when is_truncated is true.
+  string marker = 3;
+}
+
+// SimulateCustomPolicyRequest is AWS SimulateCustomPolicy.
+message SimulateCustomPolicyRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS PolicyInputList. At least one entry, each 1-131072 characters of
+  // [\u0009\u000A\u000D\u0020-\u00FF], plain JSON.
+  repeated string policy_input_list = 2 [(google.api.field_behavior) = REQUIRED];
+  // AWS PermissionsBoundaryPolicyInputList, same pattern, at most one.
+  repeated string permissions_boundary_policy_input_list = 3;
+  // AWS ActionNames. At least one entry, each 3-128 characters.
+  repeated string action_names = 4 [(google.api.field_behavior) = REQUIRED];
+  // AWS ResourceArns, each 1-2048 characters. Empty means "*".
+  repeated string resource_arns = 5;
+  // AWS ResourcePolicy, 1-131072 characters of the same pattern as
+  // policy_input_list. InvalidInput until vws-iam#257.
+  string resource_policy = 6;
+  // AWS ResourceOwner, 1-2048 characters, must be
+  // arn:vws:iam::<account>:root when set.
+  string resource_owner = 7;
+  // AWS ResourceHandlingOption, 1-64 characters. InvalidInput until
+  // vws-iam#257.
+  string resource_handling_option = 8;
+  // AWS CallerArn, 1-2048 characters, a user, group or role ARN.
+  string caller_arn = 9;
+  // AWS ContextEntries. A duplicate context key, or a value not of its
+  // type, is InvalidInput.
+  repeated ContextEntry context_entries = 10;
+  // AWS Marker, 1-320 characters of [\u0020-\u00FF]. Only a marker this
+  // RPC returned.
+  string marker = 11;
+  // AWS MaxItems, 1-1000. 0 means not set: the server default is 100, as
+  // in AWS. console-api answers an explicit MaxItems=0 as ValidationError
+  // itself, since 0 cannot be told apart from unset here.
+  int32 max_items = 12;
+  // ordered_organization_policy_input_list is reserved: VWS has no
+  // organizations (vws-iam#257).
+  reserved 13;
+  reserved "ordered_organization_policy_input_list";
+}
+
+message SimulateCustomPolicyResponse {
   repeated EvaluationResult evaluation_results = 1;
   // AWS IsTruncated.
   bool is_truncated = 2;

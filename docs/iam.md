@@ -45,7 +45,6 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Write tag RPCs on resources other than a managed policy, a virtual MFA device, a user and a role (`TagInstanceProfile` and so on; `TagPolicy`, `UntagPolicy`, `ListPolicyTags`, `TagMFADevice`, `UntagMFADevice`, `ListMFADeviceTags`, `TagUser`, `UntagUser`, `ListUserTags`, `TagRole`, `UntagRole` and `ListRoleTags` are in).
 - AssumeRole session policies (`Policy`/`PolicyArns`), and session tags on any STS call.
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
-- `SimulateCustomPolicy`.
 - Reverse lookup lists other than `ListEntitiesForPolicy` (`ListAttachedUserPolicies`, `ListGroupsForUser` and so on). console-api builds those from spec and status (`User.status.groups`).
 
 ## Needs checking
@@ -239,6 +238,14 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - Errors: a bad `parent` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`) before any store access. A project without a custom policy is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`, `The Password Policy with domain name <project> cannot be found.`). A policy that keeps changing between read and delete is `ABORTED / GENERATION_CONFLICT` (`ConcurrentModification`). `LimitExceeded` never applies to a delete. Any other failure is `INTERNAL` (`ServiceFailure`).
 - Retry: a repeat after success is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`), as in AWS.
 - Authorization (`iam:DeleteAccountPasswordPolicy`) is console-api's.
+
+## Simulate a custom policy (#132)
+
+- `PolicyService.SimulateCustomPolicy` is AWS `SimulateCustomPolicy`. `parent` is `projects/{project}`. `policy_input_list` is AWS `PolicyInputList` (required, at least one; each 1-131072 characters of `[\u0009\u000A\u000D\u0020-\u00FF]`, plain JSON). `permissions_boundary_policy_input_list` has the same pattern and at most one entry. `action_names` is required, each 3-128 characters. `resource_arns` are each 1-2048 characters; empty means `*`. `caller_arn` is 1-2048 characters. `context_entries` use `ContextEntry` (`context_key_name` 5-256, `context_key_type`, `context_key_values`). `max_items` is AWS `MaxItems` (1-1000; 0 is unset, server default 100) and `marker` is AWS `Marker`. The response is `evaluation_results`, `is_truncated` and `marker` (set exactly when `is_truncated` is true). The evaluation types are shared with `SimulatePrincipalPolicy`. It is a read RPC, not an operation. No stored object is read.
+- `resource_policy` and `resource_handling_option` are `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`) until popododo0720/vws-iam#257. Field 13 is reserved for `ordered_organization_policy_input_list` (VWS has no organizations).
+- Errors: a length, pattern or enum fault, or a missing `policy_input_list` or `action_names`, is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A malformed input policy, an action without a service prefix, a `caller_arn` that is not a user, group or role ARN, a `resource_owner` that is not `arn:vws:iam::<account>:root`, a `resource_policy` without `caller_arn`, a context value not of its type, a duplicate context key, two boundaries, or a well-formed `marker` the server did not issue is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). Any other failure is `INTERNAL` (`ServiceFailure`). console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
+- Pages: of actions. The call only reads and stores nothing, so a retry is safe.
+- Authorization (`iam:SimulateCustomPolicy`) is console-api's.
 
 ## Decode authorization message (#84)
 

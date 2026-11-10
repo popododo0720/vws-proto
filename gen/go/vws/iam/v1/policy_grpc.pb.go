@@ -34,6 +34,7 @@ const (
 	PolicyService_ListPolicyTags_FullMethodName          = "/vws.iam.v1.PolicyService/ListPolicyTags"
 	PolicyService_ListEntitiesForPolicy_FullMethodName   = "/vws.iam.v1.PolicyService/ListEntitiesForPolicy"
 	PolicyService_SimulatePrincipalPolicy_FullMethodName = "/vws.iam.v1.PolicyService/SimulatePrincipalPolicy"
+	PolicyService_SimulateCustomPolicy_FullMethodName    = "/vws.iam.v1.PolicyService/SimulateCustomPolicy"
 )
 
 // PolicyServiceClient is the client API for PolicyService service.
@@ -121,6 +122,22 @@ type PolicyServiceClient interface {
 	// failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:SimulatePrincipalPolicy) is console-api's.
 	SimulatePrincipalPolicy(ctx context.Context, in *SimulatePrincipalPolicyRequest, opts ...grpc.CallOption) (*SimulatePrincipalPolicyResponse, error)
+	// SimulateCustomPolicy is AWS SimulateCustomPolicy. It evaluates the
+	// policies given as strings for each action on each resource, in pages
+	// of actions. It only reads. No stored object is read.
+	// A length, pattern or enum fault, or a missing policy_input_list or
+	// action_names, is INVALID_ARGUMENT / INVALID_SPEC (AWS
+	// ValidationError). A malformed input policy, an action without a
+	// service prefix, a caller_arn that is not a user, group or role ARN,
+	// a resource_owner that is not arn:vws:iam::<account>:root, a
+	// resource_policy without caller_arn, a context value not of its type,
+	// a duplicate context key, two boundaries, or a well-formed marker
+	// this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). resource_policy and resource_handling_option are
+	// InvalidInput until vws-iam#257. Any other failure is INTERNAL
+	// (ServiceFailure).
+	// Authorization (iam:SimulateCustomPolicy) is console-api's.
+	SimulateCustomPolicy(ctx context.Context, in *SimulateCustomPolicyRequest, opts ...grpc.CallOption) (*SimulateCustomPolicyResponse, error)
 }
 
 type policyServiceClient struct {
@@ -271,6 +288,16 @@ func (c *policyServiceClient) SimulatePrincipalPolicy(ctx context.Context, in *S
 	return out, nil
 }
 
+func (c *policyServiceClient) SimulateCustomPolicy(ctx context.Context, in *SimulateCustomPolicyRequest, opts ...grpc.CallOption) (*SimulateCustomPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SimulateCustomPolicyResponse)
+	err := c.cc.Invoke(ctx, PolicyService_SimulateCustomPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PolicyServiceServer is the server API for PolicyService service.
 // All implementations must embed UnimplementedPolicyServiceServer
 // for forward compatibility.
@@ -356,6 +383,22 @@ type PolicyServiceServer interface {
 	// failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:SimulatePrincipalPolicy) is console-api's.
 	SimulatePrincipalPolicy(context.Context, *SimulatePrincipalPolicyRequest) (*SimulatePrincipalPolicyResponse, error)
+	// SimulateCustomPolicy is AWS SimulateCustomPolicy. It evaluates the
+	// policies given as strings for each action on each resource, in pages
+	// of actions. It only reads. No stored object is read.
+	// A length, pattern or enum fault, or a missing policy_input_list or
+	// action_names, is INVALID_ARGUMENT / INVALID_SPEC (AWS
+	// ValidationError). A malformed input policy, an action without a
+	// service prefix, a caller_arn that is not a user, group or role ARN,
+	// a resource_owner that is not arn:vws:iam::<account>:root, a
+	// resource_policy without caller_arn, a context value not of its type,
+	// a duplicate context key, two boundaries, or a well-formed marker
+	// this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). resource_policy and resource_handling_option are
+	// InvalidInput until vws-iam#257. Any other failure is INTERNAL
+	// (ServiceFailure).
+	// Authorization (iam:SimulateCustomPolicy) is console-api's.
+	SimulateCustomPolicy(context.Context, *SimulateCustomPolicyRequest) (*SimulateCustomPolicyResponse, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -407,6 +450,9 @@ func (UnimplementedPolicyServiceServer) ListEntitiesForPolicy(context.Context, *
 }
 func (UnimplementedPolicyServiceServer) SimulatePrincipalPolicy(context.Context, *SimulatePrincipalPolicyRequest) (*SimulatePrincipalPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SimulatePrincipalPolicy not implemented")
+}
+func (UnimplementedPolicyServiceServer) SimulateCustomPolicy(context.Context, *SimulateCustomPolicyRequest) (*SimulateCustomPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SimulateCustomPolicy not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}
 func (UnimplementedPolicyServiceServer) testEmbeddedByValue()                       {}
@@ -681,6 +727,24 @@ func _PolicyService_SimulatePrincipalPolicy_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PolicyService_SimulateCustomPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulateCustomPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PolicyServiceServer).SimulateCustomPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PolicyService_SimulateCustomPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PolicyServiceServer).SimulateCustomPolicy(ctx, req.(*SimulateCustomPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PolicyService_ServiceDesc is the grpc.ServiceDesc for PolicyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -743,6 +807,10 @@ var PolicyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SimulatePrincipalPolicy",
 			Handler:    _PolicyService_SimulatePrincipalPolicy_Handler,
+		},
+		{
+			MethodName: "SimulateCustomPolicy",
+			Handler:    _PolicyService_SimulateCustomPolicy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
