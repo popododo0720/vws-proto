@@ -20,19 +20,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PolicyService_GetPolicy_FullMethodName             = "/vws.iam.v1.PolicyService/GetPolicy"
-	PolicyService_ListPolicies_FullMethodName          = "/vws.iam.v1.PolicyService/ListPolicies"
-	PolicyService_CreatePolicy_FullMethodName          = "/vws.iam.v1.PolicyService/CreatePolicy"
-	PolicyService_UpdatePolicy_FullMethodName          = "/vws.iam.v1.PolicyService/UpdatePolicy"
-	PolicyService_DeletePolicy_FullMethodName          = "/vws.iam.v1.PolicyService/DeletePolicy"
-	PolicyService_GetPolicyVersion_FullMethodName      = "/vws.iam.v1.PolicyService/GetPolicyVersion"
-	PolicyService_ListPolicyVersions_FullMethodName    = "/vws.iam.v1.PolicyService/ListPolicyVersions"
-	PolicyService_CreatePolicyVersion_FullMethodName   = "/vws.iam.v1.PolicyService/CreatePolicyVersion"
-	PolicyService_DeletePolicyVersion_FullMethodName   = "/vws.iam.v1.PolicyService/DeletePolicyVersion"
-	PolicyService_TagPolicy_FullMethodName             = "/vws.iam.v1.PolicyService/TagPolicy"
-	PolicyService_UntagPolicy_FullMethodName           = "/vws.iam.v1.PolicyService/UntagPolicy"
-	PolicyService_ListPolicyTags_FullMethodName        = "/vws.iam.v1.PolicyService/ListPolicyTags"
-	PolicyService_ListEntitiesForPolicy_FullMethodName = "/vws.iam.v1.PolicyService/ListEntitiesForPolicy"
+	PolicyService_GetPolicy_FullMethodName               = "/vws.iam.v1.PolicyService/GetPolicy"
+	PolicyService_ListPolicies_FullMethodName            = "/vws.iam.v1.PolicyService/ListPolicies"
+	PolicyService_CreatePolicy_FullMethodName            = "/vws.iam.v1.PolicyService/CreatePolicy"
+	PolicyService_UpdatePolicy_FullMethodName            = "/vws.iam.v1.PolicyService/UpdatePolicy"
+	PolicyService_DeletePolicy_FullMethodName            = "/vws.iam.v1.PolicyService/DeletePolicy"
+	PolicyService_GetPolicyVersion_FullMethodName        = "/vws.iam.v1.PolicyService/GetPolicyVersion"
+	PolicyService_ListPolicyVersions_FullMethodName      = "/vws.iam.v1.PolicyService/ListPolicyVersions"
+	PolicyService_CreatePolicyVersion_FullMethodName     = "/vws.iam.v1.PolicyService/CreatePolicyVersion"
+	PolicyService_DeletePolicyVersion_FullMethodName     = "/vws.iam.v1.PolicyService/DeletePolicyVersion"
+	PolicyService_TagPolicy_FullMethodName               = "/vws.iam.v1.PolicyService/TagPolicy"
+	PolicyService_UntagPolicy_FullMethodName             = "/vws.iam.v1.PolicyService/UntagPolicy"
+	PolicyService_ListPolicyTags_FullMethodName          = "/vws.iam.v1.PolicyService/ListPolicyTags"
+	PolicyService_ListEntitiesForPolicy_FullMethodName   = "/vws.iam.v1.PolicyService/ListEntitiesForPolicy"
+	PolicyService_SimulatePrincipalPolicy_FullMethodName = "/vws.iam.v1.PolicyService/SimulatePrincipalPolicy"
 )
 
 // PolicyServiceClient is the client API for PolicyService service.
@@ -103,6 +104,23 @@ type PolicyServiceClient interface {
 	// failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:ListEntitiesForPolicy) is console-api's.
 	ListEntitiesForPolicy(ctx context.Context, in *ListEntitiesForPolicyRequest, opts ...grpc.CallOption) (*ListEntitiesForPolicyResponse, error)
+	// SimulatePrincipalPolicy is AWS SimulatePrincipalPolicy. It evaluates
+	// the stored policies of a user (with its groups'), group or role, plus
+	// any input policies, for each action on each resource, in pages of
+	// actions. It only reads.
+	// A length, pattern or enum fault is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError). A malformed input policy, an action without a
+	// service prefix, a caller_arn or policy_source_arn that is not a
+	// user, group or role ARN, a context value not of its type, a
+	// duplicate context key, two boundaries, or a well-formed marker this
+	// RPC did not return is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput).
+	// All of these are checked before any store access. A policy_source_arn
+	// of another project or that does not exist is NOT_FOUND /
+	// RESOURCE_NOT_FOUND (NoSuchEntity). A stored policy that cannot be
+	// evaluated is INTERNAL with aws_code PolicyEvaluation. Any other
+	// failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:SimulatePrincipalPolicy) is console-api's.
+	SimulatePrincipalPolicy(ctx context.Context, in *SimulatePrincipalPolicyRequest, opts ...grpc.CallOption) (*SimulatePrincipalPolicyResponse, error)
 }
 
 type policyServiceClient struct {
@@ -243,6 +261,16 @@ func (c *policyServiceClient) ListEntitiesForPolicy(ctx context.Context, in *Lis
 	return out, nil
 }
 
+func (c *policyServiceClient) SimulatePrincipalPolicy(ctx context.Context, in *SimulatePrincipalPolicyRequest, opts ...grpc.CallOption) (*SimulatePrincipalPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SimulatePrincipalPolicyResponse)
+	err := c.cc.Invoke(ctx, PolicyService_SimulatePrincipalPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PolicyServiceServer is the server API for PolicyService service.
 // All implementations must embed UnimplementedPolicyServiceServer
 // for forward compatibility.
@@ -311,6 +339,23 @@ type PolicyServiceServer interface {
 	// failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:ListEntitiesForPolicy) is console-api's.
 	ListEntitiesForPolicy(context.Context, *ListEntitiesForPolicyRequest) (*ListEntitiesForPolicyResponse, error)
+	// SimulatePrincipalPolicy is AWS SimulatePrincipalPolicy. It evaluates
+	// the stored policies of a user (with its groups'), group or role, plus
+	// any input policies, for each action on each resource, in pages of
+	// actions. It only reads.
+	// A length, pattern or enum fault is INVALID_ARGUMENT / INVALID_SPEC
+	// (AWS ValidationError). A malformed input policy, an action without a
+	// service prefix, a caller_arn or policy_source_arn that is not a
+	// user, group or role ARN, a context value not of its type, a
+	// duplicate context key, two boundaries, or a well-formed marker this
+	// RPC did not return is INVALID_ARGUMENT / INVALID_SPEC (InvalidInput).
+	// All of these are checked before any store access. A policy_source_arn
+	// of another project or that does not exist is NOT_FOUND /
+	// RESOURCE_NOT_FOUND (NoSuchEntity). A stored policy that cannot be
+	// evaluated is INTERNAL with aws_code PolicyEvaluation. Any other
+	// failure is INTERNAL (ServiceFailure).
+	// Authorization (iam:SimulatePrincipalPolicy) is console-api's.
+	SimulatePrincipalPolicy(context.Context, *SimulatePrincipalPolicyRequest) (*SimulatePrincipalPolicyResponse, error)
 	mustEmbedUnimplementedPolicyServiceServer()
 }
 
@@ -359,6 +404,9 @@ func (UnimplementedPolicyServiceServer) ListPolicyTags(context.Context, *ListPol
 }
 func (UnimplementedPolicyServiceServer) ListEntitiesForPolicy(context.Context, *ListEntitiesForPolicyRequest) (*ListEntitiesForPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListEntitiesForPolicy not implemented")
+}
+func (UnimplementedPolicyServiceServer) SimulatePrincipalPolicy(context.Context, *SimulatePrincipalPolicyRequest) (*SimulatePrincipalPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SimulatePrincipalPolicy not implemented")
 }
 func (UnimplementedPolicyServiceServer) mustEmbedUnimplementedPolicyServiceServer() {}
 func (UnimplementedPolicyServiceServer) testEmbeddedByValue()                       {}
@@ -615,6 +663,24 @@ func _PolicyService_ListEntitiesForPolicy_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PolicyService_SimulatePrincipalPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulatePrincipalPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PolicyServiceServer).SimulatePrincipalPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PolicyService_SimulatePrincipalPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PolicyServiceServer).SimulatePrincipalPolicy(ctx, req.(*SimulatePrincipalPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PolicyService_ServiceDesc is the grpc.ServiceDesc for PolicyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -673,6 +739,10 @@ var PolicyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListEntitiesForPolicy",
 			Handler:    _PolicyService_ListEntitiesForPolicy_Handler,
+		},
+		{
+			MethodName: "SimulatePrincipalPolicy",
+			Handler:    _PolicyService_SimulatePrincipalPolicy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
