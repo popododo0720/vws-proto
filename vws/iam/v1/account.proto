@@ -14,8 +14,8 @@ option java_package = "dev.vws.iam.v1";
 
 // AccountService holds account-level IAM reads and writes that are not
 // tied to one user, group, role or policy resource. Later account-level
-// actions (account summary, password policy, account aliases) belong on
-// this service.
+// actions (account summary, password policy, and list/delete of this
+// account alias) belong on this service.
 service AccountService {
   // GetAccountAuthorizationDetails is AWS GetAccountAuthorizationDetails.
   // It lists the users, groups, roles and customer managed policies of
@@ -56,6 +56,31 @@ service AccountService {
   // Authorization (iam:GetAccountPasswordPolicy) is console-api's.
   rpc GetAccountPasswordPolicy(GetAccountPasswordPolicyRequest) returns (GetAccountPasswordPolicyResponse) {
     option (google.api.http) = {get: "/v1/{parent=projects/*}:getAccountPasswordPolicy"};
+  }
+
+  // ---------------------------------------------------------------------------
+  // Account aliases
+  // ---------------------------------------------------------------------------
+
+  // CreateAccountAlias is AWS CreateAccountAlias. It sets the project's
+  // account alias. It is synchronous and not an operation, as the AWS
+  // call is: one store write, returned once stored.
+  // A bad parent or account_alias is INVALID_ARGUMENT / INVALID_SPEC
+  // (AWS ValidationError), before any store access. An alias the
+  // project already holds, or one another project holds (AWS keeps
+  // aliases unique across accounts), is ALREADY_EXISTS /
+  // ALREADY_EXISTS (EntityAlreadyExists); a repeat after success is
+  // EntityAlreadyExists. A project has one alias; a create with a
+  // different alias overwrites the previous one, so LimitExceeded
+  // never applies. Persistent contention on the alias claim is
+  // ABORTED / GENERATION_CONFLICT (ConcurrentModification). Any other
+  // failure is INTERNAL (ServiceFailure).
+  // Authorization (iam:CreateAccountAlias) is console-api's.
+  rpc CreateAccountAlias(CreateAccountAliasRequest) returns (CreateAccountAliasResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}:createAccountAlias"
+      body: "*"
+    };
   }
 }
 
@@ -264,3 +289,19 @@ message PasswordPolicy {
   // 1-24. Unset when there is no reuse check.
   optional int32 password_reuse_prevention = 10;
 }
+
+// ---------------------------------------------------------------------------
+// Account alias messages (#130)
+// ---------------------------------------------------------------------------
+
+message CreateAccountAliasRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS AccountAlias, 3-63 characters of
+  // ^[a-z0-9]([a-z0-9]|-(?!-)){1,61}[a-z0-9]$.
+  string account_alias = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// CreateAccountAliasResponse is empty, as AWS returns only
+// ResponseMetadata.
+message CreateAccountAliasResponse {}
