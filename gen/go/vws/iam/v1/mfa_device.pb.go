@@ -625,6 +625,10 @@ func (x *CreateVirtualMfaDeviceResponse) GetOtpauthUri() string {
 	return ""
 }
 
+// EnableMfaDeviceRequest binds the device to user. The server checks the user
+// preconditions in the same store mutation as the enable. A failed
+// precondition writes nothing and leaves the device unassigned. Omitting both
+// optional fields keeps the unchecked behavior.
 type EnableMfaDeviceRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -633,8 +637,23 @@ type EnableMfaDeviceRequest struct {
 	AuthenticationCode_1 string `protobuf:"bytes,3,opt,name=authentication_code_1,json=authenticationCode1,proto3" json:"authentication_code_1,omitempty"`
 	// TOTP code. Never log it.
 	AuthenticationCode_2 string `protobuf:"bytes,4,opt,name=authentication_code_2,json=authenticationCode2,proto3" json:"authentication_code_2,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// Optional precondition, the IAM user ARN of user, shape
+	// "arn:vws:iam::{project}:user{path}{user}", the same contract as
+	// access_key.proto expected_user_arn. When set, the server reads the User in
+	// the same store mutation as the enable and checks that its current ARN
+	// equals this value. A mismatch is FAILED_PRECONDITION
+	// (ConcurrentModification). The ARN contains the IAM path, so it changes
+	// when UpdateUser moves spec.path. A user deleted and recreated under the
+	// same name and path has the same ARN; user_etag catches that.
+	ExpectedUserArn string `protobuf:"bytes,5,opt,name=expected_user_arn,json=expectedUserArn,proto3" json:"expected_user_arn,omitempty"`
+	// Optional precondition, the User's etag as read by the caller. When set,
+	// the server commits the enable only while the user is still at this etag.
+	// A mismatch, or a change of the user that lands before the commit, is
+	// ABORTED (ConcurrentModification). A user deleted and recreated under the
+	// same name never matches an etag read before the delete.
+	UserEtag      string `protobuf:"bytes,6,opt,name=user_etag,json=userEtag,proto3" json:"user_etag,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EnableMfaDeviceRequest) Reset() {
@@ -691,6 +710,20 @@ func (x *EnableMfaDeviceRequest) GetAuthenticationCode_1() string {
 func (x *EnableMfaDeviceRequest) GetAuthenticationCode_2() string {
 	if x != nil {
 		return x.AuthenticationCode_2
+	}
+	return ""
+}
+
+func (x *EnableMfaDeviceRequest) GetExpectedUserArn() string {
+	if x != nil {
+		return x.ExpectedUserArn
+	}
+	return ""
+}
+
+func (x *EnableMfaDeviceRequest) GetUserEtag() string {
+	if x != nil {
+		return x.UserEtag
 	}
 	return ""
 }
@@ -1337,14 +1370,16 @@ const file_vws_iam_v1_mfa_device_proto_rawDesc = "" +
 	"mfa_device\x18\x01 \x01(\v2\x15.vws.iam.v1.MfaDeviceR\tmfaDevice\x124\n" +
 	"\x12base32_string_seed\x18\x02 \x01(\tB\x06\xe0A\x03\x80\x01\x01R\x10base32StringSeed\x12'\n" +
 	"\votpauth_uri\x18\x03 \x01(\tB\x06\xe0A\x03\x80\x01\x01R\n" +
-	"otpauthUri\"\xef\x01\n" +
+	"otpauthUri\"\xc2\x02\n" +
 	"\x16EnableMfaDeviceRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11vws.iam/MfaDeviceR\x04name\x12(\n" +
 	"\x04user\x18\x02 \x01(\tB\x14\xe0A\x02\xfaA\x0e\n" +
 	"\fvws.iam/UserR\x04user\x12=\n" +
 	"\x15authentication_code_1\x18\x03 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\x13authenticationCode1\x12=\n" +
-	"\x15authentication_code_2\x18\x04 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\x13authenticationCode2\"\xeb\x01\n" +
+	"\x15authentication_code_2\x18\x04 \x01(\tB\t\xe0A\x02\xe0A\x04\x80\x01\x01R\x13authenticationCode2\x12/\n" +
+	"\x11expected_user_arn\x18\x05 \x01(\tB\x03\xe0A\x01R\x0fexpectedUserArn\x12 \n" +
+	"\tuser_etag\x18\x06 \x01(\tB\x03\xe0A\x01R\buserEtag\"\xeb\x01\n" +
 	"\x1aDeactivateMfaDeviceRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11vws.iam/MfaDeviceR\x04name\x12(\n" +
