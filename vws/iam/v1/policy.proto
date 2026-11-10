@@ -193,6 +193,10 @@ message PolicyStatus {
   string unique_id = 3;
   // Users, groups, and roles that attach it.
   int32 attachment_count = 4;
+  // Users and roles that use it as a permissions boundary. Counted
+  // separately from attachment_count: setting a boundary does not attach
+  // the policy, and attaching it does not set a boundary.
+  int32 permissions_boundary_usage_count = 5;
 }
 
 // PolicyVersion is one immutable document of a policy. Its id is v1, v2, ...
