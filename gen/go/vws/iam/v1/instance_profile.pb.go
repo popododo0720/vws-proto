@@ -769,6 +769,89 @@ func (*RemoveRoleFromInstanceProfileResponse) Descriptor() ([]byte, []int) {
 	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{11}
 }
 
+type DeleteInstanceProfileRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}/instanceProfiles/{instance_profile}. The instance
+	// profile id is AWS InstanceProfileName, 1-128 characters of [\w+=,.@-].
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteInstanceProfileRequest) Reset() {
+	*x = DeleteInstanceProfileRequest{}
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteInstanceProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteInstanceProfileRequest) ProtoMessage() {}
+
+func (x *DeleteInstanceProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteInstanceProfileRequest.ProtoReflect.Descriptor instead.
+func (*DeleteInstanceProfileRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteInstanceProfileRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// DeleteInstanceProfileResponse is empty, as AWS returns only a request id.
+type DeleteInstanceProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteInstanceProfileResponse) Reset() {
+	*x = DeleteInstanceProfileResponse{}
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteInstanceProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteInstanceProfileResponse) ProtoMessage() {}
+
+func (x *DeleteInstanceProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_instance_profile_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteInstanceProfileResponse.ProtoReflect.Descriptor instead.
+func (*DeleteInstanceProfileResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_instance_profile_proto_rawDescGZIP(), []int{13}
+}
+
 var File_vws_iam_v1_instance_profile_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_instance_profile_proto_rawDesc = "" +
@@ -833,13 +916,18 @@ const file_vws_iam_v1_instance_profile_proto_rawDesc = "" +
 	"$RemoveRoleFromInstanceProfileRequest\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
 	"\trole_name\x18\x02 \x01(\tB\x03\xe0A\x02R\broleName\"'\n" +
-	"%RemoveRoleFromInstanceProfileResponse2\x84\a\n" +
+	"%RemoveRoleFromInstanceProfileResponse\"S\n" +
+	"\x1cDeleteInstanceProfileRequest\x123\n" +
+	"\x04name\x18\x01 \x01(\tB\x1f\xe0A\x02\xfaA\x19\n" +
+	"\x17vws.iam/InstanceProfileR\x04name\"\x1f\n" +
+	"\x1dDeleteInstanceProfileResponse2\xa5\b\n" +
 	"\x16InstanceProfileService\x12\x8a\x01\n" +
 	"\x12GetInstanceProfile\x12%.vws.iam.v1.GetInstanceProfileRequest\x1a\x1b.vws.iam.v1.InstanceProfile\"0\x82\xd3\xe4\x93\x02*\x12(/v1/{name=projects/*/instanceProfiles/*}\x12\xb2\x01\n" +
 	"\x18AddRoleToInstanceProfile\x12+.vws.iam.v1.AddRoleToInstanceProfileRequest\x1a,.vws.iam.v1.AddRoleToInstanceProfileResponse\";\x82\xd3\xe4\x93\x025:\x01*\"0/v1/{name=projects/*/instanceProfiles/*}:addRole\x12\xc4\x01\n" +
 	"\x1dRemoveRoleFromInstanceProfile\x120.vws.iam.v1.RemoveRoleFromInstanceProfileRequest\x1a1.vws.iam.v1.RemoveRoleFromInstanceProfileResponse\">\x82\xd3\xe4\x93\x028:\x01*\"3/v1/{name=projects/*/instanceProfiles/*}:removeRole\x12\xc2\x01\n" +
 	"\x1bListInstanceProfilesForRole\x12..vws.iam.v1.ListInstanceProfilesForRoleRequest\x1a/.vws.iam.v1.ListInstanceProfilesForRoleResponse\"B\x82\xd3\xe4\x93\x02<\x12:/v1/{parent=projects/*}/roles/{role_name}/instanceProfiles\x12\x9b\x01\n" +
-	"\x14ListInstanceProfiles\x12'.vws.iam.v1.ListInstanceProfilesRequest\x1a(.vws.iam.v1.ListInstanceProfilesResponse\"0\x82\xd3\xe4\x93\x02*\x12(/v1/{parent=projects/*}/instanceProfilesBc\n" +
+	"\x14ListInstanceProfiles\x12'.vws.iam.v1.ListInstanceProfilesRequest\x1a(.vws.iam.v1.ListInstanceProfilesResponse\"0\x82\xd3\xe4\x93\x02*\x12(/v1/{parent=projects/*}/instanceProfiles\x12\x9e\x01\n" +
+	"\x15DeleteInstanceProfile\x12(.vws.iam.v1.DeleteInstanceProfileRequest\x1a).vws.iam.v1.DeleteInstanceProfileResponse\"0\x82\xd3\xe4\x93\x02**(/v1/{name=projects/*/instanceProfiles/*}Bc\n" +
 	"\x0edev.vws.iam.v1B\x14InstanceProfileProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -854,7 +942,7 @@ func file_vws_iam_v1_instance_profile_proto_rawDescGZIP() []byte {
 	return file_vws_iam_v1_instance_profile_proto_rawDescData
 }
 
-var file_vws_iam_v1_instance_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_vws_iam_v1_instance_profile_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_vws_iam_v1_instance_profile_proto_goTypes = []any{
 	(*InstanceProfile)(nil),                       // 0: vws.iam.v1.InstanceProfile
 	(*InstanceProfileSpec)(nil),                   // 1: vws.iam.v1.InstanceProfileSpec
@@ -868,20 +956,22 @@ var file_vws_iam_v1_instance_profile_proto_goTypes = []any{
 	(*AddRoleToInstanceProfileResponse)(nil),      // 9: vws.iam.v1.AddRoleToInstanceProfileResponse
 	(*RemoveRoleFromInstanceProfileRequest)(nil),  // 10: vws.iam.v1.RemoveRoleFromInstanceProfileRequest
 	(*RemoveRoleFromInstanceProfileResponse)(nil), // 11: vws.iam.v1.RemoveRoleFromInstanceProfileResponse
-	nil,                           // 12: vws.iam.v1.InstanceProfile.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
-	(*v1.ObservedState)(nil),      // 14: vws.common.v1.ObservedState
-	(*Role)(nil),                  // 15: vws.iam.v1.Role
+	(*DeleteInstanceProfileRequest)(nil),          // 12: vws.iam.v1.DeleteInstanceProfileRequest
+	(*DeleteInstanceProfileResponse)(nil),         // 13: vws.iam.v1.DeleteInstanceProfileResponse
+	nil,                                           // 14: vws.iam.v1.InstanceProfile.LabelsEntry
+	(*timestamppb.Timestamp)(nil),                 // 15: google.protobuf.Timestamp
+	(*v1.ObservedState)(nil),                      // 16: vws.common.v1.ObservedState
+	(*Role)(nil),                                  // 17: vws.iam.v1.Role
 }
 var file_vws_iam_v1_instance_profile_proto_depIdxs = []int32{
-	12, // 0: vws.iam.v1.InstanceProfile.labels:type_name -> vws.iam.v1.InstanceProfile.LabelsEntry
+	14, // 0: vws.iam.v1.InstanceProfile.labels:type_name -> vws.iam.v1.InstanceProfile.LabelsEntry
 	1,  // 1: vws.iam.v1.InstanceProfile.spec:type_name -> vws.iam.v1.InstanceProfileSpec
 	2,  // 2: vws.iam.v1.InstanceProfile.status:type_name -> vws.iam.v1.InstanceProfileStatus
-	13, // 3: vws.iam.v1.InstanceProfile.create_time:type_name -> google.protobuf.Timestamp
-	13, // 4: vws.iam.v1.InstanceProfile.update_time:type_name -> google.protobuf.Timestamp
-	13, // 5: vws.iam.v1.InstanceProfile.delete_time:type_name -> google.protobuf.Timestamp
-	14, // 6: vws.iam.v1.InstanceProfileStatus.observed:type_name -> vws.common.v1.ObservedState
-	15, // 7: vws.iam.v1.InstanceProfileStatus.roles:type_name -> vws.iam.v1.Role
+	15, // 3: vws.iam.v1.InstanceProfile.create_time:type_name -> google.protobuf.Timestamp
+	15, // 4: vws.iam.v1.InstanceProfile.update_time:type_name -> google.protobuf.Timestamp
+	15, // 5: vws.iam.v1.InstanceProfile.delete_time:type_name -> google.protobuf.Timestamp
+	16, // 6: vws.iam.v1.InstanceProfileStatus.observed:type_name -> vws.common.v1.ObservedState
+	17, // 7: vws.iam.v1.InstanceProfileStatus.roles:type_name -> vws.iam.v1.Role
 	0,  // 8: vws.iam.v1.ListInstanceProfilesForRoleResponse.instance_profiles:type_name -> vws.iam.v1.InstanceProfile
 	0,  // 9: vws.iam.v1.ListInstanceProfilesResponse.instance_profiles:type_name -> vws.iam.v1.InstanceProfile
 	3,  // 10: vws.iam.v1.InstanceProfileService.GetInstanceProfile:input_type -> vws.iam.v1.GetInstanceProfileRequest
@@ -889,13 +979,15 @@ var file_vws_iam_v1_instance_profile_proto_depIdxs = []int32{
 	10, // 12: vws.iam.v1.InstanceProfileService.RemoveRoleFromInstanceProfile:input_type -> vws.iam.v1.RemoveRoleFromInstanceProfileRequest
 	4,  // 13: vws.iam.v1.InstanceProfileService.ListInstanceProfilesForRole:input_type -> vws.iam.v1.ListInstanceProfilesForRoleRequest
 	6,  // 14: vws.iam.v1.InstanceProfileService.ListInstanceProfiles:input_type -> vws.iam.v1.ListInstanceProfilesRequest
-	0,  // 15: vws.iam.v1.InstanceProfileService.GetInstanceProfile:output_type -> vws.iam.v1.InstanceProfile
-	9,  // 16: vws.iam.v1.InstanceProfileService.AddRoleToInstanceProfile:output_type -> vws.iam.v1.AddRoleToInstanceProfileResponse
-	11, // 17: vws.iam.v1.InstanceProfileService.RemoveRoleFromInstanceProfile:output_type -> vws.iam.v1.RemoveRoleFromInstanceProfileResponse
-	5,  // 18: vws.iam.v1.InstanceProfileService.ListInstanceProfilesForRole:output_type -> vws.iam.v1.ListInstanceProfilesForRoleResponse
-	7,  // 19: vws.iam.v1.InstanceProfileService.ListInstanceProfiles:output_type -> vws.iam.v1.ListInstanceProfilesResponse
-	15, // [15:20] is the sub-list for method output_type
-	10, // [10:15] is the sub-list for method input_type
+	12, // 15: vws.iam.v1.InstanceProfileService.DeleteInstanceProfile:input_type -> vws.iam.v1.DeleteInstanceProfileRequest
+	0,  // 16: vws.iam.v1.InstanceProfileService.GetInstanceProfile:output_type -> vws.iam.v1.InstanceProfile
+	9,  // 17: vws.iam.v1.InstanceProfileService.AddRoleToInstanceProfile:output_type -> vws.iam.v1.AddRoleToInstanceProfileResponse
+	11, // 18: vws.iam.v1.InstanceProfileService.RemoveRoleFromInstanceProfile:output_type -> vws.iam.v1.RemoveRoleFromInstanceProfileResponse
+	5,  // 19: vws.iam.v1.InstanceProfileService.ListInstanceProfilesForRole:output_type -> vws.iam.v1.ListInstanceProfilesForRoleResponse
+	7,  // 20: vws.iam.v1.InstanceProfileService.ListInstanceProfiles:output_type -> vws.iam.v1.ListInstanceProfilesResponse
+	13, // 21: vws.iam.v1.InstanceProfileService.DeleteInstanceProfile:output_type -> vws.iam.v1.DeleteInstanceProfileResponse
+	16, // [16:22] is the sub-list for method output_type
+	10, // [10:16] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
 	10, // [10:10] is the sub-list for extension extendee
 	0,  // [0:10] is the sub-list for field type_name
@@ -913,7 +1005,7 @@ func file_vws_iam_v1_instance_profile_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_instance_profile_proto_rawDesc), len(file_vws_iam_v1_instance_profile_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

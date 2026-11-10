@@ -98,6 +98,22 @@ service InstanceProfileService {
   rpc ListInstanceProfiles(ListInstanceProfilesRequest) returns (ListInstanceProfilesResponse) {
     option (google.api.http) = {get: "/v1/{parent=projects/*}/instanceProfiles"};
   }
+
+  // DeleteInstanceProfile is AWS DeleteInstanceProfile. It deletes the
+  // instance profile. It is synchronous and not an operation, as the AWS call
+  // is: one conditional store write, returned once stored.
+  // An instance profile name length or pattern fault is INVALID_ARGUMENT /
+  // INVALID_SPEC (AWS ValidationError). An unknown instance profile is
+  // NOT_FOUND / RESOURCE_NOT_FOUND (NoSuchEntity). A profile that still holds
+  // a role is FAILED_PRECONDITION / DEPENDENCY_MISSING (DeleteConflict:
+  // "Cannot delete entity, must remove roles from instance profile first.").
+  // Names compare case-insensitively. The delete is conditional on the
+  // version read, so it never races a concurrent AddRoleToInstanceProfile.
+  // A repeat after success is NOT_FOUND (NoSuchEntity), as in AWS.
+  // Authorization (iam:DeleteInstanceProfile) is console-api's.
+  rpc DeleteInstanceProfile(DeleteInstanceProfileRequest) returns (DeleteInstanceProfileResponse) {
+    option (google.api.http) = {delete: "/v1/{name=projects/*/instanceProfiles/*}"};
+  }
 }
 
 // InstanceProfile is an IAM instance profile, AWS's container for the one
@@ -234,3 +250,15 @@ message RemoveRoleFromInstanceProfileRequest {
 // RemoveRoleFromInstanceProfileResponse is empty, as AWS returns only a
 // request id.
 message RemoveRoleFromInstanceProfileResponse {}
+
+message DeleteInstanceProfileRequest {
+  // projects/{project}/instanceProfiles/{instance_profile}. The instance
+  // profile id is AWS InstanceProfileName, 1-128 characters of [\w+=,.@-].
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/InstanceProfile"
+  ];
+}
+
+// DeleteInstanceProfileResponse is empty, as AWS returns only a request id.
+message DeleteInstanceProfileResponse {}
