@@ -1,0 +1,225 @@
+syntax = "proto3";
+
+package vws.iam.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/timestamp.proto";
+import "vws/common/v1/resource.proto";
+
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1";
+option java_multiple_files = true;
+option java_outer_classname = "KeyPairProto";
+option java_package = "dev.vws.iam.v1";
+
+// KeyPairService manages EC2 key pairs. Proxmox has no key pair object, so the
+// IAM store keeps them, scoped to a project (the account) and spec.region. Only
+// the public key is stored. The private key exists in the CreateKeyPair
+// response and nowhere else: no message in this file that is stored or listed
+// has a private-key field, and the response field is debug_redact.
+// No node reconciles key pairs. The server writes the resource and its status
+// (observed.state READY, observed.generation = generation) in one store.
+// The resource is vws.iam/KeyPair under projects/{project}/keyPairs, apart from
+// the deprecated vws.compute/KeyPair under projects/{project}/regions/{region}/keyPairs,
+// so one gateway serves both until vws.compute.v1 is removed.
+service KeyPairService {
+  // AIP-131: the Get response is the resource.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc GetKeyPair(GetKeyPairRequest) returns (KeyPair) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/keyPairs/*}"};
+  }
+
+  rpc ListKeyPairs(ListKeyPairsRequest) returns (ListKeyPairsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}/keyPairs"};
+  }
+
+  // CreateKeyPair generates the key pair. It is synchronous and not an
+  // operation, so the private key is never kept in an operation record (an
+  // exception to the AIP-151 rule of this module, as CreateAccessKey is).
+  rpc CreateKeyPair(CreateKeyPairRequest) returns (CreateKeyPairResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}/keyPairs:create"
+      body: "*"
+    };
+  }
+
+  // ImportKeyPair stores a public key the caller made.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc ImportKeyPair(ImportKeyPairRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}/keyPairs:import"
+      body: "*"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.KeyPair"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc DeleteKeyPair(DeleteKeyPairRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {delete: "/v1/{name=projects/*/keyPairs/*}"};
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.iam.v1.KeyPair"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+}
+
+// KeyPair is a public key in spec.region. The final path segment is the key pair id,
+// "key-" followed by lowercase hex, minted by the server; EC2 clients never
+// choose it. The name clients choose is spec.key_name.
+// Fields 1-10 are the shared resource envelope.
+message KeyPair {
+  option (google.api.resource) = {
+    type: "vws.iam/KeyPair"
+    pattern: "projects/{project}/keyPairs/{key_pair}"
+    plural: "keyPairs"
+    singular: "keyPair"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = UUID4
+  ];
+  int64 generation = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string etag = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  map<string, string> labels = 5;
+  KeyPairSpec spec = 6 [(google.api.field_behavior) = REQUIRED];
+  KeyPairStatus status = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp delete_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message KeyPairSpec {
+  // EC2 KeyName, 1-255 ASCII characters, unique per project and spec.region.
+  string key_name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+  // OpenSSH public key line: algorithm, base64 blob, optional comment.
+  // Public key only. Immutable.
+  string public_key = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+  // Region id. Uses vws.common.v1.ResourceId grammar. Immutable.
+  string region = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+}
+
+enum KeyPairType {
+  KEY_PAIR_TYPE_UNSPECIFIED = 0;
+  KEY_PAIR_TYPE_RSA = 1;
+  KEY_PAIR_TYPE_ED25519 = 2;
+}
+
+message KeyPairStatus {
+  vws.common.v1.ObservedState observed = 1;
+  // Lowercase hex SHA-256 of the decoded public key blob, 64 characters, with
+  // no "SHA256:" prefix. The server writes it when it stores the key pair.
+  string fingerprint_sha256 = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  KeyPairType key_type = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message GetKeyPairRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/KeyPair"
+  ];
+}
+
+message ListKeyPairsRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/KeyPair"
+  ];
+  // Server default is 50. Values above 1000 are coerced to 1000.
+  int32 page_size = 2;
+  string page_token = 3;
+  // Only key pairs whose spec.region is this region id. Empty means every region.
+  string region = 4 [(google.api.field_behavior) = OPTIONAL];
+  // Only key pairs whose spec.key_name is one of these, compared exactly
+  // (EC2 DescribeKeyPairs KeyName). At most 200 entries. Empty means no name
+  // filter. A name that matches nothing is left out of the response, not an
+  // error; the gateway maps a missing requested name to InvalidKeyPair.NotFound.
+  repeated string key_names = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListKeyPairsResponse {
+  repeated KeyPair key_pairs = 1;
+  string next_page_token = 2;
+}
+
+message CreateKeyPairRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/KeyPair"
+  ];
+  string key_name = 2 [(google.api.field_behavior) = REQUIRED];
+  // Region id, stored as spec.region.
+  string region = 6 [(google.api.field_behavior) = REQUIRED];
+  // Unspecified means RSA, as in EC2.
+  KeyPairType key_type = 3 [(google.api.field_behavior) = OPTIONAL];
+  map<string, string> labels = 4;
+  // A repeated request_id within 24 hours is ALREADY_EXISTS, never the
+  // private key again. The key pair is stored before the response, so a lost
+  // response or a server restart between the store and the response leaves a
+  // key pair whose private key nobody has: delete it and create another.
+  string request_id = 5 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+message CreateKeyPairResponse {
+  KeyPair key_pair = 1;
+  // PEM private key. Returned here only, never by Get, List or an operation.
+  // Secret: never store or log it.
+  string private_key_material = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    debug_redact = true
+  ];
+}
+
+message ImportKeyPairRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.iam/KeyPair"
+  ];
+  string key_name = 2 [(google.api.field_behavior) = REQUIRED];
+  // OpenSSH public key line, ed25519 or RSA 1024-4096 bits.
+  string public_key = 3 [(google.api.field_behavior) = REQUIRED];
+  // Region id, stored as spec.region.
+  string region = 6 [(google.api.field_behavior) = REQUIRED];
+  map<string, string> labels = 4;
+  // A repeated request_id within 24 hours with the same key_name and
+  // public_key returns the original operation. With other values it is
+  // ABORTED / IDEMPOTENCY_CONFLICT.
+  string request_id = 5 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+message DeleteKeyPairRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.iam/KeyPair"
+  ];
+  string request_id = 2 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool allow_missing = 3 [(google.api.field_behavior) = OPTIONAL];
+  string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+}
