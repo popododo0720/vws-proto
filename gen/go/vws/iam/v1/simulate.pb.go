@@ -775,6 +775,221 @@ func (x *SimulatePrincipalPolicyResponse) GetMarker() string {
 	return ""
 }
 
+// SimulateCustomPolicyRequest is AWS SimulateCustomPolicy.
+type SimulateCustomPolicyRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// projects/{project}. The project id follows ResourceId.
+	Parent string `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	// AWS PolicyInputList. At least one entry, each 1-131072 characters of
+	// [\u0009\u000A\u000D\u0020-\u00FF], plain JSON.
+	PolicyInputList []string `protobuf:"bytes,2,rep,name=policy_input_list,json=policyInputList,proto3" json:"policy_input_list,omitempty"`
+	// AWS PermissionsBoundaryPolicyInputList, same pattern, at most one.
+	PermissionsBoundaryPolicyInputList []string `protobuf:"bytes,3,rep,name=permissions_boundary_policy_input_list,json=permissionsBoundaryPolicyInputList,proto3" json:"permissions_boundary_policy_input_list,omitempty"`
+	// AWS ActionNames. At least one entry, each 3-128 characters.
+	ActionNames []string `protobuf:"bytes,4,rep,name=action_names,json=actionNames,proto3" json:"action_names,omitempty"`
+	// AWS ResourceArns, each 1-2048 characters. Empty means "*".
+	ResourceArns []string `protobuf:"bytes,5,rep,name=resource_arns,json=resourceArns,proto3" json:"resource_arns,omitempty"`
+	// AWS ResourcePolicy, 1-131072 characters of the same pattern as
+	// policy_input_list. InvalidInput until vws-iam#257.
+	ResourcePolicy string `protobuf:"bytes,6,opt,name=resource_policy,json=resourcePolicy,proto3" json:"resource_policy,omitempty"`
+	// AWS ResourceOwner, 1-2048 characters, must be
+	// arn:vws:iam::<account>:root when set.
+	ResourceOwner string `protobuf:"bytes,7,opt,name=resource_owner,json=resourceOwner,proto3" json:"resource_owner,omitempty"`
+	// AWS ResourceHandlingOption, 1-64 characters. InvalidInput until
+	// vws-iam#257.
+	ResourceHandlingOption string `protobuf:"bytes,8,opt,name=resource_handling_option,json=resourceHandlingOption,proto3" json:"resource_handling_option,omitempty"`
+	// AWS CallerArn, 1-2048 characters, a user, group or role ARN.
+	CallerArn string `protobuf:"bytes,9,opt,name=caller_arn,json=callerArn,proto3" json:"caller_arn,omitempty"`
+	// AWS ContextEntries. A duplicate context key, or a value not of its
+	// type, is InvalidInput.
+	ContextEntries []*ContextEntry `protobuf:"bytes,10,rep,name=context_entries,json=contextEntries,proto3" json:"context_entries,omitempty"`
+	// AWS Marker, 1-320 characters of [\u0020-\u00FF]. Only a marker this
+	// RPC returned.
+	Marker string `protobuf:"bytes,11,opt,name=marker,proto3" json:"marker,omitempty"`
+	// AWS MaxItems, 1-1000. 0 means not set: the server default is 100, as
+	// in AWS. console-api answers an explicit MaxItems=0 as ValidationError
+	// itself, since 0 cannot be told apart from unset here.
+	MaxItems      int32 `protobuf:"varint,12,opt,name=max_items,json=maxItems,proto3" json:"max_items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SimulateCustomPolicyRequest) Reset() {
+	*x = SimulateCustomPolicyRequest{}
+	mi := &file_vws_iam_v1_simulate_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimulateCustomPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimulateCustomPolicyRequest) ProtoMessage() {}
+
+func (x *SimulateCustomPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_simulate_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimulateCustomPolicyRequest.ProtoReflect.Descriptor instead.
+func (*SimulateCustomPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_simulate_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SimulateCustomPolicyRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
+	}
+	return ""
+}
+
+func (x *SimulateCustomPolicyRequest) GetPolicyInputList() []string {
+	if x != nil {
+		return x.PolicyInputList
+	}
+	return nil
+}
+
+func (x *SimulateCustomPolicyRequest) GetPermissionsBoundaryPolicyInputList() []string {
+	if x != nil {
+		return x.PermissionsBoundaryPolicyInputList
+	}
+	return nil
+}
+
+func (x *SimulateCustomPolicyRequest) GetActionNames() []string {
+	if x != nil {
+		return x.ActionNames
+	}
+	return nil
+}
+
+func (x *SimulateCustomPolicyRequest) GetResourceArns() []string {
+	if x != nil {
+		return x.ResourceArns
+	}
+	return nil
+}
+
+func (x *SimulateCustomPolicyRequest) GetResourcePolicy() string {
+	if x != nil {
+		return x.ResourcePolicy
+	}
+	return ""
+}
+
+func (x *SimulateCustomPolicyRequest) GetResourceOwner() string {
+	if x != nil {
+		return x.ResourceOwner
+	}
+	return ""
+}
+
+func (x *SimulateCustomPolicyRequest) GetResourceHandlingOption() string {
+	if x != nil {
+		return x.ResourceHandlingOption
+	}
+	return ""
+}
+
+func (x *SimulateCustomPolicyRequest) GetCallerArn() string {
+	if x != nil {
+		return x.CallerArn
+	}
+	return ""
+}
+
+func (x *SimulateCustomPolicyRequest) GetContextEntries() []*ContextEntry {
+	if x != nil {
+		return x.ContextEntries
+	}
+	return nil
+}
+
+func (x *SimulateCustomPolicyRequest) GetMarker() string {
+	if x != nil {
+		return x.Marker
+	}
+	return ""
+}
+
+func (x *SimulateCustomPolicyRequest) GetMaxItems() int32 {
+	if x != nil {
+		return x.MaxItems
+	}
+	return 0
+}
+
+type SimulateCustomPolicyResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	EvaluationResults []*EvaluationResult    `protobuf:"bytes,1,rep,name=evaluation_results,json=evaluationResults,proto3" json:"evaluation_results,omitempty"`
+	// AWS IsTruncated.
+	IsTruncated bool `protobuf:"varint,2,opt,name=is_truncated,json=isTruncated,proto3" json:"is_truncated,omitempty"`
+	// AWS Marker. Set exactly when is_truncated is true.
+	Marker        string `protobuf:"bytes,3,opt,name=marker,proto3" json:"marker,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SimulateCustomPolicyResponse) Reset() {
+	*x = SimulateCustomPolicyResponse{}
+	mi := &file_vws_iam_v1_simulate_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimulateCustomPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimulateCustomPolicyResponse) ProtoMessage() {}
+
+func (x *SimulateCustomPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vws_iam_v1_simulate_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimulateCustomPolicyResponse.ProtoReflect.Descriptor instead.
+func (*SimulateCustomPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_vws_iam_v1_simulate_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SimulateCustomPolicyResponse) GetEvaluationResults() []*EvaluationResult {
+	if x != nil {
+		return x.EvaluationResults
+	}
+	return nil
+}
+
+func (x *SimulateCustomPolicyResponse) GetIsTruncated() bool {
+	if x != nil {
+		return x.IsTruncated
+	}
+	return false
+}
+
+func (x *SimulateCustomPolicyResponse) GetMarker() string {
+	if x != nil {
+		return x.Marker
+	}
+	return ""
+}
+
 var File_vws_iam_v1_simulate_proto protoreflect.FileDescriptor
 
 const file_vws_iam_v1_simulate_proto_rawDesc = "" +
@@ -825,6 +1040,25 @@ const file_vws_iam_v1_simulate_proto_rawDesc = "" +
 	"\x1fSimulatePrincipalPolicyResponse\x12K\n" +
 	"\x12evaluation_results\x18\x01 \x03(\v2\x1c.vws.iam.v1.EvaluationResultR\x11evaluationResults\x12!\n" +
 	"\fis_truncated\x18\x02 \x01(\bR\visTruncated\x12\x16\n" +
+	"\x06marker\x18\x03 \x01(\tR\x06marker\"\xdb\x04\n" +
+	"\x1bSimulateCustomPolicyRequest\x12\x1b\n" +
+	"\x06parent\x18\x01 \x01(\tB\x03\xe0A\x02R\x06parent\x12/\n" +
+	"\x11policy_input_list\x18\x02 \x03(\tB\x03\xe0A\x02R\x0fpolicyInputList\x12R\n" +
+	"&permissions_boundary_policy_input_list\x18\x03 \x03(\tR\"permissionsBoundaryPolicyInputList\x12&\n" +
+	"\faction_names\x18\x04 \x03(\tB\x03\xe0A\x02R\vactionNames\x12#\n" +
+	"\rresource_arns\x18\x05 \x03(\tR\fresourceArns\x12'\n" +
+	"\x0fresource_policy\x18\x06 \x01(\tR\x0eresourcePolicy\x12%\n" +
+	"\x0eresource_owner\x18\a \x01(\tR\rresourceOwner\x128\n" +
+	"\x18resource_handling_option\x18\b \x01(\tR\x16resourceHandlingOption\x12\x1d\n" +
+	"\n" +
+	"caller_arn\x18\t \x01(\tR\tcallerArn\x12A\n" +
+	"\x0fcontext_entries\x18\n" +
+	" \x03(\v2\x18.vws.iam.v1.ContextEntryR\x0econtextEntries\x12\x16\n" +
+	"\x06marker\x18\v \x01(\tR\x06marker\x12\x1b\n" +
+	"\tmax_items\x18\f \x01(\x05R\bmaxItemsJ\x04\b\r\x10\x0eR&ordered_organization_policy_input_list\"\xa6\x01\n" +
+	"\x1cSimulateCustomPolicyResponse\x12K\n" +
+	"\x12evaluation_results\x18\x01 \x03(\v2\x1c.vws.iam.v1.EvaluationResultR\x11evaluationResults\x12!\n" +
+	"\fis_truncated\x18\x02 \x01(\bR\visTruncated\x12\x16\n" +
 	"\x06marker\x18\x03 \x01(\tR\x06marker*\xa4\x03\n" +
 	"\x0eContextKeyType\x12 \n" +
 	"\x1cCONTEXT_KEY_TYPE_UNSPECIFIED\x10\x00\x12\x1b\n" +
@@ -870,7 +1104,7 @@ func file_vws_iam_v1_simulate_proto_rawDescGZIP() []byte {
 }
 
 var file_vws_iam_v1_simulate_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_vws_iam_v1_simulate_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_vws_iam_v1_simulate_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_vws_iam_v1_simulate_proto_goTypes = []any{
 	(ContextKeyType)(0),                     // 0: vws.iam.v1.ContextKeyType
 	(PolicyEvaluationDecision)(0),           // 1: vws.iam.v1.PolicyEvaluationDecision
@@ -882,6 +1116,8 @@ var file_vws_iam_v1_simulate_proto_goTypes = []any{
 	(*EvaluationResult)(nil),                // 7: vws.iam.v1.EvaluationResult
 	(*SimulatePrincipalPolicyRequest)(nil),  // 8: vws.iam.v1.SimulatePrincipalPolicyRequest
 	(*SimulatePrincipalPolicyResponse)(nil), // 9: vws.iam.v1.SimulatePrincipalPolicyResponse
+	(*SimulateCustomPolicyRequest)(nil),     // 10: vws.iam.v1.SimulateCustomPolicyRequest
+	(*SimulateCustomPolicyResponse)(nil),    // 11: vws.iam.v1.SimulateCustomPolicyResponse
 }
 var file_vws_iam_v1_simulate_proto_depIdxs = []int32{
 	0,  // 0: vws.iam.v1.ContextEntry.context_key_type:type_name -> vws.iam.v1.ContextKeyType
@@ -895,11 +1131,13 @@ var file_vws_iam_v1_simulate_proto_depIdxs = []int32{
 	6,  // 8: vws.iam.v1.EvaluationResult.resource_specific_results:type_name -> vws.iam.v1.ResourceSpecificResult
 	3,  // 9: vws.iam.v1.SimulatePrincipalPolicyRequest.context_entries:type_name -> vws.iam.v1.ContextEntry
 	7,  // 10: vws.iam.v1.SimulatePrincipalPolicyResponse.evaluation_results:type_name -> vws.iam.v1.EvaluationResult
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	3,  // 11: vws.iam.v1.SimulateCustomPolicyRequest.context_entries:type_name -> vws.iam.v1.ContextEntry
+	7,  // 12: vws.iam.v1.SimulateCustomPolicyResponse.evaluation_results:type_name -> vws.iam.v1.EvaluationResult
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_vws_iam_v1_simulate_proto_init() }
@@ -915,7 +1153,7 @@ func file_vws_iam_v1_simulate_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vws_iam_v1_simulate_proto_rawDesc), len(file_vws_iam_v1_simulate_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

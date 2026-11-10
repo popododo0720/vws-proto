@@ -2050,7 +2050,7 @@ const file_vws_iam_v1_policy_proto_rawDesc = "" +
 	"\x11PolicyUsageFilter\x12#\n" +
 	"\x1fPOLICY_USAGE_FILTER_UNSPECIFIED\x10\x00\x12*\n" +
 	"&POLICY_USAGE_FILTER_PERMISSIONS_POLICY\x10\x01\x12,\n" +
-	"(POLICY_USAGE_FILTER_PERMISSIONS_BOUNDARY\x10\x022\xc8\x12\n" +
+	"(POLICY_USAGE_FILTER_PERMISSIONS_BOUNDARY\x10\x022\xed\x13\n" +
 	"\rPolicyService\x12g\n" +
 	"\tGetPolicy\x12\x1c.vws.iam.v1.GetPolicyRequest\x1a\x12.vws.iam.v1.Policy\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/{name=projects/*/policies/*}\x12{\n" +
 	"\fListPolicies\x12\x1f.vws.iam.v1.ListPoliciesRequest\x1a .vws.iam.v1.ListPoliciesResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/{parent=projects/*}/policies\x12\xb7\x01\n" +
@@ -2072,7 +2072,8 @@ const file_vws_iam_v1_policy_proto_rawDesc = "" +
 	"\x11vws.iam.v1.Policy\x12\x1fvws.common.v1.OperationMetadata\x82\xd3\xe4\x93\x02+:\x01*\"&/v1/{name=projects/*/policies/*}:untag\x12\x86\x01\n" +
 	"\x0eListPolicyTags\x12!.vws.iam.v1.ListPolicyTagsRequest\x1a\".vws.iam.v1.ListPolicyTagsResponse\"-\x82\xd3\xe4\x93\x02'\x12%/v1/{name=projects/*/policies/*}:tags\x12\xa3\x01\n" +
 	"\x15ListEntitiesForPolicy\x12(.vws.iam.v1.ListEntitiesForPolicyRequest\x1a).vws.iam.v1.ListEntitiesForPolicyResponse\"5\x82\xd3\xe4\x93\x02/\x12-/v1/{parent=projects/*}:listEntitiesForPolicy\x12\xae\x01\n" +
-	"\x17SimulatePrincipalPolicy\x12*.vws.iam.v1.SimulatePrincipalPolicyRequest\x1a+.vws.iam.v1.SimulatePrincipalPolicyResponse\":\x82\xd3\xe4\x93\x024:\x01*\"//v1/{parent=projects/*}:simulatePrincipalPolicyBZ\n" +
+	"\x17SimulatePrincipalPolicy\x12*.vws.iam.v1.SimulatePrincipalPolicyRequest\x1a+.vws.iam.v1.SimulatePrincipalPolicyResponse\":\x82\xd3\xe4\x93\x024:\x01*\"//v1/{parent=projects/*}:simulatePrincipalPolicy\x12\xa2\x01\n" +
+	"\x14SimulateCustomPolicy\x12'.vws.iam.v1.SimulateCustomPolicyRequest\x1a(.vws.iam.v1.SimulateCustomPolicyResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/v1/{parent=projects/*}:simulateCustomPolicyBZ\n" +
 	"\x0edev.vws.iam.v1B\vPolicyProtoP\x01Z9github.com/popododo0720/vws-proto/gen/go/vws/iam/v1;iamv1b\x06proto3"
 
 var (
@@ -2123,8 +2124,10 @@ var file_vws_iam_v1_policy_proto_goTypes = []any{
 	(*v1.ObservedState)(nil),                // 30: vws.common.v1.ObservedState
 	(*fieldmaskpb.FieldMask)(nil),           // 31: google.protobuf.FieldMask
 	(*SimulatePrincipalPolicyRequest)(nil),  // 32: vws.iam.v1.SimulatePrincipalPolicyRequest
-	(*longrunningpb.Operation)(nil),         // 33: google.longrunning.Operation
-	(*SimulatePrincipalPolicyResponse)(nil), // 34: vws.iam.v1.SimulatePrincipalPolicyResponse
+	(*SimulateCustomPolicyRequest)(nil),     // 33: vws.iam.v1.SimulateCustomPolicyRequest
+	(*longrunningpb.Operation)(nil),         // 34: google.longrunning.Operation
+	(*SimulatePrincipalPolicyResponse)(nil), // 35: vws.iam.v1.SimulatePrincipalPolicyResponse
+	(*SimulateCustomPolicyResponse)(nil),    // 36: vws.iam.v1.SimulateCustomPolicyResponse
 }
 var file_vws_iam_v1_policy_proto_depIdxs = []int32{
 	27, // 0: vws.iam.v1.Policy.labels:type_name -> vws.iam.v1.Policy.LabelsEntry
@@ -2168,22 +2171,24 @@ var file_vws_iam_v1_policy_proto_depIdxs = []int32{
 	22, // 38: vws.iam.v1.PolicyService.ListPolicyTags:input_type -> vws.iam.v1.ListPolicyTagsRequest
 	24, // 39: vws.iam.v1.PolicyService.ListEntitiesForPolicy:input_type -> vws.iam.v1.ListEntitiesForPolicyRequest
 	32, // 40: vws.iam.v1.PolicyService.SimulatePrincipalPolicy:input_type -> vws.iam.v1.SimulatePrincipalPolicyRequest
-	2,  // 41: vws.iam.v1.PolicyService.GetPolicy:output_type -> vws.iam.v1.Policy
-	10, // 42: vws.iam.v1.PolicyService.ListPolicies:output_type -> vws.iam.v1.ListPoliciesResponse
-	33, // 43: vws.iam.v1.PolicyService.CreatePolicy:output_type -> google.longrunning.Operation
-	33, // 44: vws.iam.v1.PolicyService.UpdatePolicy:output_type -> google.longrunning.Operation
-	33, // 45: vws.iam.v1.PolicyService.DeletePolicy:output_type -> google.longrunning.Operation
-	5,  // 46: vws.iam.v1.PolicyService.GetPolicyVersion:output_type -> vws.iam.v1.PolicyVersion
-	16, // 47: vws.iam.v1.PolicyService.ListPolicyVersions:output_type -> vws.iam.v1.ListPolicyVersionsResponse
-	33, // 48: vws.iam.v1.PolicyService.CreatePolicyVersion:output_type -> google.longrunning.Operation
-	33, // 49: vws.iam.v1.PolicyService.DeletePolicyVersion:output_type -> google.longrunning.Operation
-	33, // 50: vws.iam.v1.PolicyService.TagPolicy:output_type -> google.longrunning.Operation
-	33, // 51: vws.iam.v1.PolicyService.UntagPolicy:output_type -> google.longrunning.Operation
-	23, // 52: vws.iam.v1.PolicyService.ListPolicyTags:output_type -> vws.iam.v1.ListPolicyTagsResponse
-	25, // 53: vws.iam.v1.PolicyService.ListEntitiesForPolicy:output_type -> vws.iam.v1.ListEntitiesForPolicyResponse
-	34, // 54: vws.iam.v1.PolicyService.SimulatePrincipalPolicy:output_type -> vws.iam.v1.SimulatePrincipalPolicyResponse
-	41, // [41:55] is the sub-list for method output_type
-	27, // [27:41] is the sub-list for method input_type
+	33, // 41: vws.iam.v1.PolicyService.SimulateCustomPolicy:input_type -> vws.iam.v1.SimulateCustomPolicyRequest
+	2,  // 42: vws.iam.v1.PolicyService.GetPolicy:output_type -> vws.iam.v1.Policy
+	10, // 43: vws.iam.v1.PolicyService.ListPolicies:output_type -> vws.iam.v1.ListPoliciesResponse
+	34, // 44: vws.iam.v1.PolicyService.CreatePolicy:output_type -> google.longrunning.Operation
+	34, // 45: vws.iam.v1.PolicyService.UpdatePolicy:output_type -> google.longrunning.Operation
+	34, // 46: vws.iam.v1.PolicyService.DeletePolicy:output_type -> google.longrunning.Operation
+	5,  // 47: vws.iam.v1.PolicyService.GetPolicyVersion:output_type -> vws.iam.v1.PolicyVersion
+	16, // 48: vws.iam.v1.PolicyService.ListPolicyVersions:output_type -> vws.iam.v1.ListPolicyVersionsResponse
+	34, // 49: vws.iam.v1.PolicyService.CreatePolicyVersion:output_type -> google.longrunning.Operation
+	34, // 50: vws.iam.v1.PolicyService.DeletePolicyVersion:output_type -> google.longrunning.Operation
+	34, // 51: vws.iam.v1.PolicyService.TagPolicy:output_type -> google.longrunning.Operation
+	34, // 52: vws.iam.v1.PolicyService.UntagPolicy:output_type -> google.longrunning.Operation
+	23, // 53: vws.iam.v1.PolicyService.ListPolicyTags:output_type -> vws.iam.v1.ListPolicyTagsResponse
+	25, // 54: vws.iam.v1.PolicyService.ListEntitiesForPolicy:output_type -> vws.iam.v1.ListEntitiesForPolicyResponse
+	35, // 55: vws.iam.v1.PolicyService.SimulatePrincipalPolicy:output_type -> vws.iam.v1.SimulatePrincipalPolicyResponse
+	36, // 56: vws.iam.v1.PolicyService.SimulateCustomPolicy:output_type -> vws.iam.v1.SimulateCustomPolicyResponse
+	42, // [42:57] is the sub-list for method output_type
+	27, // [27:42] is the sub-list for method input_type
 	27, // [27:27] is the sub-list for extension type_name
 	27, // [27:27] is the sub-list for extension extendee
 	0,  // [0:27] is the sub-list for field type_name

@@ -189,6 +189,28 @@ service PolicyService {
       body: "*"
     };
   }
+
+  // SimulateCustomPolicy is AWS SimulateCustomPolicy. It evaluates the
+  // policies given as strings for each action on each resource, in pages
+  // of actions. It only reads. No stored object is read.
+  // A length, pattern or enum fault, or a missing policy_input_list or
+  // action_names, is INVALID_ARGUMENT / INVALID_SPEC (AWS
+  // ValidationError). A malformed input policy, an action without a
+  // service prefix, a caller_arn that is not a user, group or role ARN,
+  // a resource_owner that is not arn:vws:iam::<account>:root, a
+  // resource_policy without caller_arn, a context value not of its type,
+  // a duplicate context key, two boundaries, or a well-formed marker
+  // this RPC did not return is INVALID_ARGUMENT / INVALID_SPEC
+  // (InvalidInput). resource_policy and resource_handling_option are
+  // InvalidInput until vws-iam#257. Any other failure is INTERNAL
+  // (ServiceFailure).
+  // Authorization (iam:SimulateCustomPolicy) is console-api's.
+  rpc SimulateCustomPolicy(SimulateCustomPolicyRequest) returns (SimulateCustomPolicyResponse) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*}:simulateCustomPolicy"
+      body: "*"
+    };
+  }
 }
 
 // Policy is a customer managed policy.
