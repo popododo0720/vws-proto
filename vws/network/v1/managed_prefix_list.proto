@@ -1,0 +1,219 @@
+syntax = "proto3";
+
+package vws.network.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+import "google/longrunning/operations.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+import "vws/common/v1/resource.proto";
+
+option go_package = "github.com/popododo0720/vws-proto/gen/go/vws/network/v1;networkv1";
+option java_multiple_files = true;
+option java_outer_classname = "ManagedPrefixListProto";
+option java_package = "dev.vws.network.v1";
+
+// ManagedPrefixListService stores a named, versionless set of CIDR entries a
+// caller can reference instead of listing every CIDR inline. It is the
+// contract backing EC2 ManagedPrefixList, used as a
+// SecurityGroupRule.target.prefix_list source. Nodes reconcile spec.
+// Mutations follow vws.common.v1.OperationMetadata.
+// Ownership is the resource name's {project} segment, matching the AWS
+// OwnerId of the caller's account; there is no separate owner field.
+service ManagedPrefixListService {
+  // AIP-131: the Get response is the resource.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  rpc GetManagedPrefixList(GetManagedPrefixListRequest) returns (ManagedPrefixList) {
+    option (google.api.http) = {get: "/v1/{name=projects/*/regions/*/managedPrefixLists/*}"};
+  }
+
+  rpc ListManagedPrefixLists(ListManagedPrefixListsRequest) returns (ListManagedPrefixListsResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*/regions/*}/managedPrefixLists"};
+  }
+
+  // AIP-151: every mutation returns google.longrunning.Operation.
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc CreateManagedPrefixList(CreateManagedPrefixListRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      post: "/v1/{parent=projects/*/regions/*}/managedPrefixLists"
+      body: "managed_prefix_list"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.network.v1.ManagedPrefixList"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc UpdateManagedPrefixList(UpdateManagedPrefixListRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {
+      patch: "/v1/{managed_prefix_list.name=projects/*/regions/*/managedPrefixLists/*}"
+      body: "managed_prefix_list"
+    };
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.network.v1.ManagedPrefixList"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  rpc DeleteManagedPrefixList(DeleteManagedPrefixListRequest) returns (google.longrunning.Operation) {
+    option (google.api.http) = {delete: "/v1/{name=projects/*/regions/*/managedPrefixLists/*}"};
+    option (google.longrunning.operation_info) = {
+      response_type: "vws.network.v1.ManagedPrefixList"
+      metadata_type: "vws.common.v1.OperationMetadata"
+    };
+  }
+
+  // ReportManagedPrefixListStatus is the node reconcile write.
+  rpc ReportManagedPrefixListStatus(ReportManagedPrefixListStatusRequest) returns (ReportManagedPrefixListStatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/{name=projects/*/regions/*/managedPrefixLists/*}:reportStatus"
+      body: "*"
+    };
+  }
+}
+
+// ManagedPrefixList is a regional, named set of CIDR entries.
+// Fields 1-10 are the shared resource envelope.
+// Delete is rejected with DEPENDENCY_MISSING while a SecurityGroupRule in
+// this project and region still targets this list by name.
+message ManagedPrefixList {
+  option (google.api.resource) = {
+    type: "vws.network/ManagedPrefixList"
+    pattern: "projects/{project}/regions/{region}/managedPrefixLists/{managed_prefix_list}"
+    plural: "managedPrefixLists"
+    singular: "managedPrefixList"
+  };
+
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_info).format = UUID4
+  ];
+  int64 generation = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string etag = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  map<string, string> labels = 5;
+  ManagedPrefixListSpec spec = 6 [(google.api.field_behavior) = REQUIRED];
+  ManagedPrefixListStatus status = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp delete_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ManagedPrefixListSpec {
+  // Display name, as AWS CreateManagedPrefixList PrefixListName. Not unique.
+  string prefix_list_name = 1;
+  // Immutable. Must not be UNSPECIFIED.
+  AddressFamily address_family = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+  // 1-1000, as AWS MaxEntries. len(entries) must not exceed this value.
+  int32 max_entries = 3 [(google.api.field_behavior) = REQUIRED];
+  // Identified by cidr, not by position. Duplicate cidrs are rejected.
+  repeated PrefixListEntry entries = 4;
+}
+
+// PrefixListEntry is one CIDR entry, as AWS AddPrefixListEntry Entry.
+// cidr must match address_family: an IPv4 CIDR in an IPV6 list, or the
+// reverse, is rejected.
+message PrefixListEntry {
+  string cidr = 1 [(google.api.field_behavior) = REQUIRED];
+  string description = 2;
+}
+
+enum AddressFamily {
+  ADDRESS_FAMILY_UNSPECIFIED = 0;
+  ADDRESS_FAMILY_IPV4 = 1;
+  ADDRESS_FAMILY_IPV6 = 2;
+}
+
+message ManagedPrefixListStatus {
+  vws.common.v1.ObservedState observed = 1;
+}
+
+message GetManagedPrefixListRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/ManagedPrefixList"
+  ];
+}
+
+message ListManagedPrefixListsRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.network/ManagedPrefixList"
+  ];
+  // Server default is 50. Values above 1000 are coerced to 1000.
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListManagedPrefixListsResponse {
+  repeated ManagedPrefixList managed_prefix_lists = 1;
+  string next_page_token = 2;
+}
+
+message CreateManagedPrefixListRequest {
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).child_type = "vws.network/ManagedPrefixList"
+  ];
+  // Final path segment. Must match vws.common.v1.ResourceId, for example "pl-0abc123".
+  string managed_prefix_list_id = 2 [(google.api.field_behavior) = REQUIRED];
+  ManagedPrefixList managed_prefix_list = 3 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 4 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message UpdateManagedPrefixListRequest {
+  ManagedPrefixList managed_prefix_list = 1 [(google.api.field_behavior) = REQUIRED];
+  // Paths are relative to ManagedPrefixList. address_family is immutable.
+  // Omitted mask is treated as "spec,labels".
+  google.protobuf.FieldMask update_mask = 2;
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool validate_only = 4 [(google.api.field_behavior) = OPTIONAL];
+  bool allow_missing = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message DeleteManagedPrefixListRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/ManagedPrefixList"
+  ];
+  string request_id = 2 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+  bool allow_missing = 3 [(google.api.field_behavior) = OPTIONAL];
+  string etag = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ReportManagedPrefixListStatusRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "vws.network/ManagedPrefixList"
+  ];
+  ManagedPrefixListStatus status = 2 [(google.api.field_behavior) = REQUIRED];
+  string request_id = 3 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+message ReportManagedPrefixListStatusResponse {
+  ManagedPrefixList managed_prefix_list = 1;
+}

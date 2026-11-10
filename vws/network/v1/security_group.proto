@@ -117,10 +117,13 @@ message SecurityGroupSpec {
 
 // SecurityGroupRule is one allow rule. There is no deny rule.
 // direction and protocol must not be UNSPECIFIED.
-// Exactly one of cidr or security_group is set.
+// Exactly one of cidr, security_group or prefix_list is set.
 // TCP and UDP: from_port and to_port are inclusive, 0 to 65535, and from_port <= to_port.
 // ICMP and ALL: from_port and to_port are 0.
 // security_group must be in the same VPC. Self-reference is allowed.
+// prefix_list is the full resource name of a vws.network/ManagedPrefixList in
+// the same project and region; the rule expands to that list's current
+// entries at evaluation time, never a copy taken at rule-write time.
 message SecurityGroupRule {
   // Stable id. Must match vws.common.v1.ResourceId.
   string id = 1 [(google.api.field_behavior) = REQUIRED];
@@ -131,6 +134,7 @@ message SecurityGroupRule {
   oneof target {
     string cidr = 6;
     string security_group = 7 [(google.api.resource_reference).type = "vws.network/SecurityGroup"];
+    string prefix_list = 9 [(google.api.resource_reference).type = "vws.network/ManagedPrefixList"];
   }
   string description = 8;
 }
