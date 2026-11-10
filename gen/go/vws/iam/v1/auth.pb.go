@@ -214,13 +214,15 @@ type Principal struct {
 	// or with one that does not open, has expired, or is bound to another
 	// arn, unique_id or project, is DENY_IMPLICIT (fail closed). For a root,
 	// user or GetSessionToken principal it seals only the credential type (no
-	// session policies) and binds it to the access key id that produced it;
-	// without it Authorize answers DENY_IMPLICIT, so a caller that drops
-	// credential_type and session_context loses access instead of gaining it.
-	// Never log it.
+	// session policies) and binds it to the credential that produced it: the
+	// access key id when Authenticate resolves a key, the console session when
+	// Login or ValidateSession returns the principal. Without it Authorize
+	// answers DENY_IMPLICIT, so a caller that drops credential_type and
+	// session_context loses access instead of gaining it. Never log it.
 	SessionContext string `protobuf:"bytes,9,opt,name=session_context,json=sessionContext,proto3" json:"session_context,omitempty"`
-	// The kind of credential Authenticate resolved. Unset means a long-term
-	// access key or a console session. Authenticate sets SESSION_TOKEN for a
+	// The kind of credential vws-iam resolved. Unset means a long-term access
+	// key (Authenticate) or a console session (Login, ValidateSession), each
+	// with a sealed session_context. Authenticate sets SESSION_TOKEN for a
 	// GetSessionToken session and seals the same fact into session_context;
 	// Authorize opens session_context and answers DENY_IMPLICIT when
 	// credential_type disagrees with it, so a gateway that rewrites the field
@@ -615,8 +617,9 @@ type AuthorizeRequest struct {
 	// The caller, as Authenticate, ValidateSession, or an STS call
 	// returned it. vws-iam re-reads the policies of principal.resource; it does
 	// not trust any other field except mfa_authenticated and auth_time, which
-	// it checks against the session or key that produced them, and
-	// session_context, which it opens and verifies itself.
+	// it checks against the session or key that produced them,
+	// session_context, which it opens and verifies itself, and credential_type,
+	// which must agree with session_context.
 	Principal *Principal `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal,omitempty"`
 	// "<service>:<Action>", for example "ec2:RunInstances" or "s3:PutObject".
 	Action string `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
