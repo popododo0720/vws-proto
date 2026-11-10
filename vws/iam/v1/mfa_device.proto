@@ -210,6 +210,23 @@ message CreateVirtualMfaDeviceRequest {
   // Final path segment. Must match IamName.
   string mfa_device_id = 2 [(google.api.field_behavior) = REQUIRED];
   MfaDevice mfa_device = 3 [(google.api.field_behavior) = REQUIRED];
+  // AWS Tags, at most 50. Empty means none. Validated like TagMFADevice
+  // (key and value length and pattern, a key or value beginning with
+  // aws: is refused). Written in the same store transaction as the
+  // device. If one tag is invalid or the request has more than 50 tags,
+  // the entire request fails and the device is not created.
+  repeated Tag tags = 4;
+  // A repeated request_id within 24 hours with the same request returns
+  // the first response, including the same base32_string_seed and
+  // otpauth_uri, and writes nothing, so a retry after a lost response
+  // does not lose the seed. The same request_id with a different
+  // request is ABORTED / IDEMPOTENCY_CONFLICT. Omitted means no replay:
+  // a retry after a lost response is ALREADY_EXISTS and the seed is
+  // not returned again.
+  string request_id = 5 [
+    (google.api.field_info).format = UUID4,
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 message CreateVirtualMfaDeviceResponse {
