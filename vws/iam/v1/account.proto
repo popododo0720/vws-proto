@@ -34,6 +34,17 @@ service AccountService {
   rpc GetAccountAuthorizationDetails(GetAccountAuthorizationDetailsRequest) returns (GetAccountAuthorizationDetailsResponse) {
     option (google.api.http) = {get: "/v1/{parent=projects/*}:getAccountAuthorizationDetails"};
   }
+
+  // GetAccountSummary is AWS GetAccountSummary. It returns the project's
+  // entity usage and enforced quotas as the AWS SummaryMap. It only reads.
+  // A bad parent is INVALID_ARGUMENT / INVALID_SPEC (AWS ValidationError)
+  // before any store access. Any other failure is INTERNAL (ServiceFailure).
+  // A key absent from summary_map is not reported and must not be filled
+  // with 0.
+  // Authorization (iam:GetAccountSummary) is console-api's.
+  rpc GetAccountSummary(GetAccountSummaryRequest) returns (GetAccountSummaryResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}:getAccountSummary"};
+  }
 }
 
 message GetAccountAuthorizationDetailsRequest {
@@ -193,4 +204,21 @@ message AuthorizationPolicyVersion {
   string version_id = 2;
   bool is_default_version = 3;
   google.protobuf.Timestamp create_time = 4;
+}
+
+message GetAccountSummaryRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetAccountSummaryResponse {
+  // AWS SummaryMap: key to value. Keys returned today are Users, Groups,
+  // Roles, Policies, InstanceProfiles, MFADevices, MFADevicesInUse,
+  // AccountAccessKeysPresent, and the enforced quotas
+  // AccessKeysPerUserQuota, AttachedPoliciesPerGroupQuota,
+  // AttachedPoliciesPerRoleQuota, AttachedPoliciesPerUserQuota,
+  // GroupPolicySizeQuota, GroupsPerUserQuota, PolicySizeQuota,
+  // RolePolicySizeQuota, UserPolicySizeQuota, VersionsPerPolicyQuota.
+  // A key VWS cannot compute honestly is omitted, never invented as 0.
+  map<string, int32> summary_map = 1;
 }
