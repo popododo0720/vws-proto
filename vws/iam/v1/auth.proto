@@ -187,9 +187,33 @@ message Principal {
   // principal's policies and the session policies allow. A principal whose
   // type is FEDERATED_USER or whose arn is a federated-user ARN, without it,
   // or with one that does not open, has expired, or is bound to another
-  // arn, unique_id or project, is DENY_IMPLICIT (fail closed). Empty for
-  // root and users. Never log it.
+  // arn, unique_id or project, is DENY_IMPLICIT (fail closed). For a root,
+  // user or GetSessionToken principal it seals only the credential type (no
+  // session policies) and binds it to the credential that produced it: the
+  // access key id when Authenticate resolves a key, the console session when
+  // Login or ValidateSession returns the principal. Without it Authorize
+  // answers DENY_IMPLICIT, so a caller that drops credential_type and
+  // session_context loses access instead of gaining it. Never log it.
   string session_context = 9 [debug_redact = true];
+  // The kind of credential vws-iam resolved. Unset means a long-term access
+  // key (Authenticate) or a console session (Login, ValidateSession), each
+  // with a sealed session_context. Authenticate sets SESSION_TOKEN for a
+  // GetSessionToken session and seals the same fact into session_context;
+  // Authorize opens session_context and answers DENY_IMPLICIT when
+  // credential_type disagrees with it, so a gateway that rewrites the field
+  // cannot turn a session into a long-term caller. Authorize applies the AWS
+  // limits of a GetSessionToken session: no IAM action without MFA, and no
+  // STS action except AssumeRole and GetCallerIdentity.
+  CredentialType credential_type = 10;
+}
+
+// CredentialType says which credential produced a Principal. Assumed-role and
+// federated-user sessions are already told apart by PrincipalType.
+enum CredentialType {
+  // A long-term access key or a console session.
+  CREDENTIAL_TYPE_UNSPECIFIED = 0;
+  // A GetSessionToken session of a user or root.
+  CREDENTIAL_TYPE_SESSION_TOKEN = 1;
 }
 
 enum PrincipalType {
@@ -267,8 +291,9 @@ message AuthorizeRequest {
   // The caller, as Authenticate, ValidateSession, or an STS call
   // returned it. vws-iam re-reads the policies of principal.resource; it does
   // not trust any other field except mfa_authenticated and auth_time, which
-  // it checks against the session or key that produced them, and
-  // session_context, which it opens and verifies itself.
+  // it checks against the session or key that produced them,
+  // session_context, which it opens and verifies itself, and credential_type,
+  // which must agree with session_context.
   Principal principal = 1 [(google.api.field_behavior) = REQUIRED];
   // "<service>:<Action>", for example "ec2:RunInstances" or "s3:PutObject".
   string action = 2 [(google.api.field_behavior) = REQUIRED];
