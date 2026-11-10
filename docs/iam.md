@@ -46,7 +46,7 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - AssumeRole session policies (`Policy`/`PolicyArns`), and session tags on any STS call.
 - The conditions `...IfExists`, `ForAnyValue:` and `ForAllValues:`.
 - `SimulatePrincipalPolicy`, `SimulateCustomPolicy`.
-- Reverse lookup lists (`ListAttachedUserPolicies`, `ListGroupsForUser`, `ListEntitiesForPolicy` and so on). console-api builds them from spec and status (`User.status.groups`).
+- Reverse lookup lists other than `ListEntitiesForPolicy` (`ListAttachedUserPolicies`, `ListGroupsForUser` and so on). console-api builds those from spec and status (`User.status.groups`).
 
 ## Needs checking
 
@@ -177,6 +177,14 @@ IAM reasons were added to `vws.common.v1.ErrorReason`. `UNAUTHENTICATED`: `INVAL
 - `AccountService.GetAccountPasswordPolicy` is AWS `GetAccountPasswordPolicy`. `parent` is `projects/{project}`. It returns the project's custom `PasswordPolicy`. `max_password_age` (1-1095 days) and `password_reuse_prevention` (1-24) are optional: they are unset when AWS would omit them (passwords never expire, or no reuse check). `expire_passwords` is true exactly when `max_password_age` is set and greater than 0. `minimum_password_length` is 6-128. It is a read RPC, not an operation.
 - Errors: a bad `parent` is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`) before any store access. An account without a custom policy is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`, `The Password Policy with domain name <project> cannot be found.`). Any other failure is `INTERNAL` (`ServiceFailure`). The call only reads, so a retry is safe.
 - Authorization (`iam:GetAccountPasswordPolicy`) is console-api's.
+
+## List entities for a policy (#133)
+
+- `PolicyService.ListEntitiesForPolicy` is AWS `ListEntitiesForPolicy`. `parent` is `projects/{project}`. `policy_arn` is AWS `PolicyArn` (20-2048 characters). `entity_filter` is AWS `EntityFilter` (`User`, `Role`, `Group`, `LocalManagedPolicy`, `AWSManagedPolicy`; unspecified means not set). `path_prefix` is AWS `PathPrefix` (empty is unset: `/`). `policy_usage_filter` is AWS `PolicyUsageFilter` (`PermissionsPolicy`, `PermissionsBoundary`; unspecified means not set, so both count). `max_items` is AWS `MaxItems` (1-1000; 0 is unset, server default 100) and `marker` is AWS `Marker`. The response lists `policy_groups`, `policy_roles` and `policy_users` (each `PolicyEntity` has `name` and `id`), in that order, each by case-folded name. `is_truncated` and `marker` are AWS `IsTruncated` and `Marker`; `marker` is set exactly when `is_truncated` is true. It is a read RPC, not an operation.
+- `LocalManagedPolicy` and `AWSManagedPolicy` select nothing. A customer managed policy of the project is selected by leaving `entity_filter` unset or by `User`/`Role`/`Group`.
+- Errors: a length, pattern or enum fault is `INVALID_ARGUMENT / INVALID_SPEC` (`ValidationError`). A `policy_arn` that is not a managed policy ARN, or a well-formed `marker` the server did not issue, is `INVALID_ARGUMENT / INVALID_SPEC` (`InvalidInput`). All of these are checked before any store access. A policy that is not a managed policy of the project (path included) is `NOT_FOUND / RESOURCE_NOT_FOUND` (`NoSuchEntity`). Any other failure is `INTERNAL` (`ServiceFailure`). console-api answers an explicit `MaxItems=0` as `ValidationError` itself, since 0 means unset here.
+- Pages: the marker continues after the last returned entity (groups, then roles, then users, each by case-folded name), so a change between pages does not shift the listing. The call only reads, so a retry is safe.
+- Authorization (`iam:ListEntitiesForPolicy`) is console-api's.
 
 ## Decode authorization message (#84)
 
