@@ -149,6 +149,20 @@ service AccountService {
       body: "*"
     };
   }
+
+  // ListAccountAliases is AWS ListAccountAliases. It lists the
+  // project's account aliases (at most one). It only reads.
+  // A bad parent, a page_size outside 1-1000, or a page_token with a
+  // character outside [\u0020-\u00FF] is INVALID_ARGUMENT /
+  // INVALID_SPEC (AWS ValidationError). A well-formed page_token this
+  // RPC did not issue is INVALID_ARGUMENT / INVALID_SPEC
+  // (InvalidInput). A project without an alias is an empty, complete
+  // page. Any other failure is INTERNAL (ServiceFailure), the only
+  // error AWS documents for this action.
+  // Authorization (iam:ListAccountAliases) is console-api's.
+  rpc ListAccountAliases(ListAccountAliasesRequest) returns (ListAccountAliasesResponse) {
+    option (google.api.http) = {get: "/v1/{parent=projects/*}:listAccountAliases"};
+  }
 }
 
 message GetAccountAuthorizationDetailsRequest {
@@ -422,3 +436,25 @@ message DeleteAccountPasswordPolicyRequest {
 // DeleteAccountPasswordPolicyResponse is empty, as AWS returns only
 // ResponseMetadata.
 message DeleteAccountPasswordPolicyResponse {}
+
+message ListAccountAliasesRequest {
+  // projects/{project}. The project id follows ResourceId.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+  // AWS MaxItems, 1-1000. 0 means not set: the server default is 100,
+  // as in AWS. console-api answers an explicit MaxItems=0 as
+  // ValidationError itself, since 0 cannot be told apart from unset
+  // here.
+  int32 page_size = 2;
+  // AWS Marker, characters of [\u0020-\u00FF]. Only a value this RPC
+  // returned.
+  string page_token = 3;
+}
+
+message ListAccountAliasesResponse {
+  // AWS AccountAliases, each 3-63 characters of
+  // ^[a-z0-9]([a-z0-9]|-(?!-)){1,61}[a-z0-9]$, in name order. A
+  // project has at most one alias.
+  repeated string account_aliases = 1;
+  // AWS Marker. Set exactly when the result is truncated (IsTruncated).
+  string next_page_token = 2;
+}

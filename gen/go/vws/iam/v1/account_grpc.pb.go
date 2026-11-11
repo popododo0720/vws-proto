@@ -26,6 +26,7 @@ const (
 	AccountService_DeleteAccountAlias_FullMethodName             = "/vws.iam.v1.AccountService/DeleteAccountAlias"
 	AccountService_UpdateAccountPasswordPolicy_FullMethodName    = "/vws.iam.v1.AccountService/UpdateAccountPasswordPolicy"
 	AccountService_DeleteAccountPasswordPolicy_FullMethodName    = "/vws.iam.v1.AccountService/DeleteAccountPasswordPolicy"
+	AccountService_ListAccountAliases_FullMethodName             = "/vws.iam.v1.AccountService/ListAccountAliases"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -129,6 +130,17 @@ type AccountServiceClient interface {
 	// Any other failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:DeleteAccountPasswordPolicy) is console-api's.
 	DeleteAccountPasswordPolicy(ctx context.Context, in *DeleteAccountPasswordPolicyRequest, opts ...grpc.CallOption) (*DeleteAccountPasswordPolicyResponse, error)
+	// ListAccountAliases is AWS ListAccountAliases. It lists the
+	// project's account aliases (at most one). It only reads.
+	// A bad parent, a page_size outside 1-1000, or a page_token with a
+	// character outside [\u0020-\u00FF] is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError). A well-formed page_token this
+	// RPC did not issue is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). A project without an alias is an empty, complete
+	// page. Any other failure is INTERNAL (ServiceFailure), the only
+	// error AWS documents for this action.
+	// Authorization (iam:ListAccountAliases) is console-api's.
+	ListAccountAliases(ctx context.Context, in *ListAccountAliasesRequest, opts ...grpc.CallOption) (*ListAccountAliasesResponse, error)
 }
 
 type accountServiceClient struct {
@@ -203,6 +215,16 @@ func (c *accountServiceClient) DeleteAccountPasswordPolicy(ctx context.Context, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteAccountPasswordPolicyResponse)
 	err := c.cc.Invoke(ctx, AccountService_DeleteAccountPasswordPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) ListAccountAliases(ctx context.Context, in *ListAccountAliasesRequest, opts ...grpc.CallOption) (*ListAccountAliasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAccountAliasesResponse)
+	err := c.cc.Invoke(ctx, AccountService_ListAccountAliases_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -310,6 +332,17 @@ type AccountServiceServer interface {
 	// Any other failure is INTERNAL (ServiceFailure).
 	// Authorization (iam:DeleteAccountPasswordPolicy) is console-api's.
 	DeleteAccountPasswordPolicy(context.Context, *DeleteAccountPasswordPolicyRequest) (*DeleteAccountPasswordPolicyResponse, error)
+	// ListAccountAliases is AWS ListAccountAliases. It lists the
+	// project's account aliases (at most one). It only reads.
+	// A bad parent, a page_size outside 1-1000, or a page_token with a
+	// character outside [\u0020-\u00FF] is INVALID_ARGUMENT /
+	// INVALID_SPEC (AWS ValidationError). A well-formed page_token this
+	// RPC did not issue is INVALID_ARGUMENT / INVALID_SPEC
+	// (InvalidInput). A project without an alias is an empty, complete
+	// page. Any other failure is INTERNAL (ServiceFailure), the only
+	// error AWS documents for this action.
+	// Authorization (iam:ListAccountAliases) is console-api's.
+	ListAccountAliases(context.Context, *ListAccountAliasesRequest) (*ListAccountAliasesResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -340,6 +373,9 @@ func (UnimplementedAccountServiceServer) UpdateAccountPasswordPolicy(context.Con
 }
 func (UnimplementedAccountServiceServer) DeleteAccountPasswordPolicy(context.Context, *DeleteAccountPasswordPolicyRequest) (*DeleteAccountPasswordPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAccountPasswordPolicy not implemented")
+}
+func (UnimplementedAccountServiceServer) ListAccountAliases(context.Context, *ListAccountAliasesRequest) (*ListAccountAliasesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAccountAliases not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -488,6 +524,24 @@ func _AccountService_DeleteAccountPasswordPolicy_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_ListAccountAliases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAccountAliasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).ListAccountAliases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_ListAccountAliases_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).ListAccountAliases(ctx, req.(*ListAccountAliasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -522,6 +576,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAccountPasswordPolicy",
 			Handler:    _AccountService_DeleteAccountPasswordPolicy_Handler,
+		},
+		{
+			MethodName: "ListAccountAliases",
+			Handler:    _AccountService_ListAccountAliases_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
