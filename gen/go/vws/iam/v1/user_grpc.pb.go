@@ -61,6 +61,9 @@ type UserServiceClient interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	// DeleteUser also fails with FAILED_PRECONDITION / DEPENDENCY_MISSING
+	// (AWS DeleteConflict) while the user has a FIDO key
+	// (FidoDeviceService); delete the key first.
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
 	// RevokeUserSessions invalidates every STS session issued so far for
 	// the user (GetSessionToken for a user, AssumeRole for a role), like
@@ -306,6 +309,9 @@ type UserServiceServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*longrunningpb.Operation, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	// DeleteUser also fails with FAILED_PRECONDITION / DEPENDENCY_MISSING
+	// (AWS DeleteConflict) while the user has a FIDO key
+	// (FidoDeviceService); delete the key first.
 	DeleteUser(context.Context, *DeleteUserRequest) (*longrunningpb.Operation, error)
 	// RevokeUserSessions invalidates every STS session issued so far for
 	// the user (GetSessionToken for a user, AssumeRole for a role), like
