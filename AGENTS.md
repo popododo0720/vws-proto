@@ -27,7 +27,7 @@ Every row names its enforcer. `Judgment` means the rule has no automated check; 
 | Commits: Atomic. One commit has one purpose | `scripts/guard-agents.sh` `pr-commits` (CI `pr-hygiene`) |
 | Notices: No logos and no trademark notices | Judgment |
 | Insider risk: A PR targets main and its body has `Part of #N` and no closing keyword. CI reports commits that reached main without a PR. This file has Insider-risk guardrails 1-7 below. The checks are `scripts/guard-agents.sh`, `.github/workflows/repo-guard.yml` and `.github/workflows/direct-push-watch.yml` | `scripts/guard-agents.sh` `pr-body` and `pr-commits`, `.github/workflows/repo-guard.yml`, `.github/workflows/direct-push-watch.yml` |
-| Tools: Do not use Cursor cloud agents. Follow the poteto-mode section below for the way of working | Judgment |
+| Tools: Do not use Cursor cloud agents. Follow the way-of-working section below | Judgment |
 | English only: The repo is English only (see "English only"). Hangul is allowed only in files `.github/english-allowlist` lists with a reason. `scripts/check-english.sh` checks it in the CI `english` job | `scripts/check-english.sh` (CI `english` job) |
 
 ## English only
@@ -40,23 +40,13 @@ Do not work on `main`. Create a branch and get reviews through a PR.
 
 One commit has one purpose. Do not mix the common contract, domain APIs, CI and docs in one commit. The final tree of a PR that changes proto must pass `buf lint` and `buf build`, with `gen/go` up to date. CI checks that tree.
 
-## Way of working (poteto-mode)
+## Way of working
 
 - Write concisely and make the smallest change. Delete what you can.
 - Decide the shape of the data before writing code. When the same mistake repeats, block it with lint or a CI check instead of a sentence.
 - Say something is verified only if you actually ran it. Mark what you could not run as "unverified". Verification in this repo is `buf lint`, `buf build`, `scripts/check-generated-go.sh` and `go build ./...`.
 - Write commit messages and PR descriptions as short plain statements. No unsupported claims and no made-up links.
 - Do not use Cursor cloud agents (CloudAgent). The usage is exhausted; work with `gh` and `git`.
-
-## Using pstack
-
-When design or a fix falls into one of these, use that procedure.
-
-| Situation | Procedure |
-| --- | --- |
-| A design across function boundaries: packages, services and the common contract change together | architect |
-| A contested design: more than one shape could stay in the contract, with trade-offs | interrogate |
-| A repeated mistake: the same lint violation, envelope mismatch or missing idempotency rule comes back | correct |
 
 ## /correct loop
 
