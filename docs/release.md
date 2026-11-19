@@ -1,6 +1,6 @@
 # Release tags
 
-Consumers (vws-compute, vws-storage, vws-network, vws-deploy, vws-iam) pin a tag of this repo, never a branch or a bare commit. `scripts/check-tag.sh` checks the rules below, and the `tag` workflow runs it on every pushed `v*` tag.
+Consumers (vws-iam, vws-console-api, vws-deploy) pin a tag of this repo, never a branch or a bare commit. `scripts/check-tag.sh` checks the rules below, and the `tag` workflow runs it on every pushed `v*` tag.
 
 ## Version rules
 
@@ -38,11 +38,20 @@ The annotated tag message is the release note. It holds:
 
 `git log --oneline <previous>..vX.Y.Z` lists the PRs and `buf breaking --against .git#tag=<previous>` gives the breaking result.
 
-## Next minor release
+## v1.0.0
 
-Deprecate the `vws.compute.v1`, `vws.network.v1`, and `vws.storage.v1` services as
-the Proxmox hybrid design replaces them. Consumers should migrate to the Proxmox
-backend; `vws.iam.v1` remains supported.
+v1.0.0 is a major release, the first one from `v0.24.0`. It removes what VWS no longer hosts: VWS manages Proxmox and AWS, and Proxmox or AWS is the source of truth for observed state. `buf breaking` against `v0.24.0` fails on purpose; the rules are `FILE_NO_DELETE` (14 files) and `FIELD_NO_DELETE` (2 fields). The change is made in one PR whose body says so and lists what each consumer must change.
+
+Removed:
+
+- The `vws.compute.v1`, `vws.storage.v1` (volumes, snapshots, buckets, objects) and `vws.network.v1` packages: every `.proto` file under `vws/compute`, `vws/storage` and `vws/network`, with their generated Go under `gen/go/vws/`. This includes `LookupOperation` from `vws/compute/v1/operation_lookup.proto`. Nothing in `vws.common.v1` or `vws.iam.v1` imported them.
+- `vws.common.v1.ObservedState.node` (field 4) and `vws.common.v1.ReconciliationFailure.node` (field 3). The numbers and the name `node` are `reserved`. The server sets `status.observed` and `ReconciliationFailure` from the backend; no node reports them.
+
+Kept: `vws.common.v1` and `vws.iam.v1`. The `ERROR_REASON_INVALID_BUCKET_NAMESPACE` value stays, so its number is not freed. Go needs no `/v2` path for v1, so the module path is unchanged.
+
+Consumers (vws-iam, vws-console-api, vws-deploy): move to `v1.0.0`, stop importing `computev1`, `storagev1` and `networkv1`, and drop uses of `ObservedState.Node` and `ReconciliationFailure.Node`. vws-compute, vws-storage and vws-network stay on `v0.24.0`.
+
+Tag after merge: `scripts/check-tag.sh v1.0.0` expects an annotated `v1.0.0` on a `main` commit after `v0.24.0`, a major bump with minor and patch 0, `buf breaking` failing against `v0.24.0` (allowed for a major from v1 on) and a `.proto` change. This PR creates no tag. There is no `CHANGELOG`; the tag message is the release note.
 
 ## Consumers
 
