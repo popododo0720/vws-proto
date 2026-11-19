@@ -7,5 +7,18 @@ lint:
 breaking:
   use:
     - FILE
+    # A deleted field passes only when its number and its name are in `reserved`
+    # (docs/release.md). This replaces FIELD_NO_DELETE, which rejects every deletion.
+    - FIELD_NO_DELETE_UNLESS_NUMBER_RESERVED
+    - FIELD_NO_DELETE_UNLESS_NAME_RESERVED
+  except:
+    - FIELD_NO_DELETE
+  # v1.0.0 release exception: these directories were deleted on purpose. They no longer
+  # exist, so the ignore hides nothing except a re-added package. Remove it in the first
+  # minor after v1.0.0 (docs/release.md, "v1.0.0").
+  ignore:
+    - vws/compute
+    - vws/storage
+    - vws/network
 deps:
   - buf.build/googleapis/googleapis
