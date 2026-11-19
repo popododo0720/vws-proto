@@ -10,7 +10,7 @@ Every row names its enforcer. `Judgment` means the rule has no automated check; 
 | --- | --- |
 | Style: Google API style and AIPs. proto3, the `Service` suffix, standard method names | `buf lint` and Judgment for the AIP style it does not check |
 | Lint: `buf lint`, on the `STANDARD` set | `buf lint` |
-| Breaking: `buf breaking`, on the `FILE` set. The `breaking.ignore` of `vws/compute`, `vws/storage` and `vws/network` and the `ignore_only` of `FIELD_NO_DELETE` in `vws/common/v1/resource.proto` and `error.proto` are the v1.0.0 exception and go in the first minor after it | `buf breaking` |
+| Breaking: `buf breaking`, on the `FILE` set, through `scripts/check-breaking.sh`. Its only exception is `scripts/breaking-allow-v1.0.0.txt` (exact v1.0.0 deletions), which goes in the first minor after it | `scripts/check-breaking.sh` (buf CI job) |
 | Package: `vws.<domain>.v1`. The directory matches the package | `buf lint` |
 | Resource envelope: Fields 1–10 of every resource are the same as the envelope in `vws/common/v1/resource.proto` | Judgment |
 | State: `spec` is the desired state. `status.observed` is the state the server read from the backend (Proxmox or AWS) | Judgment |

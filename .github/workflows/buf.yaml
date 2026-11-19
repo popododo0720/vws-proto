@@ -30,10 +30,14 @@ jobs:
           set -euo pipefail
           git fetch origin "${BASE_REF}"
           if git ls-tree -r --name-only "origin/${BASE_REF}" | grep -q '\.proto$'; then
-            buf breaking --against ".git#branch=origin/${BASE_REF}"
+            scripts/check-breaking.sh ".git#branch=origin/${BASE_REF}"
           else
             echo "Base has no proto files. Skipping breaking check."
           fi
+      - name: check-breaking.sh rejects changes outside the v1.0.0 allowlist
+        env:
+          BASE: origin/${{ github.base_ref || 'main' }}
+        run: scripts/check-breaking_test.sh
 
   go:
     runs-on: ubuntu-latest
