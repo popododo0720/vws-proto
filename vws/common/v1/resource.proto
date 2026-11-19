@@ -68,7 +68,7 @@ option java_package = "dev.vws.common.v1";
 // and `Value (<key>) for parameter tagKey is invalid.` for a key. Escape the
 // offending string so the message stays one printable line.
 //
-// ResourceId is the final path segment of every resource except Object.
+// ResourceId is the final path segment of every resource.
 //
 // Grammar:
 //
@@ -78,23 +78,23 @@ option java_package = "dev.vws.common.v1";
 // and contains only lowercase letters, digits, and hyphens. Length is 1 to 63.
 // Project, region, and zone identifiers use the same grammar.
 //
-// Object keys do not use this grammar. See vws.storage.v1.Object.
 message ResourceId {
   string value = 1;
 }
 
-// ObservedState is the node-reported half of every resource status.
+// ObservedState is the server-set half of every resource status. The server
+// reads the state from the backend (Proxmox or AWS), which is the source of truth.
 // Field names and numbers are part of the contract. Copy this message by
 // embedding it as `ObservedState observed = 1` inside each status message.
 message ObservedState {
   ReconciliationState state = 1;
-  // Generation of spec that this report applied. Zero means the node has
-  // not reported yet. The server ignores a report whose generation is lower
-  // than the generation already stored.
+  // Generation of spec that this report applied. Zero means the server has
+  // not observed the backend yet. The server ignores an observation whose
+  // generation is lower than the generation already stored.
   int64 generation = 2;
   repeated Condition conditions = 3;
-  // Identity of the node that produced this report. Empty until the first report.
-  string node = 4;
+  reserved 4;
+  reserved "node";
   string message = 5;
 }
 

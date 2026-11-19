@@ -36,11 +36,9 @@ const (
 // the public key is stored. The private key exists in the CreateKeyPair
 // response and nowhere else: no message in this file that is stored or listed
 // has a private-key field, and the response field is debug_redact.
-// No node reconciles key pairs. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store.
-// The resource is vws.iam/KeyPair under projects/{project}/keyPairs, apart from
-// the deprecated vws.compute/KeyPair under projects/{project}/regions/{region}/keyPairs,
-// so one gateway serves both until vws.compute.v1 is removed.
+// The resource is vws.iam/KeyPair under projects/{project}/keyPairs.
 type KeyPairServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -126,11 +124,9 @@ func (c *keyPairServiceClient) DeleteKeyPair(ctx context.Context, in *DeleteKeyP
 // the public key is stored. The private key exists in the CreateKeyPair
 // response and nowhere else: no message in this file that is stored or listed
 // has a private-key field, and the response field is debug_redact.
-// No node reconciles key pairs. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store.
-// The resource is vws.iam/KeyPair under projects/{project}/keyPairs, apart from
-// the deprecated vws.compute/KeyPair under projects/{project}/regions/{region}/keyPairs,
-// so one gateway serves both until vws.compute.v1 is removed.
+// The resource is vws.iam/KeyPair under projects/{project}/keyPairs.
 type KeyPairServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME

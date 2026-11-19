@@ -41,7 +41,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // UserService manages IAM users of a project (the AWS account).
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 // Delete is FAILED_PRECONDITION / DEPENDENCY_MISSING while the user has access
@@ -289,7 +289,7 @@ func (c *userServiceClient) ListUserTags(ctx context.Context, in *ListUserTagsRe
 // for forward compatibility.
 //
 // UserService manages IAM users of a project (the AWS account).
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 // Delete is FAILED_PRECONDITION / DEPENDENCY_MISSING while the user has access
