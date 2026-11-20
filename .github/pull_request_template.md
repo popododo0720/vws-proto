@@ -4,7 +4,7 @@ Part of #
 
 ## How it was verified (only what was actually run)
 
-## Downstream impact (if proto changed: breaking or not, and what vws-compute/storage/network/deploy need to do)
+## Downstream impact (if proto changed: breaking or not, and what vws-iam/console-api/deploy need to do)
 
 ## Not verified (needs checking)
 
@@ -19,7 +19,7 @@ AWS-grade production quality, not demo (see QUALITY.md). Every checked box needs
 - [ ] **Security**: all input validated; least-privilege RBAC/permissions; secrets kept in approved secret storage, never logged and never in the repo. Evidence:
 - [ ] **Unit tests**: new behavior and failure paths covered; a new test fails on main. Evidence:
 - [ ] **Integration tests**: covered against real dependencies or fakes at the boundary. Evidence:
-- [ ] **vws-test live evidence (required)**: link or paths to commands and output from the vws-test cluster. No live evidence = not done. Until phase 1 is done, write "N/A: live check deferred until after phase 1 (owner decision)". Evidence:
+- [ ] **vws-test live evidence (required)**: link or paths to commands and output from the pve-test target. No live evidence = not done. Until phase 1 is done, write "N/A: live check deferred until after phase 1 (owner decision)". Evidence:
 - [ ] **Observability**: OpenTelemetry traces/metrics for the new paths and structured logs (no secrets). Evidence:
 - [ ] **Idempotency**: safe on retry, duplicate request and process restart. Evidence:
 - [ ] **AWS compatibility (where applicable)**: API behavior and error codes match AWS. Evidence:

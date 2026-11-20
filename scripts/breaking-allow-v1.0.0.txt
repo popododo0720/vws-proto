@@ -1,0 +1,19 @@
+# One-time v1.0.0 allowlist for scripts/check-breaking.sh (docs/release.md, "v1.0.0").
+# One "RULE|PATH|MESSAGE" line per approved `buf breaking` failure, matched exactly.
+# Delete this file in the first minor after v1.0.0.
+FILE_NO_DELETE||Previously present file "vws/compute/v1/image.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/compute/v1/instance.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/compute/v1/key_pair.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/compute/v1/operation_lookup.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/network/v1/address.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/network/v1/internet_gateway.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/network/v1/managed_prefix_list.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/network/v1/security_group.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/network/v1/subnet.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/network/v1/vpc.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/storage/v1/bucket.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/storage/v1/object.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/storage/v1/snapshot.proto" was deleted.
+FILE_NO_DELETE||Previously present file "vws/storage/v1/volume.proto" was deleted.
+FIELD_NO_DELETE|vws/common/v1/error.proto|Previously present field "3" with name "node" on message "ReconciliationFailure" was deleted.
+FIELD_NO_DELETE|vws/common/v1/resource.proto|Previously present field "4" with name "node" on message "ObservedState" was deleted.

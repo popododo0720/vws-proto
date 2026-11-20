@@ -57,13 +57,14 @@ enum ErrorReason {
   ERROR_REASON_INCORRECT_STATE = 18;
 }
 
-// ReconciliationFailure is an extra detail on google.rpc.Status when a node
-// reports ERROR_REASON_RECONCILIATION_FAILED. It is packed into
+// ReconciliationFailure is an extra detail on google.rpc.Status when the server
+// reports ERROR_REASON_RECONCILIATION_FAILED for a backend (Proxmox or AWS). It is packed into
 // google.protobuf.Any alongside google.rpc.ErrorInfo.
 message ReconciliationFailure {
   string resource = 1;
   int64 generation = 2;
-  string node = 3;
+  reserved 3;
+  reserved "node";
   string reason = 4;
   bool retryable = 5;
 }

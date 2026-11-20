@@ -10,17 +10,17 @@ Every row names its enforcer. `Judgment` means the rule has no automated check; 
 | --- | --- |
 | Style: Google API style and AIPs. proto3, the `Service` suffix, standard method names | `buf lint` and Judgment for the AIP style it does not check |
 | Lint: `buf lint`, on the `STANDARD` set | `buf lint` |
-| Breaking: `buf breaking`, on the `FILE` set | `buf breaking` |
+| Breaking: `buf breaking`, on the `FILE` set, through `scripts/check-breaking.sh`. Its only exception is `scripts/breaking-allow-v1.0.0.txt` (exact v1.0.0 deletions), which goes in the first minor after it | `scripts/check-breaking.sh` (buf CI job) |
 | Package: `vws.<domain>.v1`. The directory matches the package | `buf lint` |
 | Resource envelope: Fields 1–10 of every resource are the same as the envelope in `vws/common/v1/resource.proto` | Judgment |
-| State: `spec` is the desired state. `status.observed` is the state the node reported | Judgment |
+| State: `spec` is the desired state. `status.observed` is the state the server read from the backend (Proxmox or AWS) | Judgment |
 | Mutating RPC: Returns a `google.longrunning.Operation`. Metadata is `vws.common.v1.OperationMetadata` | Judgment |
 | Read RPC: Returns the resource message | Judgment |
 | Lint exceptions: Only `RPC_RESPONSE_STANDARD_NAME` on `Get*`, and `RPC_RESPONSE_STANDARD_NAME` and `RPC_REQUEST_RESPONSE_UNIQUE` on mutating RPCs, because of AIP-131 and AIP-151 | Judgment |
 | Idempotency: Create, update, delete and status reports reach the same result when run again, following the rules written in `OperationMetadata` | Judgment |
 | Restart: The desired state and the operation are stored before the response. When the process comes back up, it reconciles from that record | Judgment |
 | Identifiers: `ResourceId` grammar except Object keys. Collection names are AIP-122 camelCase | Judgment |
-| Go package: `option go_package = "github.com/popododo0720/vws-proto/gen/go/<proto directory>;<domain><version>"`. `vws/compute/v1` is `computev1`. CI checks it against the file path | `scripts/check-generated-go.sh` (CI `go` job) |
+| Go package: `option go_package = "github.com/popododo0720/vws-proto/gen/go/<proto directory>;<domain><version>"`. `vws/iam/v1` is `iamv1`. CI checks it against the file path | `scripts/check-generated-go.sh` (CI `go` job) |
 | Generated code: The output of `buf generate` and `go mod tidy` (`gen/go`, `go.mod`, `go.sum`) goes in the same commit as the proto change. `gen/go` is never edited by hand | `scripts/check-generated-go.sh` (CI `go` job) |
 | References: Other resources are referenced by full resource name, not linked by proto imports across packages | Judgment |
 | Branches: Do not commit or push to `main` directly. Changes go in through a branch and a PR | `.github/workflows/repo-guard.yml` `pr-base` and `.github/workflows/direct-push-watch.yml` |
@@ -61,7 +61,7 @@ One commit has one purpose. Do not mix the common contract, domain APIs, CI and 
 Bots are insider risks too. The rules below have no exceptions. The design is vws-deploy#33.
 
 1. **Independent verification**: an important result (merge, security, data) is never verified by the bot/model that wrote it. Another bot (or a person) verifies it. (Process rule; CI cannot enforce it.)
-2. **Records**: every change leaves a trail of issue → PR (`Part of #N`) → commits. Work logs go in the PR body or issue comments in a form people can read. No force-push or history rewriting (except with the user's approval). In this repo, the body of a PR that changes proto states the impact on downstream repos (vws-compute, vws-storage, vws-network, vws-deploy) and whether it is breaking.
+2. **Records**: every change leaves a trail of issue → PR (`Part of #N`) → commits. Work logs go in the PR body or issue comments in a form people can read. No force-push or history rewriting (except with the user's approval). In this repo, the body of a PR that changes proto states the impact on downstream repos (vws-iam, vws-console-api, vws-deploy) and whether it is breaking.
 3. **Failure tests**: a new feature is not tested on the happy path only. Include at least one case each for power loss/restart, idempotent re-run and malicious or boundary input, or state in the PR why that is not possible. In this repo, the PR confirms that `buf breaking` fails when a field number is changed or removed, and input validation rules are written in `docs/validation.md`.
 4. **Least privilege**: no direct pushes to main. Every change is a single PR from its own branch cut from main. No stacked PRs. No local merges. Tokens are scoped to the repo. RBAC covers only the resources the service code actually calls, as a Role (namespace scope) where possible.
 5. **Separated audit**: author bot ≠ verifier bot ≠ merge decision. An author bot never merges its own PR. Merge only when base==main and every CI check on the head commit is success.

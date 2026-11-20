@@ -38,7 +38,7 @@ const (
 // stores the digest and compares digests (ValidateSession and Logout take the
 // token as before).
 // Projects are not bound here: the project of a session is the parent.
-// No node reconciles IAM, so every operation of this service is returned done.
+// Every operation of this service is returned done.
 type ConsoleSessionServiceClient interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
@@ -116,7 +116,7 @@ func (c *consoleSessionServiceClient) RevokeConsoleSession(ctx context.Context, 
 // stores the digest and compares digests (ValidateSession and Logout take the
 // token as before).
 // Projects are not bound here: the project of a session is the parent.
-// No node reconciles IAM, so every operation of this service is returned done.
+// Every operation of this service is returned done.
 type ConsoleSessionServiceServer interface {
 	// AIP-131: the Get response is the resource.
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME

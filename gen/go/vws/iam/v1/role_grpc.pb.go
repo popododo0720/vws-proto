@@ -41,7 +41,7 @@ const (
 //
 // RoleService manages IAM roles. A role is assumed through
 // TokenService.AssumeRole; its trust policy says who may assume it.
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 // Delete is FAILED_PRECONDITION / DEPENDENCY_MISSING while policies are
@@ -310,7 +310,7 @@ func (c *roleServiceClient) UntagRole(ctx context.Context, in *UntagRoleRequest,
 //
 // RoleService manages IAM roles. A role is assumed through
 // TokenService.AssumeRole; its trust policy says who may assume it.
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 // Delete is FAILED_PRECONDITION / DEPENDENCY_MISSING while policies are

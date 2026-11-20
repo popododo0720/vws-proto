@@ -244,7 +244,7 @@ func (ConditionState) EnumDescriptor() ([]byte, []int) {
 // and `Value (<key>) for parameter tagKey is invalid.` for a key. Escape the
 // offending string so the message stays one printable line.
 //
-// ResourceId is the final path segment of every resource except Object.
+// ResourceId is the final path segment of every resource.
 //
 // Grammar:
 //
@@ -253,8 +253,6 @@ func (ConditionState) EnumDescriptor() ([]byte, []int) {
 // The segment starts with a lowercase letter, ends with a letter or digit,
 // and contains only lowercase letters, digits, and hyphens. Length is 1 to 63.
 // Project, region, and zone identifiers use the same grammar.
-//
-// Object keys do not use this grammar. See vws.storage.v1.Object.
 type ResourceId struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Value         string                 `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
@@ -299,20 +297,19 @@ func (x *ResourceId) GetValue() string {
 	return ""
 }
 
-// ObservedState is the node-reported half of every resource status.
+// ObservedState is the server-set half of every resource status. The server
+// reads the state from the backend (Proxmox or AWS), which is the source of truth.
 // Field names and numbers are part of the contract. Copy this message by
 // embedding it as `ObservedState observed = 1` inside each status message.
 type ObservedState struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	State ReconciliationState    `protobuf:"varint,1,opt,name=state,proto3,enum=vws.common.v1.ReconciliationState" json:"state,omitempty"`
-	// Generation of spec that this report applied. Zero means the node has
-	// not reported yet. The server ignores a report whose generation is lower
-	// than the generation already stored.
-	Generation int64        `protobuf:"varint,2,opt,name=generation,proto3" json:"generation,omitempty"`
-	Conditions []*Condition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
-	// Identity of the node that produced this report. Empty until the first report.
-	Node          string `protobuf:"bytes,4,opt,name=node,proto3" json:"node,omitempty"`
-	Message       string `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
+	// Generation of spec that this report applied. Zero means the server has
+	// not observed the backend yet. The server ignores an observation whose
+	// generation is lower than the generation already stored.
+	Generation    int64        `protobuf:"varint,2,opt,name=generation,proto3" json:"generation,omitempty"`
+	Conditions    []*Condition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	Message       string       `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -366,13 +363,6 @@ func (x *ObservedState) GetConditions() []*Condition {
 		return x.Conditions
 	}
 	return nil
-}
-
-func (x *ObservedState) GetNode() string {
-	if x != nil {
-		return x.Node
-	}
-	return ""
 }
 
 func (x *ObservedState) GetMessage() string {
@@ -474,7 +464,7 @@ const file_vws_common_v1_resource_proto_rawDesc = "" +
 	"\x1cvws/common/v1/resource.proto\x12\rvws.common.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\"\n" +
 	"\n" +
 	"ResourceId\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\tR\x05value\"\xd1\x01\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\"\xc9\x01\n" +
 	"\rObservedState\x128\n" +
 	"\x05state\x18\x01 \x01(\x0e2\".vws.common.v1.ReconciliationStateR\x05state\x12\x1e\n" +
 	"\n" +
@@ -482,9 +472,8 @@ const file_vws_common_v1_resource_proto_rawDesc = "" +
 	"generation\x128\n" +
 	"\n" +
 	"conditions\x18\x03 \x03(\v2\x18.vws.common.v1.ConditionR\n" +
-	"conditions\x12\x12\n" +
-	"\x04node\x18\x04 \x01(\tR\x04node\x12\x18\n" +
-	"\amessage\x18\x05 \x01(\tR\amessage\"\xa3\x02\n" +
+	"conditions\x12\x18\n" +
+	"\amessage\x18\x05 \x01(\tR\amessageJ\x04\b\x04\x10\x05R\x04node\"\xa3\x02\n" +
 	"\tCondition\x120\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x1c.vws.common.v1.ConditionTypeR\x04type\x123\n" +
 	"\x05state\x18\x02 \x01(\x0e2\x1d.vws.common.v1.ConditionStateR\x05state\x12\x16\n" +

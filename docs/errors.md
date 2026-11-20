@@ -13,7 +13,7 @@ A non-OK status has:
 
 - `code`: the gRPC code from the table below.
 - `message`: safe to return to a client. It never contains internal error text, SQL, secrets,
-  node credentials, or a stack trace.
+  backend credentials, or a stack trace.
 - exactly one `google.rpc.ErrorInfo` in `details`:
   - `domain` is `vws.dev`. A client ignores details with another domain.
   - `reason` is the `vws.common.v1.ErrorReason` name without the `ERROR_REASON_` prefix.
@@ -72,15 +72,14 @@ under `ABORTED`.
 
 ## ReconciliationFailure
 
-`ReconciliationFailure` is attached to `RECONCILIATION_FAILED`. It says whether another attempt
+`ReconciliationFailure` is attached to `RECONCILIATION_FAILED`. The server sets it when a backend (Proxmox or AWS) call fails. Field number 3 (`node`) is reserved and never reused. It says whether another attempt
 can succeed without a change to the desired state.
 
 | Field | Meaning |
 | --- | --- |
 | `resource` | Full resource name the failure applies to |
 | `generation` | Desired generation the failure applies to |
-| `node` | Node that reported the failure |
-| `reason` | Short node reason. Not `ErrorInfo.reason`, and no secret |
+| `reason` | Short failure reason. Not `ErrorInfo.reason`, and no secret |
 | `retryable` | Whether the same request can succeed later |
 
 - `retryable=true`: transient. Retry the same desired state with bounded exponential backoff and

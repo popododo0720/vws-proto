@@ -33,7 +33,7 @@ const (
 //
 // GroupService manages IAM groups. A group is not a principal: it only
 // carries policies for its members.
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 // Delete is FAILED_PRECONDITION / DEPENDENCY_MISSING while the group has
@@ -119,7 +119,7 @@ func (c *groupServiceClient) DeleteGroup(ctx context.Context, in *DeleteGroupReq
 //
 // GroupService manages IAM groups. A group is not a principal: it only
 // carries policies for its members.
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 // Delete is FAILED_PRECONDITION / DEPENDENCY_MISSING while the group has

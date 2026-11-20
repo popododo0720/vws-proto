@@ -22,7 +22,7 @@ option java_package = "dev.vws.iam.v1";
 // so the secret is never kept in an operation record (an exception to the
 // AIP-151 rule of this module).
 // A user has at most 2 keys; a third is RESOURCE_EXHAUSTED / QUOTA_EXCEEDED.
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 service AccessKeyService {

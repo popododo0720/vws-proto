@@ -47,7 +47,7 @@ const (
 // only), Condition. A document the evaluator cannot parse, or with a
 // condition operator or key outside docs/iam.md, is INVALID_ARGUMENT /
 // INVALID_SPEC and stores nothing. At most 6144 characters without whitespace.
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 // A policy keeps at most 5 versions; a sixth is RESOURCE_EXHAUSTED /
@@ -308,7 +308,7 @@ func (c *policyServiceClient) SimulateCustomPolicy(ctx context.Context, in *Simu
 // only), Condition. A document the evaluator cannot parse, or with a
 // condition operator or key outside docs/iam.md, is INVALID_ARGUMENT /
 // INVALID_SPEC and stores nothing. At most 6144 characters without whitespace.
-// No node reconciles IAM. The server writes the resource and its status
+// The server writes the resource and its status
 // (observed.state READY, observed.generation = generation) in one store, so
 // every operation of this service is returned done.
 // A policy keeps at most 5 versions; a sixth is RESOURCE_EXHAUSTED /

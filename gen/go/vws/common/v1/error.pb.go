@@ -146,14 +146,13 @@ func (ErrorReason) EnumDescriptor() ([]byte, []int) {
 	return file_vws_common_v1_error_proto_rawDescGZIP(), []int{0}
 }
 
-// ReconciliationFailure is an extra detail on google.rpc.Status when a node
-// reports ERROR_REASON_RECONCILIATION_FAILED. It is packed into
+// ReconciliationFailure is an extra detail on google.rpc.Status when the server
+// reports ERROR_REASON_RECONCILIATION_FAILED for a backend (Proxmox or AWS). It is packed into
 // google.protobuf.Any alongside google.rpc.ErrorInfo.
 type ReconciliationFailure struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Resource      string                 `protobuf:"bytes,1,opt,name=resource,proto3" json:"resource,omitempty"`
 	Generation    int64                  `protobuf:"varint,2,opt,name=generation,proto3" json:"generation,omitempty"`
-	Node          string                 `protobuf:"bytes,3,opt,name=node,proto3" json:"node,omitempty"`
 	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
 	Retryable     bool                   `protobuf:"varint,5,opt,name=retryable,proto3" json:"retryable,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -204,13 +203,6 @@ func (x *ReconciliationFailure) GetGeneration() int64 {
 	return 0
 }
 
-func (x *ReconciliationFailure) GetNode() string {
-	if x != nil {
-		return x.Node
-	}
-	return ""
-}
-
 func (x *ReconciliationFailure) GetReason() string {
 	if x != nil {
 		return x.Reason
@@ -229,15 +221,14 @@ var File_vws_common_v1_error_proto protoreflect.FileDescriptor
 
 const file_vws_common_v1_error_proto_rawDesc = "" +
 	"\n" +
-	"\x19vws/common/v1/error.proto\x12\rvws.common.v1\"\x9d\x01\n" +
+	"\x19vws/common/v1/error.proto\x12\rvws.common.v1\"\x95\x01\n" +
 	"\x15ReconciliationFailure\x12\x1a\n" +
 	"\bresource\x18\x01 \x01(\tR\bresource\x12\x1e\n" +
 	"\n" +
 	"generation\x18\x02 \x01(\x03R\n" +
-	"generation\x12\x12\n" +
-	"\x04node\x18\x03 \x01(\tR\x04node\x12\x16\n" +
+	"generation\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x1c\n" +
-	"\tretryable\x18\x05 \x01(\bR\tretryable*\xb0\x05\n" +
+	"\tretryable\x18\x05 \x01(\bR\tretryableJ\x04\b\x03\x10\x04R\x04node*\xb0\x05\n" +
 	"\vErrorReason\x12\x1c\n" +
 	"\x18ERROR_REASON_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fERROR_REASON_RESOURCE_NOT_FOUND\x10\x01\x12\x1f\n" +
